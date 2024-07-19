@@ -1,16 +1,41 @@
 title: Talking-buildings
 email: devmanesp1@cardiff.ac.uk
-description: >-
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
-baseurl: suhasdevmane.github.io # the subpath of your site, e.g. /blog
+description: >- # this means to ignore newlines until "baseurl:"
+  Talking-buildings is the undergoing research project for HUman-Buildings conversation in natural language.
+   This research focuses on developing a comprehensive smart building framework that integrates chatbot-driven
+    natural language interactions into smart buildings. The framework uses SPARQL to query the Smart Building 
+    Knowledge Base (KB) and interact with buildings using a chatbot. To create an ontology, an environmental
+     sensor network testbed was set up using an ontology representing a smart building to evaluate the answer 
+     to the question. We have used transformer-based machine learning (ML) models to translate the natural
+      language queries into SPARQL queries and summarize combined SPARQL and natural language queries, which
+       produced promising performance. Our aim is to extend this model to support heterogeneous building types
+        represented by smart building ontologies. By integrating chatbots into smart building systems on the edge, 
+        users can interact in natural language, provide real-time information, and detect potential threats 
+        without the need for specialized knowledge.
+baseurl: "" # the subpath of your site, leave it empty for user/organization site
 url: "https://suhasdevmane.github.io"
 twitter_username: suhasdevmane
-github_username:  suhasdevmane
+github_username: suhasdevmane
 
 # Build settings
-theme: jekyll-theme-minimal
+theme: jekyll-theme-cayman
 plugins:
   - jekyll-feed
   - jekyll-admin
+
+# Exclude from processing.
+# The following items will not be processed, by default.
+# Any item listed under the `exclude:` key here will be automatically added to
+# the internal "default list".
+#
+# exclude:
+#   - .sass-cache/
+#   - .jekyll-cache/
+#   - gemfiles/
+#   - Gemfile
+#   - Gemfile.lock
+#   - node_modules/
+#   - vendor/bundle/
+#   - vendor/cache/
+#   - vendor/gems/
+#   - vendor/ruby/

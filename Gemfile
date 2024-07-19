@@ -1,15 +1,12 @@
 source "https://rubygems.org"
 
-# Use GitHub Pages gem instead of Jekyll gem
+# Use GitHub Pages gem to manage Jekyll and other dependencies
 gem "github-pages", group: :jekyll_plugins
-
-# This is the default theme for new Jekyll sites. You may change this to anything you like.
-gem "minima", "~> 2.5"
 
 # If you have any plugins, put them here!
 group :jekyll_plugins do
-  gem "jekyll-admin", "~> 0.11"
-  gem "jekyll-feed", "~> 0.12"
+  gem "jekyll-admin"
+  gem "jekyll-feed"
   gem "csv", "~> 3.1"
   gem "webrick", "~> 1.7"
   gem "rack", "~> 2.2"
