@@ -1,7 +1,7 @@
 ---
 layout: home
 ---
-./Welcome to Talking-Buildings
+Talking-Buildings
 --------
 
 I'm Suhas Devmane. Talking-Buildings is an ongoing research project for Human-Building Interaction (HBI) in Natural language.This project aims to explore the ways in which buildings can communicate with their inhabitants using natural language processing.
