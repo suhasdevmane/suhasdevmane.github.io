@@ -1,6 +1,6 @@
 ---
 title: About others
-author: Tao He
+author: Suhas Devmane
 date: 2022-02-04
 category: Jekyll
 layout: post
