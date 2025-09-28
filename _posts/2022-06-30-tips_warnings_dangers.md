@@ -4,6 +4,7 @@ author: Suhas Devmane
 date: 2022-06-30
 category: Jekyll
 layout: post
+published: false
 ---
 
 This jekyll-theme supports tips, warnings, and dangers blocks and the style is referred
