@@ -1,7 +1,6 @@
----
 layout: default
-title: Customization (New Buildings)
----
+ title: Customization
+ date: 2025-09-28
 
 # Customization for New Buildings
 

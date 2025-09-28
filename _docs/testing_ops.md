@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Testing & Operations
+date: 2025-09-28
 ---
 
 # Testing & Operations

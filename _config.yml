@@ -1,10 +1,10 @@
 # Configurations
-title: Talking-Buildings
-longtitle: Talking-buildings- Human-Building conversation in Natural language.
+title: OntoBot
+longtitle: OntoBot – Human–Building conversation in natural language
 author: Suhas Devmane
 email: devmanesp1@cardiff.ac.uk
 description: >
-  Talking-Buildings is an ongoing research project for Human-Building Interaction (HBI) in Natural language.
+  OntoBot is an end-to-end platform for human–building conversation in natural language, combining Rasa, analytics microservices, and knowledge stores (SQL/SPARQL).
 
 version: 1.0
 gitbook_version: 3.2.3

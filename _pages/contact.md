@@ -1,9 +1,10 @@
 ---
 title: Contact
 author: Suhas Devmane
-date: 2024-02-05
+date: 2025-09-28
 category: Jekyll
 layout: post
+published: false
 ---
 
 This is an contact page.

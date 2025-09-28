@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Analytics API Reference
+date: 2025-09-28
 ---
 
 # Analytics API Reference

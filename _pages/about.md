@@ -1,9 +1,9 @@
 ---
-title: Contact
+title: About OntoBot
 author: Suhas Devmane
-date: 2022-02-04
+date: 2025-09-28
 category: Jekyll
 layout: post
 ---
 
-This is an about page.
+Brief about the OntoBot documentation site. For contact, please refer to the repository README.
