@@ -1,5 +1,3 @@
-layout: home
-Talking-Buildings
 ---
 layout: home
 title: OntoBot
@@ -15,6 +13,6 @@ Quick links:
 - [Usage](/docs/usage/)
 - [Services](/docs/services/)
 - [Data & Payloads](/docs/data_payloads/)
-- [Customization (New Buildings)](/docs/customization/)
+- [Customization](/docs/customization/)
 - [Analytics API Reference](/docs/analytics_api/)
 - [Testing & Operations](/docs/testing_ops/)

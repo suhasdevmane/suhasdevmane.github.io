@@ -60,9 +60,8 @@ collections:
     permalink: /:collection/:path/
 
 ordered_collections:
-  - posts
+  - docs
   - pages
-  - others
 
 page_width: 800px
 
