@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: Data & Payloads
 date: 2025-09-28
 ---

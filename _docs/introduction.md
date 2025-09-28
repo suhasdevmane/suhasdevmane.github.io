@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: OntoBot Introduction
 date: 2025-09-28
 ---

@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: Services
 date: 2025-09-28
 ---

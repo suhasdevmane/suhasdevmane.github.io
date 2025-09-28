@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: Usage
 date: 2025-09-28
 ---

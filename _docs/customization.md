@@ -1,6 +1,8 @@
-layout: default
- title: Customization
- date: 2025-09-28
+---
+layout: post
+title: Customization
+date: 2025-09-28
+---
 
 # Customization for New Buildings
 
