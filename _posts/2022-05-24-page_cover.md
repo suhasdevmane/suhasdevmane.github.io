@@ -1,7 +1,7 @@
 ---
 title: Page with cover image
 author: Suhas Devmane
-date: 2022-05-24
+date: 2025-09-28
 category: Jekyll
 layout: post
 cover: https://sighingnow.github.io/jekyll-gitbook/assets/dinosaur.gif

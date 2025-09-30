@@ -1,7 +1,7 @@
 ---
 title: Wide tables
 author: Suhas Devmane
-date: 2022-06-26
+date: 2025-09-28
 category: Jekyll
 layout: post
 published: false

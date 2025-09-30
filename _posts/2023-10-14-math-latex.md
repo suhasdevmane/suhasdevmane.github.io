@@ -1,7 +1,7 @@
 ---
 title: MathJax and LaTeX
 author: Suhas Devmane
-date: 2023-10-14
+date: 2025-09-28
 category: Jekyll
 layout: post
 mermaid: true
