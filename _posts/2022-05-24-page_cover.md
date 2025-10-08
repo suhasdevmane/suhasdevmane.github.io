@@ -1,7 +1,7 @@
 ---
 title: Page with cover image
 author: Suhas Devmane
-date: 2025-09-28
+date: 2022-05-24
 category: Jekyll
 layout: post
 cover: https://sighingnow.github.io/jekyll-gitbook/assets/dinosaur.gif
@@ -15,7 +15,7 @@ a `cover` field to the page metadata:
   ---
   title: Page with cover image
   author: Suhas Devmane
-  date: 2025-09-24
+  date: 2022-05-24
   category: Jekyll
   layout: post
 + cover: /assets/jekyll-gitbook/dinosaur.gif

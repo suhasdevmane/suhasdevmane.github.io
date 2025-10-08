@@ -73,3 +73,7 @@ plugins:
   - jekyll-feed
   - jekyll-readme-index
   - jemoji
+
+# Load additional custom stylesheet overrides
+extra_css:
+  - assets/gitbook/code-dark.css
