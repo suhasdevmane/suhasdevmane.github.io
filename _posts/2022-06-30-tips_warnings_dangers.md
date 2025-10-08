@@ -1,7 +1,7 @@
 ---
 title: Tips, Warnings, and Dangers
 author: Suhas Devmane
-date: 2025-09-28
+date: 2022-06-30
 category: Jekyll
 layout: post
 published: false

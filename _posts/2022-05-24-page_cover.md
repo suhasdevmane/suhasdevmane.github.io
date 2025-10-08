@@ -15,7 +15,7 @@ a `cover` field to the page metadata:
   ---
   title: Page with cover image
   author: Suhas Devmane
-  date: 2022-05-24
+  date: 2025-09-24
   category: Jekyll
   layout: post
 + cover: /assets/jekyll-gitbook/dinosaur.gif

@@ -1,7 +1,7 @@
 ---
 title: Using Footnotes
 author: Suhas Devmane
-date: 2025-09-28
+date: 2023-12-12
 category: Jekyll
 layout: post
 mermaid: true
