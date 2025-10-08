@@ -6,33 +6,36 @@
 
 /* ----- Override: remove white/forced backgrounds from code blocks ----- */
 /* Make code blocks inherit page/background so they don't show a white box */
+/* Make block code boxes use a dark background and light text */
 pre,
 pre.highlight,
 .highlight pre,
 .highlight code,
-code,
-tt,
 .markdown-section pre,
-.markdown-section pre>code,
-.markdown-section code {
-	background: transparent !important;
-	background-color: transparent !important;
+.markdown-section pre>code {
+	background: #0d1117 !important; /* near-black */
+	background-color: #0d1117 !important;
+	color: #c9d1d9 !important; /* light text for readability */
 	box-shadow: none !important;
-	border: none !important;
+	border: 1px solid #30363d !important;
+	border-radius: 6px !important;
 }
 
-/* Keep inline code readable — only remove solid white backgrounds */
+/* Inline code: keep a subtle dark tint to separate from paragraph text */
 code, tt {
-	background-color: rgba(0,0,0,0.06) !important; /* slight tint for readability; change/remove if undesired */
+	background-color: rgba(13,17,23,0.9) !important;
+	color: #c9d1d9 !important;
+	padding: 0.12em 0.35em !important;
+	border-radius: 4px !important;
 }
 
-/* If any plugin sets a white background on rougue/gutter or mermaid processed blocks, neutralize it */
+/* Neutralize plugin-specific white backgrounds (Rouge, mermaid) */
 .rouge .gutter,
 .rouge-gutter,
 .rouge .highlight,
 pre:has(code.language-mermaid[data-processed="true"]) {
-	background: transparent !important;
-	background-color: transparent !important;
+	background: #0d1117 !important;
+	background-color: #0d1117 !important;
 }
 
 /* Ensure selection color still shows on code */
