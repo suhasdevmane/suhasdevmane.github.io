@@ -3,3 +3,37 @@
  * Its purpose is for users of the theme to be able to add css rules from a blank file
  *   these get simply added to the ones already active in the layout.
  */
+
+/* ----- Override: remove white/forced backgrounds from code blocks ----- */
+/* Make code blocks inherit page/background so they don't show a white box */
+pre,
+pre.highlight,
+.highlight pre,
+.highlight code,
+code,
+tt,
+.markdown-section pre,
+.markdown-section pre>code,
+.markdown-section code {
+	background: transparent !important;
+	background-color: transparent !important;
+	box-shadow: none !important;
+	border: none !important;
+}
+
+/* Keep inline code readable — only remove solid white backgrounds */
+code, tt {
+	background-color: rgba(0,0,0,0.06) !important; /* slight tint for readability; change/remove if undesired */
+}
+
+/* If any plugin sets a white background on rougue/gutter or mermaid processed blocks, neutralize it */
+.rouge .gutter,
+.rouge-gutter,
+.rouge .highlight,
+pre:has(code.language-mermaid[data-processed="true"]) {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+/* Ensure selection color still shows on code */
+pre ::selection, code ::selection { background: rgba(38,68,102,0.6); }
