@@ -1,0 +1,68 @@
+name: Sync from primary repo
+
+on:
+  schedule:
+    # Run at the top of every hour (UTC)
+    - cron: '0 * * * *'
+  workflow_dispatch: {}
+  push:
+    paths:
+      - .github/workflows/sync-from-source.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-from-source
+  cancel-in-progress: false
+
+env:
+  SOURCE_REPO: suhasdevmane/suhasdevmane.github.io
+  DEFAULT_BRANCH: main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Clone source repository
+        run: |
+          git clone --depth 1 https://github.com/${{ env.SOURCE_REPO }} source-repo
+
+      - name: Sync files from source (preserve workflow and CNAME)
+        run: |
+          rsync -av --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'CNAME' \
+            source-repo/ ./
+
+      - name: Commit changes (if any)
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "chore(sync): update from ${{ env.SOURCE_REPO }} ($(date -u +'%Y-%m-%dT%H:%M:%SZ'))"
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Push changes
+        run: |
+          # Push only if there are commits ahead of origin
+          set -e
+          CURRENT_BRANCH=${{ env.DEFAULT_BRANCH }}
+          # Ensure branch exists locally
+          if ! git rev-parse --verify "$CURRENT_BRANCH" >/dev/null 2>&1; then
+            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          fi
+          # Create branch on remote if missing, otherwise push updates
+          git push origin HEAD:${{ env.DEFAULT_BRANCH }}

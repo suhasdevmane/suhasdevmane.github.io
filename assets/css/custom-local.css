@@ -1,0 +1,66 @@
+/* This file is kept intentionally blank inside the jekyll-github-theme
+ * It gets imported at the end of custom.css
+ * Its purpose is for users of the theme to be able to add css rules from a blank file
+ *   these get simply added to the ones already active in the layout.
+ */
+
+/* ----- Override: remove white/forced backgrounds from code blocks ----- */
+/* Make code blocks inherit page/background so they don't show a white box */
+/* Make block code boxes use a dark background and light text */
+pre,
+pre.highlight,
+.highlight pre,
+.highlight code,
+.markdown-section pre,
+.markdown-section pre>code {
+	background: #0d1117 !important; /* near-black */
+	background-color: #0d1117 !important;
+	color: #c9d1d9 !important; /* light text for readability */
+	box-shadow: none !important;
+	border: 1px solid #30363d !important;
+	border-radius: 6px !important;
+}
+
+/* Override the .highlight wrapper itself (Rouge uses this) */
+.highlight,
+.highlight .w {
+	background: #0d1117 !important;
+	background-color: #0d1117 !important;
+	color: #c9d1d9 !important;
+}
+
+/* Override ALL Rouge syntax token backgrounds to ensure no white boxes */
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cm, .highlight .cpf, .highlight .c1, .highlight .cs,
+.highlight .cp, .highlight .k, .highlight .kc, .highlight .kd, .highlight .kn, .highlight .kr, .highlight .kv,
+.highlight .kp, .highlight .kt, .highlight .o, .highlight .ow, .highlight .nc, .highlight .nn, .highlight .ne,
+.highlight .ni, .highlight .nt, .highlight .s, .highlight .sb, .highlight .sc, .highlight .dl, .highlight .sd,
+.highlight .s2, .highlight .sh, .highlight .sx, .highlight .sr, .highlight .s1, .highlight .ss, .highlight .sa,
+.highlight .si, .highlight .se, .highlight .gh, .highlight .gu, .highlight .ge, .highlight .gs, .highlight .gp,
+.highlight .err, .highlight .na, .highlight .nb, .highlight .nf, .highlight .fm, .highlight .nx, .highlight .bp,
+.highlight .mi, .highlight .mf, .highlight .mh, .highlight .il, .highlight .mo, .highlight .p {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+/* Inline code: keep a subtle dark tint to separate from paragraph text */
+code, tt {
+	background-color: rgba(13,17,23,0.9) !important;
+	color: #c9d1d9 !important;
+	padding: 0.12em 0.35em !important;
+	border-radius: 4px !important;
+}
+
+/* Neutralize plugin-specific white backgrounds (Rouge, mermaid) */
+.rouge .gutter,
+.rouge-gutter,
+.rouge .highlight,
+.highlight table,
+.highlight table td,
+.highlight table pre,
+pre:has(code.language-mermaid[data-processed="true"]) {
+	background: transparent !important;
+	background-color: transparent !important;
+}
+
+/* Ensure selection color still shows on code */
+pre ::selection, code ::selection { background: rgba(38,68,102,0.6); }
