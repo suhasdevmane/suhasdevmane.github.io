@@ -35,16 +35,24 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Clone source repository
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
         run: |
-          git clone --depth 1 https://github.com/${{ env.SOURCE_REPO }} source-repo
+          set -e
+          echo "Cloning into temp: $RUNNER_TEMP"
+          mkdir -p "$RUNNER_TEMP/source-repo"
+          git clone --depth 1 "https://github.com/${{ env.SOURCE_REPO }}" "$RUNNER_TEMP/source-repo"
 
       - name: Sync files from source (preserve workflow and CNAME)
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
         run: |
+          set -e
           rsync -av --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'CNAME' \
-            source-repo/ ./
+            "$RUNNER_TEMP/source-repo/" ./
 
       - name: Commit changes (if any)
         run: |
