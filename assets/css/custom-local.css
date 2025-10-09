@@ -44,7 +44,7 @@ pre.highlight,
 
 /* Inline code: keep a subtle dark tint to separate from paragraph text */
 code, tt {
-	background-color: rgba(13,17,23,0.9) !important;
+	background-color: rgba(18, 25, 36, 0.9) !important;
 	color: #c9d1d9 !important;
 	padding: 0.12em 0.35em !important;
 	border-radius: 4px !important;
