@@ -48,11 +48,19 @@ jobs:
           RUNNER_TEMP: ${{ runner.temp }}
         run: |
           set -e
+          set +e
           rsync -av --delete \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'CNAME' \
             "$RUNNER_TEMP/source-repo/" ./
+          RS=$?
+          # rsync exit code 24 = some files vanished before transfer; treat as warning
+          if [ "$RS" -ne 0 ] && [ "$RS" -ne 24 ]; then
+            echo "rsync failed with code $RS" >&2
+            exit $RS
+          fi
+          set -e
 
       - name: Commit changes (if any)
         run: |
