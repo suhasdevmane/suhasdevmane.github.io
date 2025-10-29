@@ -7,6 +7,18 @@ categories: buildings
 
 # Building 1 - ABACWS (Real University Testbed)
 
+
+<figure class="doc-figure" style="text-align:center;">
+    <a href="/assets/images/bldg1_visulizer.png" target="_blank" rel="noopener">
+        <img src="/assets/images/bldg1_visulizer.png" alt="Testbed Visualizer UI"
+                 style="max-width:100%; height:auto; border-radius:6px; box-shadow:0 2px 12px rgba(0,0,0,0.08);"
+                 width="960" />
+    </a>
+    <figcaption style="font-size:0.95rem; color:#666; margin-top:8px;">Testbed Visualizer UI (Building 1 — ABACWS)</figcaption>
+  
+</figure>
+
+
 **Rasa Conversational AI Stack for Building 1**
 
 ## Overview
