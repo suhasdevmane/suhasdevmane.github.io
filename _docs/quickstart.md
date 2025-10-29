@@ -81,6 +81,29 @@ OntoBot/
 └── README.md
 ```
 
+### Step 1.5: Configure environment (.env)
+
+Compose files use environment variables for secrets and CORS. Create your local `.env` from the template and set the required values:
+
+```powershell
+Copy-Item -Path .env.example -Destination .env
+# Open .env and set values, especially:
+# FRONTEND_ORIGIN=http://localhost:3000
+# ALLOWED_ORIGINS=http://localhost:3000
+# JWT_SECRET=change_me_in_prod
+```
+
+Optional: Validate your chosen stack before starting:
+
+```powershell
+docker compose --env-file .env -f docker-compose.bldg1.yml config
+# Or for other stacks/overlays
+# docker compose --env-file .env -f docker-compose.bldg2.yml config
+# docker compose --env-file .env -f docker-compose.bldg3.yml -f docker-compose.extras.yml config
+```
+
+If you see warnings like "The \"PG_THINGSBOARD_DB\" variable is not set.", add that variable to `.env` and re-run.
+
 ### Step 2: Choose a Building
 
 For your first run, start with **Building 1 (ABACWS)** - it has real-world data and is the most validated.

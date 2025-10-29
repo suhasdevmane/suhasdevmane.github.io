@@ -356,6 +356,47 @@ Look for:
 
 ### Environment Variables
 
+### Environment and CORS (.env)
+
+When running with Docker Compose, the frontend and backend coordinate CORS and cookies using values from the repository's `.env` file.
+
+1) Create your local `.env` from the template
+
+```powershell
+Copy-Item -Path .env.example -Destination .env
+# Edit .env and replace placeholder values with your local credentials
+```
+
+2) Set frontend-related variables in `.env`
+
+- FRONTEND_ORIGIN=http://localhost:3000
+- ALLOWED_ORIGINS=http://localhost:3000
+- JWT_SECRET=change_me_in_prod
+
+Notes
+- FRONTEND_ORIGIN and ALLOWED_ORIGINS are used by the File Server and Rasa Editor to allow cross-origin requests from the UI.
+- Keep both values aligned with the actual UI URL (default http://localhost:3000). If you change the UI port, update both.
+- JWT_SECRET secures session cookies sent by the File Server. Use a strong value in non-dev environments.
+
+3) Validate your compose configuration (optional but recommended)
+
+```powershell
+docker compose --env-file .env -f docker-compose.bldg1.yml config
+# Or validate the stack you plan to run, e.g. bldg2/bldg3 with extras overlay
+# docker compose --env-file .env -f docker-compose.bldg2.yml config
+# docker compose --env-file .env -f docker-compose.bldg3.yml -f docker-compose.extras.yml config
+```
+
+If you see warnings like "The \"PG_THINGSBOARD_DB\" variable is not set.", add the missing variable to `.env` and re-run the command.
+
+4) Start the stack
+
+```powershell
+docker compose --env-file .env -f docker-compose.bldg1.yml up -d --build
+```
+
+### React app environment (advanced)
+
 Configure frontend behavior via environment variables:
 
 ```bash
