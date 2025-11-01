@@ -18,54 +18,156 @@ OntoBot consists of **7 core services** and **3 optional services** working toge
 
 ### Service Map
 
-OntoBot's backend consists of multiple microservices that interact over HTTP within Docker. The diagram and table below summarize the stack.
+### Service MapOntoBot's backend consists of multiple microservices, each responsible for specific functionality:
 
-```mermaid
-flowchart TB
-  subgraph Frontend Layer
-    FE[React Frontend\nPort 3000]
-  end
 
-  subgraph Orchestration
-    R[Rasa Core\nPort 5005]
-    A[Action Server\nPort 5055]
-    R -->|REST| A
-  end
+```| Service | Port | Purpose | Health Check |
 
-  FE -->|HTTP| R
+┌─────────────────────────────────────────────────────────────────────────┐|---------|------|---------|--------------|
 
-  subgraph Core Services
-    F[Jena Fuseki\nPort 3030]
-    M[Analytics Microservices\nPort 6000]
-    D[Decider Service\nPort 6009]
-  end
+│                         OntoBot Service Stack                            │| **Rasa Core** | 5005 | Conversational AI engine | `/version` |
 
-  subgraph Data Layer
-    My[MySQL\nPort 3306]
-    Ts[TimescaleDB\nPort 5432]
-    Ca[Cassandra\nPort 9042]
-  end
+├─────────────────────────────────────────────────────────────────────────┤| **Action Server** | 5055 | Custom action logic | `/health` |
 
-  subgraph Support
-    H[HTTP File Server\nPort 8080]
-  end
+│                                                                          │| **Duckling** | 8000 | Entity extraction | `/` (HTML) |
 
-  subgraph Optional
-    N[NL2SPARQL\nPort 6005]
-    O[Ollama (Mistral)\nPort 11434]
-  end
+│  Frontend Layer (Port 3000)                                             │| **Analytics Microservices** | 6001→6000 | Time-series analytics | `/health` |
 
-  A --> F
-  A --> M
-  A --> D
-  A --> H
-  A -.-> N
-  A -.-> O
-  M --> H
-  A --> My
-  A --> Ts
-  A --> Ca
+│  ┌────────────────────────────────────────────────────────────────────┐ │| **Decider Service** | 6009 | Analytics type selection | `/health` |
+
+│  │ React Frontend (rasa-frontend)                                     │ │| **File Server** | 8080 | Artifact storage & management | `/health` |
+
+│  │ - Chat interface                                                   │ │| **NL2SPARQL** | 6005 | NL→SPARQL translation | `/health` |
+
+│  │ - Artifact viewer (charts, tables)                                 │ │| **Ollama (Mistral)** | 11434 | Local LLM summarization | `/` |
+
+│  │ - User authentication UI                                           │ │
+
+│  └────────────────────────────────────────────────────────────────────┘ │## 1. Rasa Core Service
+
+│                              ↓ HTTP (REST API)                          │
+
+│                                                                          │**Port**: 5005  
+
+│  Orchestration Layer (Ports 5005, 5055)                                │**Container**: `rasa_bldg1` (or bldg2/bldg3)  
+
+│  ┌────────────────────────────────────────────────────────────────────┐ │**Technology**: Python, Rasa 3.6.12
+
+│  │ Rasa Core (Port 5005)                                              │ │
+
+│  │ - Intent classification                                            │ │### Purpose
+
+│  │ - Entity extraction                                                │ │
+
+│  │ - Dialogue management                                              │ │The Rasa service is the conversational AI engine that:
+
+│  │ - Form handling                                                    │ │- Processes natural language user input
+
+│  └────────────────────────────────────────────────────────────────────┘ │- Identifies intents and extracts entities
+
+│                              ↓ HTTP (Action Endpoint)                   │- Manages dialogue state
+
+│  ┌────────────────────────────────────────────────────────────────────┐ │- Triggers custom actions
+
+│  │ Action Server (Port 5055)                                          │ │- Generates responses
+
+│  │ - Query orchestration                                              │ │
+
+│  │ - Sensor name canonicalization                                     │ │### Key Endpoints
+
+│  │ - SPARQL execution                                                 │ │
+
+│  │ - Analytics dispatch                                               │ │#### Get Rasa Version
+
+│  └────────────────────────────────────────────────────────────────────┘ │```http
+
+│                                                                          │GET http://localhost:5005/version
+
+│            ↓                    ↓                    ↓                   │```
+
+│                                                                          │
+
+│  Core Services Layer                                                    │**Response:**
+
+│  ┌───────────────┐  ┌───────────────┐  ┌──────────────────┐           │```json
+
+│  │ Jena Fuseki   │  │ Analytics     │  │ Decider Service  │           │{
+
+│  │ (Port 3030)   │  │ (Port 6000)   │  │ (Port 6009)      │           │  "version": "3.6.12",
+
+│  │               │  │               │  │                  │           │  "minimum_compatible_version": "3.0.0",
+
+│  │ - SPARQL      │  │ - 30+         │  │ - Query type     │           │  "rasa": "3.6.12"
+
+│  │   queries     │  │   analytics   │  │   classification │           │}
+
+│  │ - Brick data  │  │ - Artifact    │  │ - Analytics      │           │```
+
+│  │   store       │  │   generation  │  │   recommendation │           │
+
+│  └───────────────┘  └───────────────┘  └──────────────────┘           │#### Send Message (Webhook)
+
+│                                                                          │```http
+
+│  Data Layer                                                             │POST http://localhost:5005/webhooks/rest/webhook
+
+│  ┌───────────────┐  ┌───────────────┐  ┌──────────────────┐           │Content-Type: application/json
+
+│  │ MySQL         │  │ TimescaleDB   │  │ Cassandra        │           │
+
+│  │ (Port 3306)   │  │ (Port 5432)   │  │ (Port 9042)      │           │{
+
+│  │               │  │               │  │                  │           │  "sender": "user123",
+
+│  │ Building 1    │  │ Building 2    │  │ Building 3       │           │  "message": "What is the temperature in zone 5.04?"
+
+│  │ (680 sensors) │  │ (329 sensors) │  │ (597 sensors)    │           │}
+
+│  └───────────────┘  └───────────────┘  └──────────────────┘           │```
+
+│                                                                          │
+
+│  Support Services                                                       │**Response:**
+
+│  ┌───────────────┐                                                      │```json
+
+│  │ HTTP Server   │                                                      │[
+
+│  │ (Port 8080)   │                                                      │  {
+
+│  │               │                                                      │    "recipient_id": "user123",
+
+│  │ - Artifact    │                                                      │    "text": "The current temperature in zone 5.04 is 22.3°C."
+
+│  │   serving     │                                                      │  }
+
+│  └───────────────┘                                                      │]
+
+│                                                                          │```
+
+│  Optional Services (docker-compose.extras.yml)                         │
+
+│  ┌───────────────┐  ┌───────────────────────────────────────┐         │#### Model Management
+
+│  │ NL2SPARQL     │  │ Ollama (LLM)                          │         │```http
+
+│  │ (Port 6005)   │  │ (Port 11434)                          │         │# Get current model
+
+│  │               │  │                                        │         │GET http://localhost:5005/status
+
+│  │ - T5-based    │  │ - Response summarization              │         │
+
+│  │   translation │  │ - Mistral model                       │         │# Load specific model
+
+│  └───────────────┘  └───────────────────────────────────────┘         │PUT http://localhost:5005/model
+
+│                                                                          │Content-Type: application/json
+
+└─────────────────────────────────────────────────────────────────────────┘
+
 ```
+
+"model_file": "/app/models/20250108-123045-ancient-dust.tar.gz"
 
 ### Services at a glance
 
