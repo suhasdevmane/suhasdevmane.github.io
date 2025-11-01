@@ -20,41 +20,41 @@ OntoBot supports three different database systems, each optimized for specific b
 
 ## Overview
 
-| Database | Building | Use Case | Strengths | Best For |
+ | Database | Building | Use Case | Strengths | Best For | 
 
 OntoBot supports **three database systems**, each optimized for specific building types and operational requirements. The action server provides a unified abstraction layer, allowing identical query patterns across all database types.|----------|----------|----------|-----------|----------|
 
-| **MySQL 8.0** | Building 1 | Traditional relational | ACID compliance, mature tooling | Structured data, joins, transactions |
+ | **MySQL 8.0** | Building 1 | Traditional relational | ACID compliance, mature tooling | Structured data, joins, transactions | 
 
 ### Database Comparison| **TimescaleDB 2.11** | Building 2 | Time-series | Automatic partitioning, compression | HVAC analytics, energy monitoring |
 
-| **Cassandra 4.1** | Building 3 | Distributed NoSQL | High availability, write throughput | Critical infrastructure, scalability |
+ | **Cassandra 4.1** | Building 3 | Distributed NoSQL | High availability, write throughput | Critical infrastructure, scalability | 
 
-| Feature | MySQL 8.0 | TimescaleDB 2.11 | Cassandra 4.1 |
+ | Feature | MySQL 8.0 | TimescaleDB 2.11 | Cassandra 4.1 | 
 
-|---------|-----------|------------------|---------------|---
+ | --------- | ----------- | ------------------ | --------------- | ---
 
-| **Type** | Relational (RDBMS) | Time-Series (PostgreSQL) | Distributed NoSQL |
+ | **Type** | Relational (RDBMS) | Time-Series (PostgreSQL) | Distributed NoSQL | 
 
-| **Building** | Building 1 (ABACWS) | Building 2 (Office) | Building 3 (Data Center) |## MySQL Integration (Building 1)
+ | **Building** | Building 1 (ABACWS) | Building 2 (Office) | Building 3 (Data Center) | ## MySQL Integration (Building 1)
 
-| **Port** | 3307 (host), 3306 (container) | 5433 (host), 5432 (container) | 9042 (both) |
+ | **Port** | 3307 (host), 3306 (container) | 5433 (host), 5432 (container) | 9042 (both) | 
 
-| **Best For** | Structured data, joins | Time-series analytics | High availability, writes |### Configuration
+ | **Best For** | Structured data, joins | Time-series analytics | High availability, writes | ### Configuration
 
-| **ACID** | ✅ Full ACID compliance | ✅ Full ACID compliance | ⚠️ Tunable consistency |
+ | **ACID** | ✅ Full ACID compliance | ✅ Full ACID compliance | ⚠️ Tunable consistency | 
 
-| **Scalability** | Vertical (single node) | Vertical (single node) | Horizontal (multi-node) |```yaml
+ | **Scalability** | Vertical (single node) | Vertical (single node) | Horizontal (multi-node) | ```yaml
 
-| **Query Language** | SQL | SQL (+ time-series functions) | CQL (Cassandra Query Language) |# docker-compose.bldg1.yml
+ | **Query Language** | SQL | SQL (+ time-series functions) | CQL (Cassandra Query Language) | # docker-compose.bldg1.yml
 
-| **Indexes** | B-tree, full-text | B-tree, BRIN, hypertables | Partition key, clustering |mysqlserver:
+ | **Indexes** | B-tree, full-text | B-tree, BRIN, hypertables | Partition key, clustering | mysqlserver:
 
-| **Compression** | ❌ No automatic compression | ✅ Automatic compression (10:1) | ✅ Automatic compression |  image: mysql:8.0
+ | **Compression** | ❌ No automatic compression | ✅ Automatic compression (10:1) | ✅ Automatic compression | image: mysql:8.0
 
-| **Replication** | Master-slave | Streaming replication | Multi-datacenter replication |  ports:
+ | **Replication** | Master-slave | Streaming replication | Multi-datacenter replication | ports:
 
-| **Typical Use Case** | Transactional systems | Monitoring dashboards | Mission-critical IoT |    - "3307:3306"
+ | **Typical Use Case** | Transactional systems | Monitoring dashboards | Mission-critical IoT | - "3307:3306"
 
   environment:
 
@@ -137,7 +137,6 @@ rasa-action-server-bldg1:
 ```  COMMENT='Time-series sensor telemetry data';
 
 
-
 ----- Sensor metadata
 
 CREATE TABLE sensors (
@@ -211,7 +210,6 @@ CREATE TABLE ts_kv (    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 ---) ENGINE=InnoDB;
 
 
-
 ### Sample Data-- Alarm history
 
 CREATE TABLE alarm_history (
@@ -254,7 +252,7 @@ INSERT INTO ts_kv (entity_id, entity_type, key_name, ts, dbl_v) VALUES) ENGINE=I
 
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'DEVICE', 'TVOC_Sensor_5.01', 1730379600000, 120.0);
 
-``````python
+```python
 
 # mysql_client.py
 
@@ -267,7 +265,6 @@ from mysql.connector import pooling
 from typing import List, Dict, Optional
 
 **Python Connection** (`rasa-bldg1/actions/db_connector.py`):import os
-
 
 
 ```pythonclass MySQLClient:
@@ -611,7 +608,6 @@ SET GLOBAL query_cache_size = 268435456;  -- 256MB
 **Main Table**: `sensor_data`OPTIMIZE TABLE sensor_readings;
 
 
-
 ```sql-- Analyze for better query plans
 
 CREATE TABLE sensor_data (ANALYZE TABLE sensor_readings;
@@ -667,7 +663,6 @@ CREATE INDEX idx_equipment_id_ts ON sensor_data (equipment_id, timestamp DESC);
 ```### Schema Design
 
 
-
 **Key Features**:```sql
 
 - **Hypertable**: Automatically partitions data into 1-day chunks-- Create database
@@ -681,7 +676,6 @@ CREATE INDEX idx_equipment_id_ts ON sensor_data (equipment_id, timestamp DESC);
 -- Enable TimescaleDB
 
 ---CREATE EXTENSION IF NOT EXISTS timescaledb;
-
 
 
 ### TimescaleDB Advanced Features-- Create sensor readings table
@@ -1167,7 +1161,6 @@ WITH REPLICATION = {
 };### Configuration
 
 
-
 USE building3;```yaml
 
 ```# docker-compose.bldg3.yml
@@ -1217,7 +1210,6 @@ CREATE TABLE sensor_data (  environment:
   AND default_time_to_live = 63072000;  -- 2 years    'replication_factor': 1  -- Change to 3 for production cluster
 
 ```};
-
 
 
 **Key Design Choices**:USE telemetry_bldg3;
@@ -1361,7 +1353,6 @@ db = CassandraConnector(    min_value DOUBLE,
 )```
 
 
-
 # Fetch data (must specify partition key!)### Python Client
 
 data = db.get_sensor_data(
@@ -1383,7 +1374,6 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
 ### Query Optimizationimport os
-
 
 
 **1. ALWAYS Specify Partition Key**:class CassandraClient:
@@ -1670,7 +1660,8 @@ cqlsh localhost 9042 -e "COPY building3.sensor_data TO 'bldg3_export.csv' WITH H
 
 **MySQL to TimescaleDB**:        self.cluster.shutdown()
 
-```python```
+```python
+```
 
 import mysql.connector
 
@@ -1811,7 +1802,6 @@ All clients should use connection pooling:
 - ❌ Ignore slow query logsfrom psycopg2 import pool
 
 
-
 ---connection_pool = pool.SimpleConnectionPool(
 
     minconn=1,
@@ -1845,7 +1835,6 @@ All clients should use connection pooling:
 ---mysqldump -u root -p telemetry > backup.sql
 
 
-
 ## Troubleshooting# PostgreSQL/TimescaleDB
 
 pg_dump -U postgres telemetry_bldg2 > backup.sql
@@ -1857,7 +1846,6 @@ pg_dump -U postgres telemetry_bldg2 > backup.sql
 **Symptoms**:nodetool snapshot telemetry_bldg3
 
 - Action server logs: `Connection timeout` or `Connection refused````
-
 
 
 **Solutions**:---
@@ -1890,7 +1878,7 @@ pg_dump -U postgres telemetry_bldg2 > backup.sql
 
    docker exec timescaledb pg_isready| Requirement | MySQL | TimescaleDB | Cassandra |
 
-   |-------------|-------|-------------|-----------|
+ | ------------- | ------- | ------------- | ----------- | 
 
    # Cassandra (takes 30-60 seconds to start)| Time-series optimization | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
 
@@ -1898,7 +1886,7 @@ pg_dump -U postgres telemetry_bldg2 > backup.sql
 
    ```| Write throughput | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 
-| Query flexibility | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+ | Query flexibility | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | 
 
 3. **Test connection from host**:| Horizontal scalability | ⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
 

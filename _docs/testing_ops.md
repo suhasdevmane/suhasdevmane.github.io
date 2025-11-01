@@ -7,13 +7,10 @@ date: 2025-09-28
 ---
 
 
-
 # Testing & Operations# Testing & Operations
 
 
-
 **Comprehensive guide to testing strategies, CI/CD pipelines, deployment, and operational procedures for OntoBot.**## Health checks
-
 
 
 ---- Analytics: `/health` on 6001
@@ -45,13 +42,10 @@ date: 2025-09-28
 10. [Backup & Recovery](#backup--recovery)```
 
 
-
 ---This posts sample payloads to each analysis and reports pass/fail.
 
 
-
 ## Testing Overview## Logs
-
 
 
 ### Testing Pyramid```powershell

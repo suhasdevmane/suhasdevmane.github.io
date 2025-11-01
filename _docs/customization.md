@@ -7,17 +7,13 @@ date: 2025-09-28
 ---
 
 
-
 # Customization Guide: Adapt OntoBot to Your Building# Customization for New Buildings
-
 
 
 This guide shows you how to adapt OntoBot to work with **your own smart building** in 7 steps. By the end, you'll have a fully functional conversational AI for your building's sensor network.Step-by-step to adapt OntoBot to a new site.
 
 
-
 ---## 1) Ontologies and TTLs
-
 
 
 ## Overview- Prepare/build TTLs for devices, locations, and relationships.
@@ -25,7 +21,6 @@ This guide shows you how to adapt OntoBot to work with **your own smart building
 - Load TTLs into Jena Fuseki.
 
 OntoBot is **building-agnostic** by design. The core services (Rasa, Action Server, Analytics) work with any building that provides:- Align your entity names in Rasa with ontology terms.
-
 
 
 1. **Brick-schema ontology** (TTL files describing sensors, rooms, relationships)## 2) Sensors and mapping
@@ -79,9 +74,7 @@ your-building/- SQL: adjust queries in actions to your schema.
 ```- Set `API_HOST` for the visualiser to point to your API container.
 
 
-
 ### Time Estimate## 7) Frontend UX
-
 
 
 - **With existing ontology**: 2-4 hours- Customize labels and shortcuts for common building queries.
@@ -560,12 +553,12 @@ action_server:
 
 **Guidelines**:
 
-| Threshold | Behavior | Use Case |
-|-----------|----------|----------|
-| 70-75 | Very lenient | High typo tolerance, risk of false matches |
-| 80 (default) | Balanced | Good for most buildings |
-| 85-90 | Strict | Precise sensor naming, fewer false positives |
-| 95-100 | Exact | No fuzzy matching (underscore/space normalization only) |
+ | Threshold | Behavior | Use Case | 
+ | ----------- | ---------- | ---------- | 
+ | 70-75 | Very lenient | High typo tolerance, risk of false matches | 
+ | 80 (default) | Balanced | Good for most buildings | 
+ | 85-90 | Strict | Precise sensor naming, fewer false positives | 
+ | 95-100 | Exact | No fuzzy matching (underscore/space normalization only) | 
 
 **Example scenarios**:
 

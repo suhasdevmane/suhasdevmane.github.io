@@ -7,13 +7,10 @@ date: 2025-09-28
 ---
 
 
-
 # OntoBot System Architecture# Architecture
 
 
-
 ## OverviewOntoBot is orchestrated by Docker Compose and consists of modular services:
-
 
 
 OntoBot uses a **microservices architecture** with Docker containers orchestrated by Docker Compose. Each service has a single responsibility and communicates via HTTP/REST APIs.- Rasa: NLU and dialogue (5005)

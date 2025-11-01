@@ -443,11 +443,11 @@ for building in ['bldg1', 'bldg2', 'bldg3']:
 
 ### Building-Specific Data
 
-| Building | Sensors | Training File Location |
-|----------|---------|------------------------|
-| Building 1 | 680 | `Transformers/t5_base/training/bldg1/` |
-| Building 2 | 329 | `Transformers/t5_base/training/bldg2/` |
-| Building 3 | 597 | `Transformers/t5_base/training/bldg3/` |
+ | Building | Sensors | Training File Location | 
+ | ---------- | --------- | ------------------------ | 
+ | Building 1 | 680 | `Transformers/t5_base/training/bldg1/` | 
+ | Building 2 | 329 | `Transformers/t5_base/training/bldg2/` | 
+ | Building 3 | 597 | `Transformers/t5_base/training/bldg3/` | 
 
 ### Switching Buildings
 
@@ -664,13 +664,13 @@ Once trained, your model is used by the NL2SPARQL service:
 
 ### Training Time Estimates
 
-| Examples | Epochs | Hardware | Time |
-|----------|--------|----------|------|
-| 10 | 5 | CPU | ~2 min |
-| 25 | 10 | CPU | ~5 min |
-| 50 | 20 | CPU | ~12 min |
-| 100 | 30 | CPU | ~25 min |
-| 100 | 30 | GPU (V100) | ~8 min |
+ | Examples | Epochs | Hardware | Time | 
+ | ---------- | -------- | ---------- | ------ | 
+ | 10 | 5 | CPU | ~2 min | 
+ | 25 | 10 | CPU | ~5 min | 
+ | 50 | 20 | CPU | ~12 min | 
+ | 100 | 30 | CPU | ~25 min | 
+ | 100 | 30 | GPU (V100) | ~8 min | 
 
 ### Model Size
 

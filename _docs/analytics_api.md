@@ -7,21 +7,16 @@ date: 2025-09-28
 ---
 
 
-
 # Analytics API Reference# Analytics API Reference
-
 
 
 Complete reference for OntoBot's analytics microservice - 30+ analysis types covering descriptive, diagnostic, predictive, and prescriptive analytics.Base: `http://localhost:6001`
 
 
-
 ---## POST /analytics/run
 
 
-
 ## Service OverviewBody fields:
-
 
 
 **Base URL**: `http://localhost:6001` (host) or `http://microservices:6000` (internal)- `analysis_type` (string, required)
@@ -999,12 +994,12 @@ Execute an analysis on time-series sensor data.
 
 ### Common Error Codes
 
-| HTTP Code | Error | Solution |
-|-----------|-------|----------|
-| 400 | Invalid request | Check payload format |
-| 404 | Analysis not found | Use valid analysis_type |
-| 422 | Insufficient data | Provide more data points |
-| 500 | Internal error | Check service logs |
+ | HTTP Code | Error | Solution | 
+ | ----------- | ------- | ---------- | 
+ | 400 | Invalid request | Check payload format | 
+ | 404 | Analysis not found | Use valid analysis_type | 
+ | 422 | Insufficient data | Provide more data points | 
+ | 500 | Internal error | Check service logs | 
 
 ---
 

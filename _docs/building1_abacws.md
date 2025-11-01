@@ -19,44 +19,40 @@ permalink: /docs/building1_abacws/
 
 Building 1 (ABACWS) is a real-world university testbed building at Cardiff University, Wales, UK, with comprehensive Indoor Environmental Quality (IEQ) monitoring. This building serves as the primary demonstration and research platform for OntoBot's capabilities.
 
-| Property | Value |
+ | Property | Value | 
 
-|----------|-------|### Key Specifications
+ | ---------- | ------- | ### Key Specifications
 
-| **Building Type** | University Research Testbed |
+ | **Building Type** | University Research Testbed | 
 
-| **Location** | Cardiff University, Wales, UK || Property | Details |
+ | **Location** | Cardiff University, Wales, UK | | Property | Details | 
 
-| **Total Sensors** | 680 sensors ||----------|---------|
+ | **Total Sensors** | 680 sensors | | ---------- | --------- | 
 
-| **Zones Covered** | 34 zones (5.01–5.34) || **Building Type** | Real University Testbed |
+ | **Zones Covered** | 34 zones (5.01–5.34) | | **Building Type** | Real University Testbed | 
 
-| **Sensors per Zone** | 20 multi-parameter sensors || **Location** | Cardiff University, Wales, UK |
+ | **Sensors per Zone** | 20 multi-parameter sensors | | **Location** | Cardiff University, Wales, UK | 
 
-| **Database** | MySQL 8.0 (Port 3306 internal, 3307 host) || **Sensor Coverage** | 680 sensors across 34 zones (5.01–5.34) |
+ | **Database** | MySQL 8.0 (Port 3306 internal, 3307 host) | | **Sensor Coverage** | 680 sensors across 34 zones (5.01–5.34) | 
 
-| **Knowledge Graph** | Jena Fuseki + Brick 1.3 (Port 3030) || **Focus Area** | Indoor Environmental Quality (IEQ) |
+ | **Knowledge Graph** | Jena Fuseki + Brick 1.3 (Port 3030) | | **Focus Area** | Indoor Environmental Quality (IEQ) | 
 
-| **Compose File** | `docker-compose.bldg1.yml` || **Database** | MySQL (port 3307) |
+ | **Compose File** | `docker-compose.bldg1.yml` | | **Database** | MySQL (port 3307) | 
 
-| **Data Retention** | 6+ months of historical data || **Knowledge Graph** | Brick Schema 1.3 via Jena Fuseki (port 3030) |
+ | **Data Retention** | 6+ months of historical data | | **Knowledge Graph** | Brick Schema 1.3 via Jena Fuseki (port 3030) | 
 
-| **Compose File** | `docker-compose.bldg1.yml` |
+ | **Compose File** | `docker-compose.bldg1.yml` | 
 
 ---| **Technology Stack** | Rasa 3.6.12, Python 3.10, Docker, MySQL 8.0 |
-
 
 
 ## Sensor Infrastructure## Sensor Infrastructure
 
 
-
 ### Comprehensive Monitoring### Sensor Distribution
 
 
-
 Each of the 34 zones is equipped with a **multi-parameter environmental sensor** providing 20 simultaneous measurements:ABACWS features **20 sensors per zone** across 34 zones on the 5th floor, providing comprehensive environmental monitoring:
-
 
 
 ```- **Total Sensors**: 680
@@ -142,7 +138,6 @@ Total: 20 sensors × 34 zones = 680 sensors- **NO2** - Nitrogen Dioxide concentr
 - **Use Case**: Ventilation effectiveness, occupancy estimation## Database Integration
 
 
-
 **TVOC Sensor**### MySQL Configuration
 
 - **Measurement**: Total Volatile Organic Compounds
@@ -182,7 +177,6 @@ mysqlserver:
 - **Acceptable**: < 40 ppb (annual average)
 
 - **Use Case**: Outdoor air intrusion, combustion sources### Database Schema
-
 
 
 **Ethanol Sensor**```sql
@@ -332,7 +326,6 @@ ORDER BY s.zone_id;
 #### 5. Composite Indices (2 per zone)```
 
 
-
 **AQI (Air Quality Index)****Detect Threshold Violations:**
 
 - **Calculation**: Composite of CO2, TVOC, PM2.5, NO2```sql
@@ -362,17 +355,13 @@ WHERE s.sensor_type = 'CO2'
 - **Factors**: CO2, TVOC, formaldehyde, particulates```
 
 
-
 ---## Service Architecture
-
 
 
 ## Database Schema### Core Services
 
 
-
 ### MySQL ConfigurationBuilding 1 runs 8 core services:
-
 
 
 **Connection Details**:| Service | Port | Purpose | Health Endpoint |
@@ -391,10 +380,9 @@ Password: password (change in production!)| **Rasa Editor** | 6080 | Web-based N
 
 ```| **Frontend UI** | 3000 | React chat interface | N/A |
 
-| **Analytics** | 6001 | Time-series analytics microservice | `GET /health` |
+ | **Analytics** | 6001 | Time-series analytics microservice | `GET /health` | 
 
 ### Table Structure| **Decider** | 6009 | Analytics selection logic | `GET /health` |
-
 
 
 ```sql### Data Flow
@@ -510,7 +498,6 @@ bldg1/trial/dataset/- **Duckling**: http://localhost:8000
 └── relationships.ttl            # Spatial/functional relationships
 
 ```### Environment Configuration
-
 
 
 ### Sample SPARQL Queries```yaml
@@ -638,7 +625,6 @@ Bot: The current temperature in zone 5.04 is 22.3°C ```
 ```### Analytics Capabilities
 
 
-
 **Air Quality Check**:Building 1 supports 30+ analytics types via the Analytics Microservice:
 
 ```
@@ -678,10 +664,9 @@ Bot: Air quality in zone 5.15:- Exponential smoothing
 ### Typo-Tolerant Queries (NEW)- Threshold violation detection
 
 
-
 **Space Normalization**:**Example Request:**
 
-``````python
+```python
 
 User: What is the air temp sensor 5.04?import requests
 
@@ -780,7 +765,6 @@ Bot: [Chart showing 7-day temperature trend]
 ```PREFIX abacws: <http://example.org/abacws#>
 
 
-
 **Anomaly Detection**:SELECT ?sensor ?zone ?uuid
 
 ```WHERE {
@@ -866,7 +850,6 @@ Bot: [Forecast chart with confidence intervals]│   └── sensor_mappings/ 
      Confidence: 85%
 
 ```### Custom Actions
-
 
 
 ---```python
@@ -1011,27 +994,27 @@ action_server_bldg1:            LIMIT 1
 
     - what's the temperature in [zone 5.12](zone_id)
 
-| Query Type | Avg Time | Max Time | Notes |    - show me temp for [5.15](zone_id)
+ | Query Type | Avg Time | Max Time | Notes | - show me temp for [5.15](zone_id)
 
-|------------|----------|----------|-------|    - how warm is [zone 5.20](zone_id)
+ | ------------ | ---------- | ---------- | ------- | - how warm is [zone 5.20](zone_id)
 
-| Simple sensor value | 500ms | 1s | Direct database query |    - temperature reading for [5.08](zone_id)
+ | Simple sensor value | 500ms | 1s | Direct database query | - temperature reading for [5.08](zone_id)
 
-| SPARQL metadata | 200ms | 500ms | Indexed Fuseki query |```
+ | SPARQL metadata | 200ms | 500ms | Indexed Fuseki query | ```
 
-| Typo correction | 50ms | 150ms | Cached sensor list + fuzzy match |
+ | Typo correction | 50ms | 150ms | Cached sensor list + fuzzy match | 
 
-| Historical data (1 day) | 800ms | 2s | 1440 readings |## Testing & Monitoring
+ | Historical data (1 day) | 800ms | 2s | 1440 readings | ## Testing & Monitoring
 
-| Historical data (1 week) | 1.5s | 3s | 10,080 readings |
+ | Historical data (1 week) | 1.5s | 3s | 10,080 readings | 
 
-| Analytics (trend) | 2s | 5s | Computation + chart generation |### Health Checks
+ | Analytics (trend) | 2s | 5s | Computation + chart generation | ### Health Checks
 
-| Analytics (anomaly) | 3s | 7s | ML model inference |
+ | Analytics (anomaly) | 3s | 7s | ML model inference | 
 
-| Analytics (forecast) | 4s | 8s | ARIMA/Prophet model |```powershell
+ | Analytics (forecast) | 4s | 8s | ARIMA/Prophet model | ```powershell
 
-| LLM summary | 3s | 6s | Ollama Mistral inference |# Check all services
+ | LLM summary | 3s | 6s | Ollama Mistral inference | # Check all services
 
 docker-compose -f docker-compose.bldg1.yml ps
 
@@ -1120,7 +1103,6 @@ WHERE table_schema = 'telemetry'
 **Research Question**: Can we reduce energy while maintaining comfort?ORDER BY (data_length + index_length) DESC;
 
 
-
 **Approach**:-- Analyze queries
 
 ```EXPLAIN SELECT * FROM sensor_readings WHERE sensor_uuid = 'uuid-123';
@@ -1136,10 +1118,9 @@ WHERE table_schema = 'telemetry'
 ```### Common Issues
 
 
-
 **OntoBot Query**:**Problem: MySQL container fails to start**
 
-``````powershell
+```powershell
 
 Compare temperature setpoints vs actual temperatures# Check logs
 
@@ -1158,10 +1139,9 @@ docker-compose -f docker-compose.bldg1.yml up -d mysqlserver
 **Research Question**: Are current ventilation rates adequate?```
 
 
-
 **Approach**:**Problem: Slow queries**
 
-``````sql
+```sql
 
 1. Monitor CO2 decay rates after occupancy-- Add indexes
 
@@ -1270,7 +1250,6 @@ docker exec -it mysqlserver mysql -uroot -ppassword \## Support & Resources
 docker exec -it mysqlserver mysql -uroot -ppassword \- **Brick Schema**: [brickschema.org](https://brickschema.org/)
 
   -e "SELECT DISTINCT sensor_uuid FROM telemetry.telemetry LIMIT 10;"- **Rasa Documentation**: [rasa.com/docs](https://rasa.com/docs/)
-
 
 
 # Check sensor list---

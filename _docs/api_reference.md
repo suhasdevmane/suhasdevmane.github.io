@@ -7,17 +7,13 @@ date: 2025-10-08
 ---
 
 
-
 # Complete API Reference# API Reference
-
 
 
 **Comprehensive REST API documentation for all OntoBot services with request/response examples, authentication, and best practices.**Complete REST API documentation for all OntoBot services. This reference covers authentication, request/response formats, and detailed endpoint specifications.
 
 
-
 ---## Table of Contents
-
 
 
 ## Table of Contents1. [Authentication](#authentication)
@@ -49,34 +45,31 @@ date: 2025-10-08
 12. [Rate Limiting](#rate-limiting)## Authentication
 
 
-
 ---### Current Status
 
 
-
 ## Service Overview**Internal Services**: No authentication required (development mode)
-
 
 
 ### Core Services (Always Running)**Production Recommendations**:
 
 - Implement JWT tokens for frontend-to-backend
 
-| Service | Port | Protocol | Purpose |- Use API keys for service-to-service
+ | Service | Port | Protocol | Purpose | - Use API keys for service-to-service
 
-|---------|------|----------|---------|- Enable HTTPS/TLS for all endpoints
+ | --------- | ------ | ---------- | --------- | - Enable HTTPS/TLS for all endpoints
 
-| Rasa Core | 5005 | HTTP | Conversational AI orchestration |- Add rate limiting per client
+ | Rasa Core | 5005 | HTTP | Conversational AI orchestration | - Add rate limiting per client
 
-| Action Server | 5055 | HTTP | Custom actions & business logic |
+ | Action Server | 5055 | HTTP | Custom actions & business logic | 
 
-| Analytics | 6001 | HTTP | Data analysis & visualization |### Future Authentication
+ | Analytics | 6001 | HTTP | Data analysis & visualization | ### Future Authentication
 
-| Decider | 6009 | HTTP | Query classification |
+ | Decider | 6009 | HTTP | Query classification | 
 
-| File Server | 8080 | HTTP | Static file serving (artifacts) |```http
+ | File Server | 8080 | HTTP | Static file serving (artifacts) | ```http
 
-| Fuseki | 3030 | HTTP | SPARQL knowledge graph queries |POST /api/auth/login
+ | Fuseki | 3030 | HTTP | SPARQL knowledge graph queries | POST /api/auth/login
 
 Content-Type: application/json
 
@@ -84,13 +77,13 @@ Content-Type: application/json
 
 {
 
-| Service | Port | Protocol | Purpose |  "username": "user@example.com",
+ | Service | Port | Protocol | Purpose | "username": "user@example.com",
 
-|---------|------|----------|---------|  "password": "secure_password"
+ | --------- | ------ | ---------- | --------- | "password": "secure_password"
 
-| NL2SPARQL | 6005 | HTTP | Natural language to SPARQL translation |}
+ | NL2SPARQL | 6005 | HTTP | Natural language to SPARQL translation | }
 
-| Ollama | 11434 | HTTP | LLM summarization (Mistral) |
+ | Ollama | 11434 | HTTP | LLM summarization (Mistral) | 
 
 Response:
 
@@ -98,17 +91,17 @@ Response:
 
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
 
-| Database | Building | Port (Host) | Port (Container) |  "token_type": "Bearer",
+ | Database | Building | Port (Host) | Port (Container) | "token_type": "Bearer",
 
-|----------|----------|-------------|------------------|  "expires_in": 3600
+ | ---------- | ---------- | ------------- | ------------------ | "expires_in": 3600
 
-| MySQL | Building 1 | 3307 | 3306 |}
+ | MySQL | Building 1 | 3307 | 3306 | }
 
-| TimescaleDB | Building 2 | 5433 | 5432 |```
+ | TimescaleDB | Building 2 | 5433 | 5432 | ```
 
-| Cassandra | Building 3 | 9042 | 9042 |
+ | Cassandra | Building 3 | 9042 | 9042 | 
 
-| PostgreSQL | Building 3 (metadata) | 5434 | 5432 |**Usage:**
+ | PostgreSQL | Building 3 (metadata) | 5434 | 5432 | **Usage:**
 
 ```http
 
@@ -155,7 +148,6 @@ POST /api/auth/login}
 Content-Type: application/json```
 
 
-
 {### Health Check
 
   "username": "user@example.com",
@@ -164,8 +156,7 @@ Content-Type: application/json```
 
 }GET /
 
-``````
-
+```
 
 
 **Response:**
@@ -184,14 +175,14 @@ Content-Type: application/json```
 
 **Using Token**:
 
-```http```http
+```http
+```http
 
 GET /analytics/runPOST /webhooks/rest/webhook
 
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...Content-Type: application/json
 
-``````
-
+```
 
 
 **Implementation Example** (Flask middleware):**Request:**
@@ -333,7 +324,6 @@ GET http://localhost:5005/version    "time_range": "current"
 Send a message to the Rasa chatbot and receive a response.```
 
 
-
 **Request**:### Continue Conversation
 
 ```http
@@ -358,7 +348,8 @@ Content-Type: application/json
 
 **Response**:}
 
-```json```
+```json
+```
 
 [
 
@@ -523,7 +514,6 @@ GET http://localhost:5005/conversations/user123/tracker      "value": "5.04",
 Trigger a specific action directly (debugging).```
 
 
-
 **Request**:### Webhook - Execute Action
 
 ```http
@@ -540,7 +530,7 @@ Content-Type: application/json
 
 }**Request:**
 
-``````json
+```json
 
 {
 
@@ -614,12 +604,11 @@ Content-Type: application/json    {
 
 }
 
-``````http
+```http
 
 GET /actions
 
 **Use Case**: Dynamic model retraining```
-
 
 
 ---**Response:**
@@ -684,8 +673,7 @@ Rasa calls this endpoint to execute custom actions.
 
 }}
 
-``````
-
+```
 
 
 **Response** (to Rasa):### Statistical Analysis
@@ -841,7 +829,6 @@ Content-Type: application/json
 ### GET /analytics/list```
 
 
-
 Get available analysis types.**Request:**
 
 ```json
@@ -927,10 +914,10 @@ Content-Type: application/json
 Execute an analysis on sensor data.```
 
 
-
 **Request**:**Request:**
 
-```http```json
+```http
+```json
 
 POST http://localhost:6001/analytics/run{
 
@@ -1014,8 +1001,7 @@ Content-Type: application/json  "sensor": "Zone_Air_Humidity_Sensor_5.04",
 
 }Content-Type: application/json
 
-``````
-
+```
 
 
 **See Also**: [Analytics API Reference](analytics_api.md) for all 30+ analysis types**Request:**
@@ -1083,7 +1069,6 @@ GET http://localhost:6009/health    "p_value": 0.0001,
 Content-Type: application/json
 
 ### POST /decide```
-
 
 
 Classify a user query into an analytics type.**Request:**
@@ -1185,9 +1170,7 @@ Content-Type: application/json  "end_time": "2025-01-08T23:59:59Z",
 **Internal URL**: `http://http_server:8080````
 
 
-
 ---### T5 Training - Get Examples
-
 
 
 ### GET /artifacts/{user}/{filename}```http
@@ -1197,10 +1180,10 @@ GET /api/t5/examples
 Retrieve generated artifacts (charts, CSVs).```
 
 
-
 **Request**:**Response:**
 
-```http```json
+```http
+```json
 
 GET http://localhost:8080/artifacts/user123/temperature_chart.png{
 
@@ -1230,12 +1213,12 @@ List all artifacts for a user.  ],
 
 **Request**:}
 
-```http```
+```http
+```
 
 GET http://localhost:8080/artifacts/user123/
 
 ```### T5 Training - Add Example
-
 
 
 **Response**: HTML directory listing```http
@@ -1269,7 +1252,6 @@ POST /api/t5/examples
 ---```
 
 
-
 ### Artifact Structure**Response:**
 
 ```json
@@ -1298,8 +1280,7 @@ rasa-ui/shared_data/artifacts/  "example_id": 46,
 
     └── demo_chart.pngContent-Type: application/json
 
-``````
-
+```
 
 
 **Cleanup Policy**: Artifacts older than 7 days are automatically deleted.**Request:**
@@ -1405,13 +1386,11 @@ GET http://localhost:3030/$/datasets  "message": "Training example deleted succe
 ---```
 
 
-
 ### POST /trial/sparql**Response (SSE Stream):**
 
 ```
 
 Execute a SPARQL query.data: {"type": "progress", "epoch": 1, "total_epochs": 3, "loss": 0.245, "percentage": 30}
-
 
 
 **Request**:data: {"type": "progress", "epoch": 2, "total_epochs": 3, "loss": 0.189, "percentage": 60}
@@ -1477,7 +1456,6 @@ Content-Type: application/json
 ---```
 
 
-
 ### Common SPARQL Queries**Request:**
 
 ```json
@@ -1489,7 +1467,6 @@ Content-Type: application/json
 PREFIX brick: <https://brickschema.org/schema/Brick#>}
 
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>```
-
 
 
 SELECT ?sensor ?sensorType**Response:**
@@ -1513,7 +1490,6 @@ ORDER BY ?sensorType  "checkpoint": "checkpoint-3",
 ```sparql
 
 PREFIX brick: <https://brickschema.org/schema/Brick#>## Decider Service
-
 
 
 SELECT ?sensor ?zone**Base URL**: `http://localhost:6009`
@@ -1549,7 +1525,6 @@ WHERE {  "service": "decider-service"
 }
 
 ```### Decide Analytics Method
-
 
 
 ---```http
@@ -1664,12 +1639,12 @@ Generate text completion (summarization, explanation).  "status": "ok",
 
 **Request**:}
 
-```http```
+```http
+```
 
 POST http://localhost:11434/api/generate
 
 Content-Type: application/json### List Files
-
 
 
 {```http
@@ -1682,7 +1657,7 @@ Content-Type: application/json### List Files
 
 }**Response:**
 
-``````json
+```json
 
 {
 
@@ -1720,12 +1695,12 @@ Chat-based completion (multi-turn conversation).
 
 **Request**:GET /files/{filename}
 
-```http```
+```http
+```
 
 POST http://localhost:11434/api/chat
 
 Content-Type: application/json**Response:** Binary file content
-
 
 
 {### Upload File
@@ -1744,7 +1719,7 @@ Content-Type: application/json**Response:** Binary file content
 
 }**Request:**
 
-``````
+```
 
 ------WebKitFormBoundary
 
@@ -1781,16 +1756,15 @@ Content-Type: application/json**Response:** Binary file content
 ## Error Handling```
 
 
-
 ### Standard Error Response Format### Delete File
-
 
 
 All services return errors in this format:```http
 
 DELETE /files/{filename}
 
-```json```
+```json
+```
 
 {
 
@@ -1818,25 +1792,25 @@ DELETE /files/{filename}
 
 ```http
 
-| Code | Meaning | Common Causes |GET /models/{model_id}
+ | Code | Meaning | Common Causes | GET /models/{model_id}
 
-|------|---------|---------------|```
+ | ------ | --------- | --------------- | ```
 
-| 200 | Success | Request completed successfully |
+ | 200 | Success | Request completed successfully | 
 
-| 400 | Bad Request | Invalid payload, missing required fields |**Response:**
+ | 400 | Bad Request | Invalid payload, missing required fields | **Response:**
 
-| 401 | Unauthorized | Missing or invalid authentication token |```json
+ | 401 | Unauthorized | Missing or invalid authentication token | ```json
 
-| 404 | Not Found | Resource does not exist (sensor, analysis type) |{
+ | 404 | Not Found | Resource does not exist (sensor, analysis type) | {
 
-| 422 | Unprocessable Entity | Valid format but invalid data (e.g., insufficient data points) |  "model_id": "20250108-143000",
+ | 422 | Unprocessable Entity | Valid format but invalid data (e.g., insufficient data points) | "model_id": "20250108-143000",
 
-| 429 | Too Many Requests | Rate limit exceeded |  "filename": "20250108-143000.tar.gz",
+ | 429 | Too Many Requests | Rate limit exceeded | "filename": "20250108-143000.tar.gz",
 
-| 500 | Internal Server Error | Service crashed, database unavailable |  "size": 145678901,
+ | 500 | Internal Server Error | Service crashed, database unavailable | "size": 145678901,
 
-| 503 | Service Unavailable | Service temporarily down (maintenance) |  "metadata": {
+ | 503 | Service Unavailable | Service temporarily down (maintenance) | "metadata": {
 
     "trained_at": "2025-01-08T14:30:00Z",
 
@@ -1850,7 +1824,8 @@ DELETE /files/{filename}
 
 **400 Bad Request**:}
 
-```json```
+```json
+```
 
 {
 
@@ -1870,7 +1845,8 @@ DELETE /files/{filename}
 
 **404 Not Found**:GET /health
 
-```json```
+```json
+```
 
 {
 
@@ -1890,7 +1866,8 @@ DELETE /files/{filename}
 
 **422 Unprocessable Entity**:}
 
-```json```
+```json
+```
 
 {
 
@@ -1904,8 +1881,7 @@ DELETE /files/{filename}
 
 }Content-Type: application/json
 
-``````
-
+```
 
 
 **500 Internal Server Error**:
@@ -1922,7 +1898,7 @@ DELETE /files/{filename}
 
 **Request:**
 
-``````json
+```json
 
 {
 
@@ -1951,7 +1927,6 @@ DELETE /files/{filename}
 Content-Type: application/json
 
 **Implement token bucket algorithm**:```
-
 
 
 ```python**Request:**
@@ -2027,13 +2002,10 @@ Retry-After: 30      "confidence": 0.97
 ```## Ollama API
 
 
-
 ---**Base URL**: `http://localhost:11434`
 
 
-
 ## Best Practices### List Models
-
 
 
 ### 1. Request Optimization```http
@@ -2095,7 +2067,6 @@ GET /api/tags
 - ❌ Expose internal error messages to users```
 
 
-
 ---**Request:**
 
 ```json
@@ -2140,12 +2111,12 @@ GET /api/tags
 
 }
 
-```python```
+```python
+```
 
 import requests
 
 from datetime import datetime, timedelta### Chat Completion
-
 
 
 # Query sensor data via Rasa```http
@@ -2238,8 +2209,7 @@ analytics_result = run_analytics("trend_analysis", sensor_data)GET /abacws/query
 
 print(f"Trend: {analytics_result['results']['trend']}")Accept: application/sparql-results+json
 
-``````
-
+```
 
 
 ---**Example:**
@@ -2253,7 +2223,6 @@ print(f"Trend: {analytics_result['results']['trend']}")Accept: application/sparq
 ```javascript
 
 const axios = require('axios');### Query (POST)
-
 
 
 // Query sensor data via Rasa```http
@@ -2379,15 +2348,15 @@ SELECT ?sensor WHERE {| Code | HTTP Status | Description |
 
 ```| `UNAUTHORIZED` | 401 | Authentication required |
 
-| `FORBIDDEN` | 403 | Insufficient permissions |
+ | `FORBIDDEN` | 403 | Insufficient permissions | 
 
 ---| `NOT_FOUND` | 404 | Resource not found |
 
-| `METHOD_NOT_ALLOWED` | 405 | HTTP method not supported |
+ | `METHOD_NOT_ALLOWED` | 405 | HTTP method not supported | 
 
 ## Related Documentation| `CONFLICT` | 409 | Resource conflict (e.g., duplicate) |
 
-| `UNPROCESSABLE_ENTITY` | 422 | Valid syntax but semantic error |
+ | `UNPROCESSABLE_ENTITY` | 422 | Valid syntax but semantic error | 
 
 - **[Analytics API Reference](analytics_api.md)**: Detailed analytics endpoint documentation| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
 
@@ -2398,9 +2367,7 @@ SELECT ?sensor WHERE {| Code | HTTP Status | Description |
 - **[Frontend UI](frontend_ui.md)**: React app integration| `GATEWAY_TIMEOUT` | 504 | Upstream service timeout |
 
 
-
 ---### Example Errors
-
 
 
 **Complete API Reference** - Comprehensive REST API documentation for all OntoBot services. 🔌📡✨**Invalid Sensor:**

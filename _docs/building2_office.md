@@ -23,34 +23,32 @@ Building 2 represents a modern commercial office building designed for HVAC opti
 
 ### Key Specifications
 
-| Property | Details |
+ | Property | Details | 
 
-| Property | Value ||----------|---------|
+ | Property | Value | | ---------- | --------- | 
 
-|----------|-------|| **Building Type** | Synthetic Commercial Office |
+ | ---------- | ------- | | **Building Type** | Synthetic Commercial Office | 
 
-| **Building Type** | Synthetic Commercial Office || **Purpose** | HVAC Optimization & Thermal Comfort Research |
+ | **Building Type** | Synthetic Commercial Office | | **Purpose** | HVAC Optimization & Thermal Comfort Research | 
 
-| **Primary Focus** | HVAC Optimization & Thermal Comfort || **Sensor Coverage** | 329 sensors across multiple zones |
+ | **Primary Focus** | HVAC Optimization & Thermal Comfort | | **Sensor Coverage** | 329 sensors across multiple zones | 
 
-| **Total Sensors** | 329 distributed across 50 thermal zones || **Focus Area** | HVAC Systems & Thermal Comfort |
+ | **Total Sensors** | 329 distributed across 50 thermal zones | | **Focus Area** | HVAC Systems & Thermal Comfort | 
 
-| **Database** | TimescaleDB (PostgreSQL 15 + extension) || **Database** | TimescaleDB (PostgreSQL extension, port 5433) |
+ | **Database** | TimescaleDB (PostgreSQL 15 + extension) | | **Database** | TimescaleDB (PostgreSQL extension, port 5433) | 
 
-| **Port** | 5433 (host), 5432 (container) || **Knowledge Graph** | Brick Schema 1.3 via Jena Fuseki (port 3030) |
+ | **Port** | 5433 (host), 5432 (container) | | **Knowledge Graph** | Brick Schema 1.3 via Jena Fuseki (port 3030) | 
 
-| **Knowledge Graph** | Brick Schema 1.3 via Jena Fuseki || **Compose File** | `docker-compose.bldg2.yml` |
+ | **Knowledge Graph** | Brick Schema 1.3 via Jena Fuseki | | **Compose File** | `docker-compose.bldg2.yml` | 
 
-| **Compose File** | `docker-compose.bldg2.yml` || **Technology Stack** | Rasa 3.6.12, Python 3.10, Docker, TimescaleDB 2.11 |
+ | **Compose File** | `docker-compose.bldg2.yml` | | **Technology Stack** | Rasa 3.6.12, Python 3.10, Docker, TimescaleDB 2.11 | 
 
-| **Tech Stack** | Rasa 3.6.12, Python 3.10, Docker, TimescaleDB 2.11 |
+ | **Tech Stack** | Rasa 3.6.12, Python 3.10, Docker, TimescaleDB 2.11 | 
 
-| **Dataset** | `bldg2/trial/dataset/*.ttl` |## HVAC System Architecture
-
+ | **Dataset** | `bldg2/trial/dataset/*.ttl` | ## HVAC System Architecture
 
 
 ---### Equipment Coverage
-
 
 
 ## Sensor Infrastructure**Air Handling Units (AHUs):**
@@ -99,7 +97,7 @@ Building 2 deploys **329 sensors** across **5 major categories**:- Fan speed con
 
    - Pressures
 
-| System | Sensors | Measurements |
+ | System | Sensors | Measurements | 
 
 4. **Environmental Monitoring** (24 sensors)|--------|---------|--------------|
 
@@ -111,7 +109,7 @@ Building 2 deploys **329 sensors** across **5 major categories**:- Fan speed con
 
    - Solar radiation| **Boilers** | 24 | Temp, flow, pressure, power, efficiency |
 
-| **Other** | 44 | OA temp, humidity, outdoor air dampers |
+ | **Other** | 44 | OA temp, humidity, outdoor air dampers | 
 
 5. **Energy Metering** (5 sensors)
 
@@ -124,7 +122,6 @@ Building 2 deploys **329 sensors** across **5 major categories**:- Fan speed con
    - Gas consumption
 
    - Renewable generationTimescaleDB is a PostgreSQL extension optimized for time-series data, perfect for HVAC monitoring:
-
 
 
 ---**Benefits:**
@@ -142,26 +139,25 @@ Building 2 deploys **329 sensors** across **5 major categories**:- Fan speed con
 Each AHU monitors:- ✅ **Time-Series Functions** - time_bucket, first, last, interpolate
 
 
+ | Sensor Type | Measurement | Range | Update Frequency | ### Database Configuration
 
-| Sensor Type | Measurement | Range | Update Frequency |### Database Configuration
+ | ------------- | ------------- | ------- | ------------------ | 
 
-|-------------|-------------|-------|------------------|
+ | Supply Air Temperature | Temperature after conditioning | 10-25°C | 1 minute | ```yaml
 
-| Supply Air Temperature | Temperature after conditioning | 10-25°C | 1 minute |```yaml
+ | Return Air Temperature | Temperature from zones | 18-28°C | 1 minute | # docker-compose.bldg2.yml
 
-| Return Air Temperature | Temperature from zones | 18-28°C | 1 minute |# docker-compose.bldg2.yml
+ | Mixed Air Temperature | Fresh + return air mix | 12-26°C | 1 minute | timescale:
 
-| Mixed Air Temperature | Fresh + return air mix | 12-26°C | 1 minute |timescale:
+ | Supply Airflow Rate | CFM delivered to zones | 0-15,000 CFM | 1 minute | image: timescale/timescaledb:2.11.0-pg15
 
-| Supply Airflow Rate | CFM delivered to zones | 0-15,000 CFM | 1 minute |  image: timescale/timescaledb:2.11.0-pg15
+ | Fan Speed | VFD percentage | 0-100% | 1 minute | ports:
 
-| Fan Speed | VFD percentage | 0-100% | 1 minute |  ports:
+ | Filter Status | Differential pressure | 0-2.5 inWC | 5 minutes | - "5433:5432"
 
-| Filter Status | Differential pressure | 0-2.5 inWC | 5 minutes |    - "5433:5432"
+ | Cooling Coil Valve | Position 0-100% | 0-100% | 1 minute | environment:
 
-| Cooling Coil Valve | Position 0-100% | 0-100% | 1 minute |  environment:
-
-| Heating Coil Valve | Position 0-100% | 0-100% | 1 minute |    POSTGRES_DB: telemetry_bldg2
+ | Heating Coil Valve | Position 0-100% | 0-100% | 1 minute | POSTGRES_DB: telemetry_bldg2
 
     POSTGRES_USER: postgres
 
@@ -196,7 +192,6 @@ AHU_1_Heating_Coil_Valve_Position_Sensor\c telemetry_bldg2
 ---CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 
-
 ### Thermal Zones (50 zones)-- Create sensor readings table
 
 CREATE TABLE sensor_readings (
@@ -205,20 +200,19 @@ Each zone has **3 sensors**:    time TIMESTAMPTZ NOT NULL,
 
     sensor_id TEXT NOT NULL,
 
-| Sensor Type | Purpose | Range | Update Frequency |    sensor_type TEXT NOT NULL,
+ | Sensor Type | Purpose | Range | Update Frequency | sensor_type TEXT NOT NULL,
 
-|-------------|---------|-------|------------------|    zone_id TEXT,
+ | ------------- | --------- | ------- | ------------------ | zone_id TEXT,
 
-| Zone Temperature | Current thermal state | 18-28°C | 1 minute |    equipment_id TEXT,
+ | Zone Temperature | Current thermal state | 18-28°C | 1 minute | equipment_id TEXT,
 
-| Occupancy | People present | 0/1 or count | 5 minutes |    value DOUBLE PRECISION NOT NULL,
+ | Occupancy | People present | 0/1 or count | 5 minutes | value DOUBLE PRECISION NOT NULL,
 
-| CO₂ Level | Ventilation demand indicator | 400-2000 ppm | 5 minutes |    unit TEXT,
+ | CO₂ Level | Ventilation demand indicator | 400-2000 ppm | 5 minutes | unit TEXT,
 
     quality_flag INTEGER DEFAULT 0
 
 **Total Zone Sensors**: 50 zones × 3 sensors = **150 sensors**);
-
 
 
 **Example Zone Sensor Names**:-- Convert to hypertable (automatic time-based partitioning)
@@ -506,7 +500,6 @@ VALUES```
 ```### Thermal Comfort Monitoring
 
 
-
 ---**Predicted Mean Vote (PMV) Calculation:**
 
 - Air temperature
@@ -519,19 +512,19 @@ VALUES```
 
 - Clothing insulation (seasonal)
 
-| Metric | Value |
+ | Metric | Value | 
 
-|--------|-------|**Comfort Metrics:**
+ | -------- | ------- | **Comfort Metrics:**
 
-| Raw Data Size | 28 GB |- PMV: -3 (cold) to +3 (hot), target: -0.5 to +0.5
+ | Raw Data Size | 28 GB | - PMV: -3 (cold) to +3 (hot), target: -0.5 to +0.5
 
-| Compressed Size | 3.2 GB |- PPD: Percentage of People Dissatisfied
+ | Compressed Size | 3.2 GB | - PPD: Percentage of People Dissatisfied
 
-| Compression Ratio | 8.75:1 |- Operative temperature
+ | Compression Ratio | 8.75:1 | - Operative temperature
 
-| Total Records | 172 million |- Thermal sensation
+ | Total Records | 172 million | - Thermal sensation
 
-| Daily Inserts | 470,000 |
+ | Daily Inserts | 470,000 | 
 
 ### Energy Efficiency Analytics
 
@@ -539,17 +532,17 @@ VALUES```
 
 **Performance Indicators:**
 
-| Query Type | Response Time |- **COP** (Coefficient of Performance) - Chillers
+ | Query Type | Response Time | - **COP** (Coefficient of Performance) - Chillers
 
-|------------|---------------|- **Boiler Efficiency** - Combustion efficiency %
+ | ------------ | --------------- | - **Boiler Efficiency** - Combustion efficiency %
 
-| Single sensor, 24 hours | 15-30 ms |- **AHU Energy Consumption** - kWh per CFM
+ | Single sensor, 24 hours | 15-30 ms | - **AHU Energy Consumption** - kWh per CFM
 
-| All zones, 1 hour | 50-100 ms |- **Zone Temperature Variance** - Comfort stability
+ | All zones, 1 hour | 50-100 ms | - **Zone Temperature Variance** - Comfort stability
 
-| Aggregated hourly, 1 week | 80-150 ms |
+ | Aggregated hourly, 1 week | 80-150 ms | 
 
-| Complex analytics (multiple sensors) | 200-500 ms |**Optimization Strategies:**
+ | Complex analytics (multiple sensors) | 200-500 ms | **Optimization Strategies:**
 
 - Optimal start/stop times
 
@@ -580,7 +573,6 @@ VALUES```
 Building 2's knowledge graph uses **Brick Schema 1.3** with 329 sensor entities.- Compressor runtime tracking
 
 
-
 **Fuseki Endpoint**: `http://localhost:3030/trial/sparql`**Maintenance Alerts:**
 
 - Filter replacement due (ΔP > threshold)
@@ -592,16 +584,14 @@ Building 2's knowledge graph uses **Brick Schema 1.3** with 329 sensor entities.
 ---- Refrigerant leak indicators
 
 
-
 ### Sample SPARQL Queries## Usage Examples
-
 
 
 #### Query 1: Find All Zone Temperature Sensors### Zone Comfort Queries
 
 
-
-```sparql```
+```sparql
+```
 
 PREFIX brick: <https://brickschema.org/schema/Brick#>"What's the temperature in Zone 01?"
 
@@ -633,17 +623,17 @@ ORDER BY ?zone```
 
 **Sample Output**:"What's the current cooling load?"
 
-``````
+```
 
-| sensor                          | zone      |
+ | sensor | zone | 
 
-|---------------------------------|-----------|### Energy & Efficiency
+ | --------------------------------- | ----------- | ### Energy & Efficiency
 
-| :Zone_101_Temperature_Sensor    | :Zone_101 |
+ | :Zone_101_Temperature_Sensor | :Zone_101 | 
 
-| :Zone_102_Temperature_Sensor    | :Zone_102 |```
+ | :Zone_102_Temperature_Sensor | :Zone_102 | ```
 
-| :Zone_201_Temperature_Sensor    | :Zone_201 |"Calculate building energy consumption today"
+ | :Zone_201_Temperature_Sensor | :Zone_201 | "Calculate building energy consumption today"
 
 ..."What's the COP of Chiller 2?"
 
@@ -684,7 +674,6 @@ ORDER BY ?sensorType
 ```Building 2 includes pgAdmin for web-based database management:
 
 
-
 **Results**: 8 sensors for AHU_1```yaml
 
 # Pre-configured pgAdmin
@@ -693,26 +682,24 @@ ORDER BY ?sensorType
 
 ```  image: dpage/pgadmin4:latest
 
-| sensor                                      | sensorType                  |  ports:
+ | sensor | sensorType | ports:
 
-|---------------------------------------------|-----------------------------|    - "5050:80"
+ | --------------------------------------------- | ----------------------------- | - "5050:80"
 
-| :AHU_1_Cooling_Coil_Valve_Position_Sensor   | brick:Valve_Position_Sensor |  environment:
+ | :AHU_1_Cooling_Coil_Valve_Position_Sensor | brick:Valve_Position_Sensor | environment:
 
-| :AHU_1_Fan_Speed_Sensor                     | brick:Speed_Sensor          |    PGADMIN_DEFAULT_EMAIL: admin@admin.com
+ | :AHU_1_Fan_Speed_Sensor | brick:Speed_Sensor | PGADMIN_DEFAULT_EMAIL: admin@admin.com
 
-| :AHU_1_Filter_Status_Sensor                 | brick:Filter_Status         |    PGADMIN_DEFAULT_PASSWORD: admin
+ | :AHU_1_Filter_Status_Sensor | brick:Filter_Status | PGADMIN_DEFAULT_PASSWORD: admin
 
-| :AHU_1_Supply_Air_Temperature_Sensor        | brick:Temperature_Sensor    |  volumes:
+ | :AHU_1_Supply_Air_Temperature_Sensor | brick:Temperature_Sensor | volumes:
 
 ...    - ./bldg2/servers.json:/pgadmin4/servers.json
 
-``````
-
+```
 
 
 ---**Access:** http://localhost:5050 (admin@admin.com / admin)
-
 
 
 #### Query 3: Find Zones Served by a Specific AHU**Pre-configured Connection:**
@@ -746,7 +733,6 @@ ORDER BY ?zone- Zone temperature profiling
 **Results**: ~3-4 zones per AHU (15 AHUs serving 50 zones)- Thermal lag analysis
 
 
-
 ---**Equipment Performance:**
 
 - COP/EER calculation
@@ -756,7 +742,6 @@ ORDER BY ?zone- Zone temperature profiling
 - Cycling frequency
 
 Building 2's action server uses **RapidFuzz** (80% threshold) to handle natural language variations.- Load profiles
-
 
 
 ### Air Temperature Queries**Energy Analytics:**
@@ -775,7 +760,7 @@ Building 2's action server uses **RapidFuzz** (80% threshold) to handle natural 
 
 "air_temperature_sensor_zone_101"     → Zone_101_Temperature_Sensor (underscores)
 
-``````python
+```python
 
 import requests
 
@@ -837,7 +822,7 @@ Zone 102 → Zone_102_Temperature_Sensor (match: 100%)### Custom Actions
 
 Zone 103 → Zone_103_Temperature_Sensor (match: 100%)
 
-``````python
+```python
 
 # actions/actions.py
 
@@ -1064,7 +1049,6 @@ GROUP BY 1;
       - rasa-networkSELECT * FROM timescaledb_information.compression_settings;
 
 
-
   # HTTP file server (shared)-- Reindex if needed
 
   http_server:REINDEX TABLE sensor_readings;
@@ -1112,7 +1096,6 @@ FROM timescaledb_information.hypertables;
       - rasa-network## Related Documentation
 
 
-
 volumes:- [Building 1 - ABACWS](/docs/building1_abacws/) - Real university testbed
 
   timescaledb_data:- [Building 3 - Data Center](/docs/building3_datacenter/) - Critical infrastructure
@@ -1136,7 +1119,6 @@ networks:- [Multi-Building Support](/docs/multi_building/) - Switching between b
 - **Thermal Comfort**: [ISO 7730](https://www.iso.org/standard/39155.html)
 
 ### Starting Building 2- **Building Automation**: [BACnet Standard](http://www.bacnet.org/)
-
 
 
 **One-Command Startup**:---
@@ -1270,29 +1252,29 @@ curl http://localhost:3000  # Frontend
 
 **TimescaleDB Queries** (single sensor):
 
-| Time Range | Records | Response Time |
-|------------|---------|---------------|
-| 1 hour | 60 | 10-15 ms |
-| 24 hours | 1,440 | 15-30 ms |
-| 1 week | 10,080 | 50-100 ms |
-| 1 month | 43,200 | 150-300 ms |
+ | Time Range | Records | Response Time | 
+ | ------------ | --------- | --------------- | 
+ | 1 hour | 60 | 10-15 ms | 
+ | 24 hours | 1,440 | 15-30 ms | 
+ | 1 week | 10,080 | 50-100 ms | 
+ | 1 month | 43,200 | 150-300 ms | 
 
 **Multi-Sensor Queries** (10 sensors):
 
-| Time Range | Total Records | Response Time |
-|------------|---------------|---------------|
-| 1 hour | 600 | 30-50 ms |
-| 24 hours | 14,400 | 80-150 ms |
-| 1 week | 100,800 | 300-600 ms |
+ | Time Range | Total Records | Response Time | 
+ | ------------ | --------------- | --------------- | 
+ | 1 hour | 600 | 30-50 ms | 
+ | 24 hours | 14,400 | 80-150 ms | 
+ | 1 week | 100,800 | 300-600 ms | 
 
 **Analytics Processing**:
 
-| Analysis Type | Data Points | Processing Time |
-|---------------|-------------|-----------------|
-| Summary statistics | 1,440 | <1 second |
-| Trend analysis | 10,080 | 2-3 seconds |
-| Anomaly detection | 43,200 | 5-8 seconds |
-| Forecasting (ARIMA) | 10,080 | 10-15 seconds |
+ | Analysis Type | Data Points | Processing Time | 
+ | --------------- | ------------- | ----------------- | 
+ | Summary statistics | 1,440 | <1 second | 
+ | Trend analysis | 10,080 | 2-3 seconds | 
+ | Anomaly detection | 43,200 | 5-8 seconds | 
+ | Forecasting (ARIMA) | 10,080 | 10-15 seconds | 
 
 ---
 

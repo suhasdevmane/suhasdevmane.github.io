@@ -7,13 +7,10 @@ date: 2025-09-28
 ---
 
 
-
 # OntoBot: Conversational AI for Smart Buildings# OntoBot: Talking Buildings
 
 
-
 ## What is OntoBot?OntoBot is a modular platform for human–building interaction in natural language. It combines:
-
 
 
 OntoBot is a **production-ready conversational AI platform** that enables natural language interaction with smart building systems. Ask questions like:- A Rasa-based conversational layer (NLU + Actions)
@@ -269,29 +266,29 @@ range of 20-24°C for office environments."
 
 ### Core Technologies
 
-| Component | Technology | Version | Purpose |
-|-----------|-----------|---------|---------|
-| **Conversational AI** | Rasa Open Source | 3.6.20 | Intent/entity/dialogue |
-| **Action Server** | Rasa SDK | 3.6.0 | Custom business logic |
-| **Knowledge Store** | Apache Jena Fuseki | 4.7.0 | SPARQL endpoint |
-| **Analytics** | Flask + scikit-learn | 3.0 / 1.3 | Time-series analysis |
-| **Frontend** | React + TypeScript | 18 / 5.0 | User interface |
-| **Fuzzy Matching** | RapidFuzz | 2.13.7 | Sensor name resolution |
+ | Component | Technology | Version | Purpose | 
+ | ----------- | ----------- | --------- | --------- | 
+ | **Conversational AI** | Rasa Open Source | 3.6.20 | Intent/entity/dialogue | 
+ | **Action Server** | Rasa SDK | 3.6.0 | Custom business logic | 
+ | **Knowledge Store** | Apache Jena Fuseki | 4.7.0 | SPARQL endpoint | 
+ | **Analytics** | Flask + scikit-learn | 3.0 / 1.3 | Time-series analysis | 
+ | **Frontend** | React + TypeScript | 18 / 5.0 | User interface | 
+ | **Fuzzy Matching** | RapidFuzz | 2.13.7 | Sensor name resolution | 
 
 ### Databases
 
-| Building | Database | Version | Optimized For |
-|----------|----------|---------|---------------|
-| Building 1 | MySQL | 8.0 | General-purpose RDBMS |
-| Building 2 | TimescaleDB | 14 | Time-series queries |
-| Building 3 | Cassandra | 4.0 | High-write throughput |
+ | Building | Database | Version | Optimized For | 
+ | ---------- | ---------- | --------- | --------------- | 
+ | Building 1 | MySQL | 8.0 | General-purpose RDBMS | 
+ | Building 2 | TimescaleDB | 14 | Time-series queries | 
+ | Building 3 | Cassandra | 4.0 | High-write throughput | 
 
 ### Optional Services
 
-| Service | Technology | Purpose |
-|---------|-----------|---------|
-| **NL2SPARQL** | T5-base (Hugging Face) | NL → SPARQL translation |
-| **LLM** | Ollama + Mistral 7B | Response summarization |
+ | Service | Technology | Purpose | 
+ | --------- | ----------- | --------- | 
+ | **NL2SPARQL** | T5-base (Hugging Face) | NL → SPARQL translation | 
+ | **LLM** | Ollama + Mistral 7B | Response summarization | 
 
 ---
 

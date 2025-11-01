@@ -7,17 +7,13 @@ date: 2025-10-08
 ---
 
 
-
 # Frontend UI Guide# Frontend User Interface
-
 
 
 **Complete guide to OntoBot's React-based chat interface and visualization system.**The OntoBot frontend is a React-based web application that provides an intuitive interface for interacting with your smart building. It runs on **port 3000** and serves as the main entry point for users.
 
 
-
 ---## Overview
-
 
 
 ## Table of ContentsThe frontend consists of several key pages:
@@ -45,9 +41,7 @@ date: 2025-10-08
 10. [Development](#development)### Features
 
 
-
 ---The home dashboard provides a visual overview of all available services with quick-launch buttons:
-
 
 
 ## Overview#### Data & Semantics
@@ -55,7 +49,6 @@ date: 2025-10-08
 - **Jena Fuseki Server** (port 3030): Semantic Web Framework for SPARQL queries
 
 ### Technology Stack- **GraphDB** (port 7200): Graph database management system
-
 
 
 **Framework**: React 18.2.0#### IoT Platform & Database Tools
@@ -69,7 +62,6 @@ date: 2025-10-08
 **Styling**: CSS3 (custom styles)- **MySQL Server** (port 3307): Legacy telemetry database
 
 
-
 **HTTP Client**: Axios 1.4.0#### Microservices & APIs
 
 - **Microservices** (port 6001): Analytics and utility services
@@ -79,7 +71,6 @@ date: 2025-10-08
 - **3D API** (port 8091): API for 3D visualization services
 
 **Development Server**: webpack-dev-server 4.15.1- **Visualiser** (port 8090): 3D building visualization
-
 
 
 ---#### Conversational Stack
@@ -105,17 +96,13 @@ date: 2025-10-08
 - 🎨 **Responsive design** (desktop/tablet/mobile)### Usage
 
 
-
 ---Click any service card to open it in a new browser tab. Services show their current status and purpose.
-
 
 
 ## Architecture## Chat Interface
 
 
-
 ### Component HierarchyAccess: `http://localhost:3000/chat` or click "Open Chatbot" from the home page
-
 
 
 ```### Features
@@ -152,12 +139,10 @@ App
 
     └── BuildingSelectorCompare humidity between zones 5.01 and 5.02
 
-``````
-
+```
 
 
 ---#### Response Types
-
 
 
 ### Data Flow**1. Direct Answers**
@@ -221,13 +206,10 @@ ChartDisplay (renders artifacts)
 - `userId`: Unique user identifier (session-based)### Tabs
 
 
-
 **No external state library** (Redux, MobX) - simple prop drilling suffices for this scale.#### 1. Model Training (Main Tab)
 
 
-
 ---**Step-by-Step Workflow:**
-
 
 
 ## Installation & Setup**Step 1: Train Model**
@@ -277,7 +259,6 @@ npm install- Once both training and startup are complete, the green checkmark co
 ```- Chat interface is now ready to use
 
 
-
 **3. Start development server**:**Log Management:**
 
 ```powershell- **Append Mode** (default): New logs are added to existing ones
@@ -319,7 +300,6 @@ npm run build- **Activate**: Load and restart Rasa with selected model
 **Output**: `build/` directory with minified assets  - Automatically restarts Rasa server
 
 
-
 **Serve production build**:- **Delete**: Remove unused models
 
 ```powershell  - Confirmation required
@@ -327,7 +307,6 @@ npm run build- **Activate**: Load and restart Rasa with selected model
 npx serve -s build -l 3000  - Cannot delete currently active model
 
 ```  - Frees up disk space
-
 
 
 ---**Refresh Models**
@@ -365,7 +344,6 @@ RUN npm run build- Monitor training progress with real-time updates
 EXPOSE 3000- Test translations with the T5 playground
 
 
-
 CMD ["npx", "serve", "-s", "build", "-l", "3000"]### Log Console
 
 ```
@@ -379,7 +357,6 @@ The compact log window at the bottom shows real-time output from:
 docker build -t ontobot-frontend:latest rasa-frontend/- Model activation
 
 ```- Error messages
-
 
 
 **Run container**:**Features:**
@@ -453,7 +430,6 @@ Visual feedback throughout the workflow:
 - Conversational Stack (Rasa, Duckling)
 
 ### Header Section- AI Services (Ollama, Jupyter)
-
 
 
 **Elements**:**Status Indicators:**
@@ -567,7 +543,6 @@ function MessageInput({ onSend, isLoading }) {- `nlu.yml`: Training examples
   };- Confirmation for destructive actions
 
 
-
   const handleKeyPress = (e) => {## Responsive Design
 
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -579,7 +554,6 @@ function MessageInput({ onSend, isLoading }) {- `nlu.yml`: Training examples
     }- Tablets
 
   };- Mobile devices (limited features)
-
 
 
   return (**Optimal Experience:**
@@ -651,7 +625,6 @@ import UserMessage from './UserMessage';- Check port 6001 (microservices) is acc
 import BotMessage from './BotMessage';- Clear browser cache and reload
 
 
-
 function MessageList({ messages }) {**2. "Model training stuck"**
 
   const listRef = useRef(null);- Check logs for error messages
@@ -669,7 +642,6 @@ function MessageList({ messages }) {**2. "Model training stuck"**
     }- Chrome blocks port 6000 as unsafe
 
   }, [messages]);- Restart microservices container
-
 
 
   return (**4. "Chat not responding"**
@@ -703,13 +675,10 @@ export default MessageList;- JavaScript errors (red in Console tab)
 ```- Failed API calls (check URL and response)
 
 
-
 ---## Advanced Configuration
 
 
-
 ### User Message### Environment Variables
-
 
 
 **Component** (`src/components/UserMessage.js`):### Environment and CORS (.env)
@@ -798,7 +767,6 @@ Notes
 ```Configure frontend behavior via environment variables:
 
 
-
 ---```bash
 
 # React app environment
@@ -851,7 +819,7 @@ function BotMessage({ message }) {
 
           )}|---------|------|---------|
 
-          | Rasa | 5005 | Conversational AI |
+ | Rasa | 5005 | Conversational AI | 
 
           {/* Display data table if available */}| File Server | 8080 | Artifacts & training |
 

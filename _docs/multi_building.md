@@ -16,11 +16,11 @@ OntoBot supports **three distinct smart buildings**, each with different sensor 
 
 ### Building Taxonomy
 
-| Building | Type | Primary Focus | Sensors | Database | Port Offset |
-|----------|------|---------------|---------|----------|-------------|
-| **Building 1 (ABACWS)** | Real Testbed | Indoor Environmental Quality | 680 | MySQL 8.0 | 3307 |
-| **Building 2 (Office)** | Synthetic | HVAC & Thermal Comfort | 329 | TimescaleDB 2.11 | 5433 |
-| **Building 3 (Data Center)** | Synthetic | Cooling & Power Distribution | 597 | Cassandra 4.1 | 9042 |
+ | Building | Type | Primary Focus | Sensors | Database | Port Offset | 
+ | ---------- | ------ | --------------- | --------- | ---------- | ------------- | 
+ | **Building 1 (ABACWS)** | Real Testbed | Indoor Environmental Quality | 680 | MySQL 8.0 | 3307 | 
+ | **Building 2 (Office)** | Synthetic | HVAC & Thermal Comfort | 329 | TimescaleDB 2.11 | 5433 | 
+ | **Building 3 (Data Center)** | Synthetic | Cooling & Power Distribution | 597 | Cassandra 4.1 | 9042 | 
 
 **Total System Coverage**: **1,606 sensors** across all buildings
 
@@ -30,16 +30,16 @@ OntoBot supports **three distinct smart buildings**, each with different sensor 
 
 ### Building 1 (ABACWS)
 
-| Service | Host Port | Container Port | Internal DNS |
-|---------|-----------|----------------|--------------|
-| MySQL | 3307 | 3306 | mysqlserver |
-| Rasa Core | 5005 | 5005 | rasa-bldg1 |
-| Action Server | 5055 | 5055 | rasa-action-server-bldg1 |
-| Fuseki | 3030 | 3030 | fuseki-db |
-| Analytics | 6001 | 6000 | microservices |
-| Decider | 6009 | 6009 | decider-service |
-| HTTP Server | 8080 | 8080 | http_server |
-| Frontend | 3000 | 3000 | rasa-ui |
+ | Service | Host Port | Container Port | Internal DNS | 
+ | --------- | ----------- | ---------------- | -------------- | 
+ | MySQL | 3307 | 3306 | mysqlserver | 
+ | Rasa Core | 5005 | 5005 | rasa-bldg1 | 
+ | Action Server | 5055 | 5055 | rasa-action-server-bldg1 | 
+ | Fuseki | 3030 | 3030 | fuseki-db | 
+ | Analytics | 6001 | 6000 | microservices | 
+ | Decider | 6009 | 6009 | decider-service | 
+ | HTTP Server | 8080 | 8080 | http_server | 
+ | Frontend | 3000 | 3000 | rasa-ui | 
 
 **Compose File**: `docker-compose.bldg1.yml`
 
@@ -52,16 +52,16 @@ docker compose -f docker-compose.bldg1.yml up -d
 
 ### Building 2 (Office)
 
-| Service | Host Port | Container Port | Internal DNS |
-|---------|-----------|----------------|--------------|
-| TimescaleDB | 5433 | 5432 | timescaledb |
-| Rasa Core | 5005 | 5005 | rasa-bldg2 |
-| Action Server | 5055 | 5055 | rasa-action-server-bldg2 |
-| Fuseki | 3030 | 3030 | fuseki-db |
-| Analytics | 6001 | 6000 | microservices |
-| Decider | 6009 | 6009 | decider-service |
-| HTTP Server | 8080 | 8080 | http_server |
-| Frontend | 3000 | 3000 | rasa-ui |
+ | Service | Host Port | Container Port | Internal DNS | 
+ | --------- | ----------- | ---------------- | -------------- | 
+ | TimescaleDB | 5433 | 5432 | timescaledb | 
+ | Rasa Core | 5005 | 5005 | rasa-bldg2 | 
+ | Action Server | 5055 | 5055 | rasa-action-server-bldg2 | 
+ | Fuseki | 3030 | 3030 | fuseki-db | 
+ | Analytics | 6001 | 6000 | microservices | 
+ | Decider | 6009 | 6009 | decider-service | 
+ | HTTP Server | 8080 | 8080 | http_server | 
+ | Frontend | 3000 | 3000 | rasa-ui | 
 
 **Compose File**: `docker-compose.bldg2.yml`
 
@@ -74,17 +74,17 @@ docker compose -f docker-compose.bldg2.yml up -d
 
 ### Building 3 (Data Center)
 
-| Service | Host Port | Container Port | Internal DNS |
-|---------|-----------|----------------|--------------|
-| Cassandra | 9042 | 9042 | cassandra |
-| PostgreSQL (metadata) | 5434 | 5432 | postgres |
-| Rasa Core | 5005 | 5005 | rasa-bldg3 |
-| Action Server | 5055 | 5055 | rasa-action-server-bldg3 |
-| Fuseki | 3030 | 3030 | fuseki-db |
-| Analytics | 6001 | 6000 | microservices |
-| Decider | 6009 | 6009 | decider-service |
-| HTTP Server | 8080 | 8080 | http_server |
-| Frontend | 3000 | 3000 | rasa-ui |
+ | Service | Host Port | Container Port | Internal DNS | 
+ | --------- | ----------- | ---------------- | -------------- | 
+ | Cassandra | 9042 | 9042 | cassandra | 
+ | PostgreSQL (metadata) | 5434 | 5432 | postgres | 
+ | Rasa Core | 5005 | 5005 | rasa-bldg3 | 
+ | Action Server | 5055 | 5055 | rasa-action-server-bldg3 | 
+ | Fuseki | 3030 | 3030 | fuseki-db | 
+ | Analytics | 6001 | 6000 | microservices | 
+ | Decider | 6009 | 6009 | decider-service | 
+ | HTTP Server | 8080 | 8080 | http_server | 
+ | Frontend | 3000 | 3000 | rasa-ui | 
 
 **Compose File**: `docker-compose.bldg3.yml`
 
