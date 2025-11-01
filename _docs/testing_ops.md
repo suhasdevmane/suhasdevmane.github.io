@@ -725,6 +725,7 @@ $jobs | Remove-Job
 ### GitHub Actions
 
 **Workflow File** (`.github/workflows/ci.yml`):
+{% raw %}
 ```yaml
 name: OntoBot CI/CD
 
@@ -799,8 +800,9 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        docker-compose -f docker-compose.bldg1.yml push
+    docker-compose -f docker-compose.bldg1.yml push
 ```
+{% endraw %}
 
 ---
 

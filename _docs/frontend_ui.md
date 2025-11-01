@@ -714,6 +714,7 @@ export default MessageList;- JavaScript errors (red in Console tab)
 
 **Component** (`src/components/UserMessage.js`):### Environment and CORS (.env)
 
+{% raw %}
 ```javascript
 
 function UserMessage({ text }) {When running with Docker Compose, the frontend and backend coordinate CORS and cookies using values from the repository's `.env` file.
@@ -943,6 +944,7 @@ function ChartDisplay({ url }) {
 
 export default ChartDisplay;
 ```
+{% endraw %}
 
 **CSS** (`src/styles/ChartDisplay.css`):
 ```css
