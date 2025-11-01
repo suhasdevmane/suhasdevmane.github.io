@@ -13,7 +13,7 @@ permalink: /docs/building1_abacws/
 
 **ABACWS** (Cardiff University's smart building testbed) is OntoBot's primary demonstration platform - a real-world university building with comprehensive Indoor Environmental Quality (IEQ) monitoring across 34 zones.
 
-![Building 1 - ABACWS Visualizer](../assets/images/bldg1_visulizer.png)
+![Building 1 - ABACWS Visualizer]({{ '/assets/images/bldg1_visulizer.png' | relative_url }})
 
 ## Overview
 
