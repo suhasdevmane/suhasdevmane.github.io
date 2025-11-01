@@ -133,7 +133,9 @@ Response:
 
 **Response:**
 
-### Production Authentication (Recommended)```json
+### Production Authentication (Recommended)
+
+```json
 
 {
 
@@ -145,7 +147,9 @@ Response:
 
 POST /api/auth/login}
 
-Content-Type: application/json```
+Content-Type: application/json
+
+```
 
 
 {### Health Check
@@ -223,7 +227,9 @@ def token_required(f):```json
 
             token = token.replace('Bearer ', '')**Response with Custom Payload:**
 
-            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])```json
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+
+```json
 
         except:[
 
@@ -273,7 +279,9 @@ def run_analytics():        "timestamps": ["14:00", "14:15", "14:30", "14:45", "
 
 **Response:**
 
-### GET /version```json
+### GET /version
+
+```json
 
 {
 
@@ -328,7 +336,9 @@ Send a message to the Rasa chatbot and receive a response.```
 
 ```http
 
-POST http://localhost:5005/webhooks/rest/webhook```http
+POST http://localhost:5005/webhooks/rest/webhook
+
+```http
 
 Content-Type: application/jsonPOST /conversations/{sender_id}/execute
 
@@ -340,7 +350,9 @@ Content-Type: application/json
 
   "message": "show me temperature in zone 5.01 for the last 24 hours"**Request:**
 
-}```json
+}
+
+```json
 
 ```{
 
@@ -383,7 +395,9 @@ Content-Type: application/json
 
         "std": 0.4**Response:**
 
-      }```json
+      }
+
+```json
 
     }{
 
@@ -425,7 +439,9 @@ Content-Type: application/json
 
 }
 
-// Forecast request```
+// Forecast request
+
+```
 
 {"sender": "user1", "message": "forecast temperature for next 24 hours"}
 
@@ -493,7 +509,9 @@ GET http://localhost:5005/conversations/user123/tracker      "value": "5.04",
 
   "events": [...]
 
-}```http
+}
+
+```http
 
 ```GET /health
 
@@ -518,7 +536,9 @@ Trigger a specific action directly (debugging).```
 
 ```http
 
-POST http://localhost:5005/conversations/user123/execute```http
+POST http://localhost:5005/conversations/user123/execute
+
+```http
 
 Content-Type: application/jsonPOST /webhook
 
@@ -608,7 +628,9 @@ Content-Type: application/json    {
 
 GET /actions
 
-**Use Case**: Dynamic model retraining```
+**Use Case**: Dynamic model retraining
+
+```
 
 
 ---**Response:**
@@ -692,7 +714,9 @@ Rasa calls this endpoint to execute custom actions.
 
       "value": [...]**Request:**
 
-    }```json
+    }
+
+```json
 
   ],{
 
@@ -706,13 +730,17 @@ Rasa calls this endpoint to execute custom actions.
 
         "chart_url": "http://localhost:8080/artifacts/user123/temp.png",}
 
-        "data": [...]```
+        "data": [...]
+
+```
 
       }
 
     }**Response:**
 
-  ]```json
+  ]
+
+```json
 
 }{
 
@@ -760,7 +788,9 @@ GET http://localhost:5055/health    "count": 288
 
   "analytics": "reachable"Content-Type: application/json
 
-}```
+}
+
+```
 
 ```
 
@@ -786,7 +816,9 @@ GET http://localhost:5055/health    "count": 288
 
 **Response:**
 
-### GET /health```json
+### GET /health
+
+```json
 
 {
 
@@ -826,7 +858,9 @@ GET http://localhost:6001/health    "r_squared": 0.87,
 
 Content-Type: application/json
 
-### GET /analytics/list```
+### GET /analytics/list
+
+```
 
 
 Get available analysis types.**Request:**
@@ -897,7 +931,9 @@ GET http://localhost:6001/analytics/list  "start_time": "2025-01-08T00:00:00Z",
 
   "count": 21}
 
-}```
+}
+
+```
 
 ```
 
@@ -1028,7 +1064,9 @@ Content-Type: application/json  "sensor": "Zone_Air_Humidity_Sensor_5.04",
 
 **Response:**
 
-### GET /health```json
+### GET /health
+
+```json
 
 {
 
@@ -1068,7 +1106,9 @@ GET http://localhost:6009/health    "p_value": 0.0001,
 
 Content-Type: application/json
 
-### POST /decide```
+### POST /decide
+
+```
 
 
 Classify a user query into an analytics type.**Request:**
@@ -1127,7 +1167,9 @@ Content-Type: application/json  "end_time": "2025-01-08T23:59:59Z",
 
 - summary_statistics}
 
-- trend_analysis```
+- trend_analysis
+
+```
 
 - anomaly_detection
 
@@ -1135,17 +1177,23 @@ Content-Type: application/json  "end_time": "2025-01-08T23:59:59Z",
 
 - correlation_analysis
 
-- comparative_analysis```http
+- comparative_analysis
+
+```http
 
 - clusteringGET /api/t5/sensors
 
-- classification```
+- classification
+
+```
 
 - optimization
 
 - what_if_scenario**Response:**
 
-- threshold_recommendations```json
+- threshold_recommendations
+
+```json
 
 - real_time_anomaly{
 
@@ -1167,13 +1215,17 @@ Content-Type: application/json  "end_time": "2025-01-08T23:59:59Z",
 
 }
 
-**Internal URL**: `http://http_server:8080````
+**Internal URL**: `http://http_server:8080
+
+````
 
 
 ---### T5 Training - Get Examples
 
 
-### GET /artifacts/{user}/{filename}```http
+### GET /artifacts/{user}/{filename}
+
+```http
 
 GET /api/t5/examples
 
@@ -1221,7 +1273,9 @@ GET http://localhost:8080/artifacts/user123/
 ```### T5 Training - Add Example
 
 
-**Response**: HTML directory listing```http
+**Response**: HTML directory listing
+
+```http
 
 POST /api/t5/examples
 
@@ -1266,7 +1320,9 @@ rasa-ui/shared_data/artifacts/  "example_id": 46,
 
 │   ├── temperature_chart.png}
 
-│   ├── trend_analysis.csv```
+│   ├── trend_analysis.csv
+
+```
 
 │   └── forecast_results.json
 
@@ -1274,7 +1330,9 @@ rasa-ui/shared_data/artifacts/  "example_id": 46,
 
 │   ├── co2_analysis.png
 
-│   └── correlation_matrix.png```http
+│   └── correlation_matrix.png
+
+```http
 
 └── test_user/PUT /api/t5/examples/{example_id}
 
@@ -1307,7 +1365,9 @@ rasa-ui/shared_data/artifacts/  "example_id": 46,
 
 **Response:**
 
-### GET /$/ping```json
+### GET /$/ping
+
+```json
 
 {
 
@@ -1319,7 +1379,9 @@ Health check endpoint.  "status": "success",
 
 ```http}
 
-GET http://localhost:3030/$/ping```
+GET http://localhost:3030/$/ping
+
+```
 
 ```
 
@@ -1369,7 +1431,9 @@ GET http://localhost:3030/$/datasets  "message": "Training example deleted succe
 
         {"srv.type": "SPARQL", "srv.endpoint": "/trial/sparql"},**Request:**
 
-        {"srv.type": "GSP", "srv.endpoint": "/trial/data"}```json
+        {"srv.type": "GSP", "srv.endpoint": "/trial/data"}
+
+```json
 
       ]{
 
@@ -1415,7 +1479,9 @@ SELECT ?sensor WHERE {
 
 }GET /api/t5/training/status
 
-LIMIT 10```
+LIMIT 10
+
+```
 
 ```
 
@@ -1447,7 +1513,9 @@ LIMIT 10```
 
   }
 
-}```http
+}
+
+```http
 
 ```POST /api/t5/deploy
 
@@ -1500,7 +1568,9 @@ WHERE {
 
   ?zone brick:hasName "Zone_5.01" .
 
-}```http
+}
+
+```http
 
 ```GET /health
 
@@ -1539,7 +1609,9 @@ POST /decide
 
 **Request:**
 
-**Internal URL**: `http://nl2sparql:6005````json
+**Internal URL**: `http://nl2sparql:6005
+
+````json
 
 {
 
@@ -1563,7 +1635,9 @@ Convert natural language to SPARQL query.}
 
 ```http**Response:**
 
-POST http://localhost:6005/nl2sparql```json
+POST http://localhost:6005/nl2sparql
+
+```json
 
 Content-Type: application/json{
 
@@ -1629,7 +1703,9 @@ Content-Type: application/json{
 
 **Response:**
 
-### POST /api/generate```json
+### POST /api/generate
+
+```json
 
 {
 
@@ -1725,7 +1801,8 @@ Content-Type: application/json**Response:** Binary file content
 
 **Response**:Content-Disposition: form-data; name="file"; filename="model.tar.gz"
 
-```jsonContent-Type: application/gzip
+```json
+Content-Type: application/gzip
 
 {
 
@@ -1753,7 +1830,9 @@ Content-Type: application/json**Response:** Binary file content
 
 }
 
-## Error Handling```
+## Error Handling
+
+```
 
 
 ### Standard Error Response Format### Delete File
@@ -1931,7 +2010,9 @@ Content-Type: application/json
 
 ```python**Request:**
 
-from flask_limiter import Limiter```json
+from flask_limiter import Limiter
+
+```json
 
 from flask_limiter.util import get_remote_address{
 
@@ -1995,7 +2076,9 @@ Retry-After: 30      "confidence": 0.97
 
   "details": "Maximum 10 requests per minute. Try again in 30 seconds.",}
 
-  "retry_after": 30```
+  "retry_after": 30
+
+```
 
 }
 
@@ -2008,7 +2091,9 @@ Retry-After: 30      "confidence": 0.97
 ## Best Practices### List Models
 
 
-### 1. Request Optimization```http
+### 1. Request Optimization
+
+```http
 
 GET /api/tags
 
@@ -2018,7 +2103,9 @@ GET /api/tags
 
 - ✅ Use appropriate time ranges (avoid years of data)**Response:**
 
-- ✅ Specify required fields only```json
+- ✅ Specify required fields only
+
+```json
 
 - ✅ Cache responses when possible{
 
@@ -2050,7 +2137,9 @@ GET /api/tags
 
 - ✅ Implement exponential backoff for retries}
 
-- ✅ Log errors with request context```
+- ✅ Log errors with request context
+
+```
 
 - ✅ Provide user-friendly error messages
 
@@ -2058,13 +2147,17 @@ GET /api/tags
 
 **DON'T**:
 
-- ❌ Assume all requests succeed```http
+- ❌ Assume all requests succeed
+
+```http
 
 - ❌ Retry immediately on failurePOST /api/generate
 
 - ❌ Ignore error detailsContent-Type: application/json
 
-- ❌ Expose internal error messages to users```
+- ❌ Expose internal error messages to users
+
+```
 
 
 ---**Request:**
@@ -2081,7 +2174,9 @@ GET /api/tags
 
 - ✅ Implement request timeouts (30 seconds)}
 
-- ✅ Compress large payloads (gzip)```
+- ✅ Compress large payloads (gzip)
+
+```
 
 - ✅ Monitor API latency
 
@@ -2119,7 +2214,9 @@ import requests
 from datetime import datetime, timedelta### Chat Completion
 
 
-# Query sensor data via Rasa```http
+# Query sensor data via Rasa
+
+```http
 
 def query_sensor_rasa(sensor_name, hours=24):POST /api/chat
 
@@ -2161,13 +2258,17 @@ def run_analytics(analysis_type, sensor_data):      "role": "user",
 
         "timeseries_data": sensor_data}
 
-    }```
+    }
+
+```
 
     
 
     response = requests.post(url, json=payload, timeout=60)**Response:**
 
-    response.raise_for_status()```json
+    response.raise_for_status()
+
+```json
 
     {
 
@@ -2225,7 +2326,9 @@ print(f"Trend: {analytics_result['results']['trend']}")Accept: application/sparq
 const axios = require('axios');### Query (POST)
 
 
-// Query sensor data via Rasa```http
+// Query sensor data via Rasa
+
+```http
 
 async function querySensorRasa(sensorName, hours = 24) {POST /abacws/query
 
@@ -2332,7 +2435,9 @@ curl -X POST http://localhost:5005/webhooks/rest/webhook \
 
 }
 
-# SPARQL query to Fuseki```
+# SPARQL query to Fuseki
+
+```
 
 curl -X POST http://localhost:3030/trial/sparql \
 

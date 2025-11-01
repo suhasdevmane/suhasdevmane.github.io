@@ -35,11 +35,15 @@ date: 2025-09-28
 
 7. [CI/CD Pipelines](#cicd-pipelines)
 
-8. [Deployment Strategies](#deployment-strategies)```powershell
+8. [Deployment Strategies](#deployment-strategies)
+
+```powershell
 
 9. [Monitoring & Logging](#monitoring--logging)python microservices/test_analytics_smoke.py
 
-10. [Backup & Recovery](#backup--recovery)```
+10. [Backup & Recovery](#backup--recovery)
+
+```
 
 
 ---This posts sample payloads to each analysis and reports pass/fail.
@@ -48,7 +52,9 @@ date: 2025-09-28
 ## Testing Overview## Logs
 
 
-### Testing Pyramid```powershell
+### Testing Pyramid
+
+```powershell
 
 docker-compose logs -f microservices
 

@@ -233,7 +233,9 @@ POST http://localhost:5005/webhooks/rest/webhook  - name: TEDPolicy
 
 # Model loading
 
-POST http://localhost:5005/model```yaml
+POST http://localhost:5005/model
+
+```yaml
 
 {services:
 
@@ -271,7 +273,9 @@ pipeline:      - "*"
 
     epochs: 100      retries: 5
 
-  - name: EntitySynonymMapper```
+  - name: EntitySynonymMapper
+
+```
 
   - name: ResponseSelector
 
@@ -398,14 +402,18 @@ POST http://localhost:5055/webhook
 
 - `action_process_timeseries`: Data fetch        return []
 
-- `action_reset_all_slots`: State reset```
+- `action_reset_all_slots`: State reset
+
+```
 
 
 **Environment Variables**:### Environment Variables
 
 ```bash
 
-# Service URLs```bash
+# Service URLs
+
+```bash
 
 NL2SPARQL_URL=http://nl2sparql:6005/nl2sparql# Database connections
 
@@ -439,7 +447,9 @@ SENSOR_LIST_RELOAD_SEC=300
 
 DB_HOST=mysqlserverOLLAMA_URL=http://ollama:11434/api/generate
 
-DB_NAME=telemetry```
+DB_NAME=telemetry
+
+```
 
 DB_USER=root
 
@@ -478,7 +488,9 @@ action_server_bldg1:
 ```### Architecture
 
 
-**See Also**: [Action Server Architecture](action_server_architecture.md)```
+**See Also**: [Action Server Architecture](action_server_architecture.md)
+
+```
 
 Flask App (app.py)
 
@@ -498,7 +510,9 @@ Flask App (app.py)
 
 #### Run Analytics
 
-**Technology**: Apache Jena Fuseki 4.7.0```http
+**Technology**: Apache Jena Fuseki 4.7.0
+
+```http
 
 POST http://localhost:6001/analytics/run
 
@@ -528,7 +542,9 @@ GET http://localhost:3030/$/ping}
 
 POST http://localhost:3030/trial/sparql**Response:**
 
-Content-Type: application/sparql-query```json
+Content-Type: application/sparql-query
+
+```json
 
 {
 
@@ -734,7 +750,9 @@ Content-Type: application/json**Humidity:**
 
       ]### Health Check
 
-    }```http
+    }
+
+```http
 
   ],GET http://localhost:6001/health
 
@@ -744,7 +762,9 @@ Content-Type: application/json**Humidity:**
 
     "threshold": 2.0**Response:**
 
-  }```json
+  }
+
+```json
 
 }{
 
@@ -873,7 +893,9 @@ microservices:{
 
 - Recommend appropriate analysis type**Training Data Generation:**
 
-- Confidence scoring for recommendations```bash
+- Confidence scoring for recommendations
+
+```bash
 
 - Extensible rule-based logiccd decider-service/data
 
@@ -885,13 +907,17 @@ python build_decider_training_direct.py
 
 # Health check**Model Training:**
 
-GET http://localhost:6009/health```bash
+GET http://localhost:6009/health
+
+```bash
 
 cd decider-service
 
 # Decide analyticspython train.py
 
-POST http://localhost:6009/decide```
+POST http://localhost:6009/decide
+
+```
 
 Content-Type: application/json
 
@@ -926,7 +952,8 @@ MAX_FEATURES=1000
 
 **Decision Logic**:MIN_DF=1
 
-```pythonMAX_DF=0.9
+```python
+MAX_DF=0.9
 
 KEYWORD_MAPPINGS = {```
 
@@ -984,7 +1011,9 @@ decider-service:- API for Rasa management
 
 └── static/              ← Web assets
 
-**Port**: 8080 (host & internal)```
+**Port**: 8080 (host & internal)
+
+```
 
 
 **Technology**: Python http.server### API Reference
@@ -992,11 +1021,15 @@ decider-service:- API for Rasa management
 
 **Key Responsibilities**:#### Serve Artifact
 
-- Serve generated charts (PNG)```http
+- Serve generated charts (PNG)
+
+```http
 
 - Serve data exports (CSV, JSON)GET http://localhost:8080/artifacts/trend_12345.png
 
-- Provide URLs for frontend attachment display```
+- Provide URLs for frontend attachment display
+
+```
 
 
 **Endpoints**:**Response**: Binary file (image, CSV, JSON, etc.)
@@ -1061,7 +1094,9 @@ http_server:POST http://localhost:8080/api/rasa/train_job2
 
   volumes:**Response:**
 
-    - ./rasa-bldg1/shared_data:/data```json
+    - ./rasa-bldg1/shared_data:/data
+
+```json
 
   networks:{
 
@@ -1079,11 +1114,15 @@ http_server:POST http://localhost:8080/api/rasa/train_job2
 
 #### Get Training Status
 
-**Purpose**: User interface```http
+**Purpose**: User interface
+
+```http
 
 GET http://localhost:8080/api/rasa/train_job2/{jobId}/status
 
-**Port**: 3000 (host), 3000 (internal)```
+**Port**: 3000 (host), 3000 (internal)
+
+```
 
 
 **Technology**: React 18, TypeScript, Material-UI**Response:**
@@ -1120,13 +1159,17 @@ POST http://localhost:8080/api/rasa/start
 
 **Key Features**:{}
 
-- Real-time message streaming```
+- Real-time message streaming
+
+```
 
 - Image/chart inline display
 
 - CSV table rendering#### Stop Rasa Server
 
-- Markdown formatting support```http
+- Markdown formatting support
+
+```http
 
 - Mobile-responsive designPOST http://localhost:8080/api/rasa/stop
 
@@ -1146,7 +1189,9 @@ frontend:```
 
   environment:GET http://localhost:8080/health
 
-    - REACT_APP_RASA_URL=http://localhost:5005```
+    - REACT_APP_RASA_URL=http://localhost:5005
+
+```
 
   networks:
 
@@ -1203,7 +1248,9 @@ CREATE TABLE telemetry (
 
 mysqlserver:#### Translate Question
 
-  image: mysql:8.0```http
+  image: mysql:8.0
+
+```http
 
   environment:POST http://localhost:6005/nl2sparql
 
@@ -1217,7 +1264,9 @@ mysqlserver:#### Translate Question
 
   volumes:}
 
-    - mysql_data:/var/lib/mysql```
+    - mysql_data:/var/lib/mysql
+
+```
 
 ```
 
@@ -1245,7 +1294,9 @@ CREATE TABLE telemetry (### Model Configuration
 
   sensor_uuid UUID NOT NULL,**Environment Variables:**
 
-  value DOUBLE PRECISION```bash
+  value DOUBLE PRECISION
+
+```bash
 
 );MODEL_PATH=/app/checkpoint-3
 
@@ -1268,7 +1319,9 @@ timescaledb:The service maintains a log of recent translations:
 
     POSTGRES_PASSWORD: passwordGET http://localhost:6005/
 
-    POSTGRES_DB: telemetry```
+    POSTGRES_DB: telemetry
+
+```
 
   ports:
 
@@ -1286,7 +1339,9 @@ timescaledb:The service maintains a log of recent translations:
 
 ### Health Check
 
-**Port**: 9042```http
+**Port**: 9042
+
+```http
 
 GET http://localhost:6005/health
 
@@ -1429,7 +1484,9 @@ nl2sparql:```json
 **Purpose**: Response summarization and natural language generationModels are automatically pulled on container start:
 
 
-**Port**: 11434```yaml
+**Port**: 11434
+
+```yaml
 
 services:
 
@@ -1508,7 +1565,9 @@ Example: "List all sensors in room 5.01"{
 
 ```}
 
-User → Frontend → Rasa → Action Server → Fuseki → Database → Decider → Analytics → HTTP Server → Action Server → Rasa → Frontend```
+User → Frontend → Rasa → Action Server → Fuseki → Database → Decider → Analytics → HTTP Server → Action Server → Rasa → Frontend
+
+```
 
 ```
 
@@ -1600,7 +1659,9 @@ foreach ($svc in $services) {- `duration`: Time spans
 
     }
 
-}```
+}
+
+```
 
 ```User: "Show me the temperature trend"
 
@@ -1768,7 +1829,9 @@ curl http://localhost:6005/health
 
 # Test from within containercurl http://localhost:8080/health
 
-docker exec -it action_server_bldg1 curl http://fuseki-db:3030/$/ping```
+docker exec -it action_server_bldg1 curl http://fuseki-db:3030/$/ping
+
+```
 
 ```
 
@@ -1780,7 +1843,9 @@ View logs for debugging:
 
 ```bash
 
-# Check resource usage```bash
+# Check resource usage
+
+```bash
 
 docker stats# Rasa
 

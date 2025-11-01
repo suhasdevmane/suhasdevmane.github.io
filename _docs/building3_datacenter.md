@@ -139,7 +139,9 @@ Building 3 deploys **597 sensors** across **6 major categories**:- Alarm status 
 
    - Server CPU utilization**PUE (Power Usage Effectiveness):**
 
-   - Network bandwidth utilization```
+   - Network bandwidth utilization
+
+```
 
    - Storage capacityPUE = Total Facility Power / IT Equipment Power
 
@@ -151,7 +153,9 @@ Building 3 deploys **597 sensors** across **6 major categories**:- Alarm status 
 
 **DCiE (Data Center Infrastructure Efficiency):**
 
-## Cooling Systems (CRAC Units)```
+## Cooling Systems (CRAC Units)
+
+```
 
 DCiE = 1 / PUE × 100%
 
@@ -207,7 +211,9 @@ CRAC_1_Supply_Air_Temperature_Sensor### Database Configuration
 
 CRAC_1_Return_Air_Temperature_Sensor
 
-CRAC_1_Supply_Airflow_Rate_Sensor```yaml
+CRAC_1_Supply_Airflow_Rate_Sensor
+
+```yaml
 
 CRAC_1_Return_Humidity_Sensor# docker-compose.bldg3.yml
 
@@ -235,7 +241,9 @@ CRAC_1_Power_Consumption_Sensor    CASSANDRA_CLUSTER_NAME: "DataCenter-Cluster"
 
     - cassandra_data:/var/lib/cassandra
 
-## Power Distribution (UPS + PDUs)```
+## Power Distribution (UPS + PDUs)
+
+```
 
 
 ### UPS Systems (10 units × 12 sensors = 120 sensors)### Cassandra Schema
@@ -393,13 +401,17 @@ Each rack monitors:
 
 ```LIMIT 100;
 
-Rack_A01_Inlet_Temperature_Sensor```
+Rack_A01_Inlet_Temperature_Sensor
+
+```
 
 Rack_A01_Outlet_Temperature_Sensor
 
 Rack_A01_Power_Consumption_Sensor**Query Active Alarms:**
 
-Rack_B15_Inlet_Temperature_Sensor```cql
+Rack_B15_Inlet_Temperature_Sensor
+
+```cql
 
 Rack_B15_Outlet_Temperature_SensorSELECT alarm_id, timestamp, severity, message
 
@@ -417,7 +429,9 @@ Rack_B15_Power_Consumption_SensorFROM alarms
 
 **Get Hourly Averages:**
 
-## Environmental Monitoring```cql
+## Environmental Monitoring
+
+```cql
 
 SELECT hour, avg_value, min_value, max_value
 
@@ -672,7 +686,9 @@ CREATE TABLE sensor_data (
 
     PRIMARY KEY ((sensor_id), timestamp)"Display CRAC airflow rates"
 
-) WITH CLUSTERING ORDER BY (timestamp DESC)```
+) WITH CLUSTERING ORDER BY (timestamp DESC)
+
+```
 
   AND compaction = {'class': 'TimeWindowCompactionStrategy', 'compaction_window_size': 1, 'compaction_window_unit': 'DAYS'}
 
@@ -712,7 +728,9 @@ VALUES ('crac1_supply_temp', 'CRAC_1_Supply_Air_Temperature_Sensor', 'temperatur
 
 "Acknowledge alarm [ID]"
 
-INSERT INTO sensor_data (sensor_id, sensor_name, sensor_type, timestamp, reading_value, reading_unit, equipment_id, alarm_status)```
+INSERT INTO sensor_data (sensor_id, sensor_name, sensor_type, timestamp, reading_value, reading_unit, equipment_id, alarm_status)
+
+```
 
 VALUES ('crac1_alarm', 'CRAC_1_Alarm_Status_Sensor', 'alarm', '2025-10-31 10:00:00', 0, 'boolean', 'CRAC_1', 'normal');
 
@@ -842,7 +860,9 @@ Password: postgres    CASSANDRA_SEEDS: "cassandra-dc1-node1,cassandra-dc2-node1"
 
 - `device`: Sensor device entities
 
-- `asset`: Logical groupings (racks, rooms)```bash
+- `asset`: Logical groupings (racks, rooms)
+
+```bash
 
 - `entity_relation`: Relationships between entities# Create snapshot
 
@@ -922,7 +942,9 @@ WHERE {- Efficient disk usage
 
 }
 
-ORDER BY ?crac ?sensor```yaml
+ORDER BY ?crac ?sensor
+
+```yaml
 
 ```# Production memory configuration
 
@@ -936,7 +958,9 @@ environment:
 
   CASSANDRA_MEMTABLE_OFFHEAP_SPACE_IN_MB: "2048"
 
-#### Query 2: Get All UPS Battery Status Sensors```
+#### Query 2: Get All UPS Battery Status Sensors
+
+```
 
 
 ```sparql### Monitoring Commands
@@ -1138,7 +1162,9 @@ response = requests.post(
 
 services:)
 
-  # Cassandra database```
+  # Cassandra database
+
+```
 
   cassandra:
 
@@ -1280,7 +1306,9 @@ services:)
 
     build:        return []
 
-      context: ./rasa-bldg3```
+      context: ./rasa-bldg3
+
+```
 
       dockerfile: Dockerfile.rasa
 
@@ -1358,7 +1386,9 @@ services:)
 
     volumes:
 
-      - ./rasa-ui/shared_data:/app/shared_data```powershell
+      - ./rasa-ui/shared_data:/app/shared_data
+
+```powershell
 
     networks:# Check Cassandra status
 
@@ -1389,7 +1419,9 @@ services:)
 
     image: python:3.10-slim
 
-    container_name: http_server```bash
+    container_name: http_server
+
+```bash
 
     command: python -m http.server 8080# Cassandra stress test
 
@@ -1473,7 +1505,9 @@ docker compose -f docker-compose.bldg3.yml up -d# Optimize table
 
 1. Cassandra + PostgreSQL start first (5-10 seconds)**Problem: High disk usage**
 
-2. Fuseki, microservices, decider, HTTP server start (parallel)```bash
+2. Fuseki, microservices, decider, HTTP server start (parallel)
+
+```bash
 
 3. Action server waits for Cassandra + PostgreSQL + Fuseki# Check disk usage
 
@@ -1491,7 +1525,9 @@ docker compose -f docker-compose.bldg3.yml up -d# Optimize table
 
 cqlsh localhost 9042  # Cassandra (cqlsh client required)# Data expires automatically with TTL set
 
-psql -h localhost -p 5434 -U postgres -d thingsboard  # PostgreSQL```
+psql -h localhost -p 5434 -U postgres -d thingsboard  # PostgreSQL
+
+```
 
 curl http://localhost:3030/$/ping  # Fuseki
 

@@ -80,7 +80,9 @@ mysqlserver:### Schema Design
 
   image: mysql:8.0
 
-  container_name: mysqlserver```sql
+  container_name: mysqlserver
+
+```sql
 
   ports:-- Create telemetry database
 
@@ -559,7 +561,9 @@ timescaledb:            '5m': '%Y-%m-%d %H:%i:00',
 
   environment:        return formats.get(aggregation, '%Y-%m-%d %H:%i:00')
 
-    POSTGRES_DB: building2```
+    POSTGRES_DB: building2
+
+```
 
     POSTGRES_USER: postgres
 
@@ -754,7 +758,8 @@ CREATE MATERIALIZED VIEW sensor_readings_hourly
 
 **3. Data Retention Policy**:WITH (timescaledb.continuous) AS
 
-```sqlSELECT 
+```sql
+SELECT 
 
 -- Delete data older than 2 years    time_bucket('1 hour', time) AS bucket,
 
@@ -776,7 +781,8 @@ SELECT add_retention_policy('sensor_data', INTERVAL '2 years');    sensor_id,
 
     COUNT(*) AS reading_count
 
-```pythonFROM sensor_readings
+```python
+FROM sensor_readings
 
 import psycopg2GROUP BY bucket, sensor_id, sensor_type, zone_id, equipment_id;
 
@@ -1350,14 +1356,18 @@ db = CassandraConnector(    min_value DOUBLE,
 
     keyspace=os.getenv("CASSANDRA_KEYSPACE", "building3")) WITH CLUSTERING ORDER BY (hour DESC);
 
-)```
+)
+
+```
 
 
 # Fetch data (must specify partition key!)### Python Client
 
 data = db.get_sensor_data(
 
-    "crac1_supply_temp",  # sensor_id```python
+    "crac1_supply_temp",  # sensor_id
+
+```python
 
     datetime(2025, 10, 31, 0, 0, 0),# cassandra_client.py
 
@@ -1828,7 +1838,9 @@ All clients should use connection pooling:
 
 - ❌ Delete data without backups
 
-- ❌ Ignore disk space warnings```bash
+- ❌ Ignore disk space warnings
+
+```bash
 
 # MySQL
 
@@ -1845,7 +1857,9 @@ pg_dump -U postgres telemetry_bldg2 > backup.sql
 
 **Symptoms**:nodetool snapshot telemetry_bldg3
 
-- Action server logs: `Connection timeout` or `Connection refused````
+- Action server logs: `Connection timeout` or `Connection refused
+
+````
 
 
 **Solutions**:---

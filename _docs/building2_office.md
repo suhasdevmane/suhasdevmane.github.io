@@ -169,7 +169,9 @@ Each AHU monitors:- ✅ **Time-Series Functions** - time_bucket, first, last, in
 
 ```    - timescale_data:/var/lib/postgresql/data
 
-AHU_1_Supply_Air_Temperature_Sensor```
+AHU_1_Supply_Air_Temperature_Sensor
+
+```
 
 AHU_1_Return_Air_Temperature_Sensor
 
@@ -177,7 +179,9 @@ AHU_1_Mixed_Air_Temperature_Sensor### Hypertable Schema
 
 AHU_1_Supply_Airflow_Rate_Sensor
 
-AHU_1_Fan_Speed_Sensor```sql
+AHU_1_Fan_Speed_Sensor
+
+```sql
 
 AHU_1_Filter_Status_Sensor-- Create database
 
@@ -265,7 +269,9 @@ SELECT add_retention_policy('sensor_readings', INTERVAL '1 year');
 
 - Hot water flow rate (0-300 GPM)
 
-- Gas flow rate (CFH)```sql
+- Gas flow rate (CFH)
+
+```sql
 
 - **Total**: 2 boilers × 4 sensors = 8 sensors-- Hourly averages (pre-computed for fast queries)
 
@@ -337,7 +343,9 @@ Lighting_Electricity_Meter             (kW)FROM sensor_readings
 
 Gas_Consumption_Meter                  (CFH)GROUP BY bucket, sensor_id, sensor_type, zone_id;
 
-Solar_Generation_Meter                 (kW)```
+Solar_Generation_Meter                 (kW)
+
+```
 
 ```
 
@@ -369,13 +377,17 @@ WHERE sensor_type = 'ZoneTemp'
 
 Host: timescaledb (internal) / localhost (host)ORDER BY time DESC;
 
-Port: 5432 (internal) / 5433 (host)```
+Port: 5432 (internal) / 5433 (host)
+
+```
 
 Database: building2
 
 Username: postgres**Hourly Average with time_bucket:**
 
-Password: postgres (development only!)```sql
+Password: postgres (development only!)
+
+```sql
 
 ```SELECT 
 
@@ -397,7 +409,8 @@ WHERE sensor_type = 'ZoneTemp'
 
 GROUP BY hour, zone_id
 
-```sqlORDER BY hour DESC, zone_id;
+```sql
+ORDER BY hour DESC, zone_id;
 
 CREATE TABLE sensor_data (```
 
@@ -461,7 +474,9 @@ CREATE INDEX idx_equipment_id ON sensor_data(equipment_id, timestamp DESC);    p
 
 **Thermal Comfort Analysis:**
 
-### Sample Data```sql
+### Sample Data
+
+```sql
 
 -- Find zones outside comfort range
 
@@ -485,11 +500,14 @@ VALUES    STDDEV(value) AS temp_variance,
 
 **AHU Equipment Data**:GROUP BY zone_id
 
-```sqlHAVING AVG(value) < 20 OR AVG(value) > 24
+```sql
+HAVING AVG(value) < 20 OR AVG(value) > 24
 
 INSERT INTO sensor_data (sensor_id, sensor_name, sensor_type, reading_value, reading_unit, timestamp, equipment_id)ORDER BY out_of_comfort DESC;
 
-VALUES```
+VALUES
+
+```
 
 ('ahu1_supply_temp', 'AHU_1_Supply_Air_Temperature_Sensor', 'temperature', 14.5, 'C', '2025-10-31 10:00:00', 'AHU_1'),
 
@@ -611,7 +629,9 @@ WHERE {"Compare setpoint vs actual temperature"
 
 }
 
-ORDER BY ?zone```
+ORDER BY ?zone
+
+```
 
 ```"Show me AHU-1 performance"
 
@@ -674,7 +694,9 @@ ORDER BY ?sensorType
 ```Building 2 includes pgAdmin for web-based database management:
 
 
-**Results**: 8 sensors for AHU_1```yaml
+**Results**: 8 sensors for AHU_1
+
+```yaml
 
 # Pre-configured pgAdmin
 
@@ -906,7 +928,9 @@ services:        conn = psycopg2.connect(
 
       DB_PORT: 5432        return []
 
-      DB_NAME: building2```
+      DB_NAME: building2
+
+```
 
       DB_USER: postgres
 
@@ -914,7 +938,9 @@ services:        conn = psycopg2.connect(
 
       FUSEKI_ENDPOINT: http://fuseki-db:3030/trial/sparql
 
-      ANALYTICS_URL: http://microservices:6000/analytics/run```yaml
+      ANALYTICS_URL: http://microservices:6000/analytics/run
+
+```yaml
 
       DECIDER_URL: http://decider-service:6009/decide# data/nlu.yml
 
@@ -1036,7 +1062,9 @@ GROUP BY 1;
 
   decider-service:**Problem: Slow queries**
 
-    build: ./decider-service```sql
+    build: ./decider-service
+
+```sql
 
     container_name: decider-service-- Ensure hypertable is created
 
@@ -1053,13 +1081,17 @@ GROUP BY 1;
 
   http_server:REINDEX TABLE sensor_readings;
 
-    image: python:3.10-slim```
+    image: python:3.10-slim
+
+```
 
     container_name: http_server
 
     command: python -m http.server 8080**Problem: High disk usage**
 
-    working_dir: /data```sql
+    working_dir: /data
+
+```sql
 
     ports:-- Check table sizes
 
@@ -1089,7 +1121,9 @@ FROM timescaledb_information.hypertables;
 
     environment:SELECT add_retention_policy('sensor_readings', INTERVAL '6 months');
 
-      REACT_APP_RASA_URL: http://localhost:5005```
+      REACT_APP_RASA_URL: http://localhost:5005
+
+```
 
     networks:
 

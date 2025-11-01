@@ -127,7 +127,9 @@ App
 
 │   ├── MessageInput#### Example Questions
 
-│   │   ├── TextArea```
+│   │   ├── TextArea
+
+```
 
 │   │   └── SendButtonWhat is the CO2 level in zone 5.04?
 
@@ -694,13 +696,17 @@ function UserMessage({ text }) {When running with Docker Compose, the frontend a
 
       <div className="message-content">
 
-        {text}```powershell
+        {text}
+
+```powershell
 
       </div>Copy-Item -Path .env.example -Destination .env
 
       <div className="message-time"># Edit .env and replace placeholder values with your local credentials
 
-        {new Date().toLocaleTimeString()}```
+        {new Date().toLocaleTimeString()}
+
+```
 
       </div>
 

@@ -146,7 +146,9 @@ Total: 20 sensors × 34 zones = 680 sensors- **NO2** - Nitrogen Dioxide concentr
 
 - **Range**: 0-10000 ppb
 
-- **Acceptable**: < 500 ppb```yaml
+- **Acceptable**: < 500 ppb
+
+```yaml
 
 - **Use Case**: Indoor air pollution, material emissions# docker-compose.bldg1.yml
 
@@ -172,7 +174,9 @@ mysqlserver:
 
 - **Unit**: ppb    - mysql_data:/var/lib/mysql
 
-- **Range**: 0-500 ppb```
+- **Range**: 0-500 ppb
+
+```
 
 - **Acceptable**: < 40 ppb (annual average)
 
@@ -257,7 +261,9 @@ mysqlserver:
 
 - **Range**: 0-100%) ENGINE=InnoDB;
 
-- **Comfort Zone**: 40-60% RH```
+- **Comfort Zone**: 40-60% RH
+
+```
 
 - **Accuracy**: ±3%
 
@@ -267,7 +273,9 @@ mysqlserver:
 
 - **Measurement**: Barometric pressure**Get Recent CO2 Readings:**
 
-- **Unit**: hPa (hectopascals)```sql
+- **Unit**: hPa (hectopascals)
+
+```sql
 
 - **Range**: 950-1050 hPaSELECT 
 
@@ -297,7 +305,9 @@ LIMIT 100;
 
 - **Unit**: Lux**Calculate Zone Average Temperature:**
 
-- **Range**: 0-10000 lux```sql
+- **Range**: 0-10000 lux
+
+```sql
 
 - **Recommended**: 300-500 lux (office work)SELECT 
 
@@ -323,12 +333,16 @@ FROM sensor_readings sr
 
 ORDER BY s.zone_id;
 
-#### 5. Composite Indices (2 per zone)```
+#### 5. Composite Indices (2 per zone)
+
+```
 
 
 **AQI (Air Quality Index)****Detect Threshold Violations:**
 
-- **Calculation**: Composite of CO2, TVOC, PM2.5, NO2```sql
+- **Calculation**: Composite of CO2, TVOC, PM2.5, NO2
+
+```sql
 
 - **Scale**: 0-500SELECT 
 
@@ -352,7 +366,9 @@ WHERE s.sensor_type = 'CO2'
 
 - **Scale**: 0-100 (100 = excellent)ORDER BY sr.value DESC;
 
-- **Factors**: CO2, TVOC, formaldehyde, particulates```
+- **Factors**: CO2, TVOC, formaldehyde, particulates
+
+```
 
 
 ---## Service Architecture
@@ -413,7 +429,8 @@ CREATE TABLE telemetry (
 
     ↓
 
-```sqlFile Server (8080) ← Generated Artifacts
+```sql
+File Server (8080) ← Generated Artifacts
 
 -- Example: Temperature reading from Zone 5.01    ↓
 
@@ -500,7 +517,9 @@ bldg1/trial/dataset/- **Duckling**: http://localhost:8000
 ```### Environment Configuration
 
 
-### Sample SPARQL Queries```yaml
+### Sample SPARQL Queries
+
+```yaml
 
 # Action Server Environment Variables
 
@@ -592,7 +611,9 @@ SELECT ?sensor ?label WHERE {```
 
     )**Temperature & Humidity:**
 
-  )```
+  )
+
+```
 
 }"What's the temperature in zone 5.08?"
 
@@ -608,7 +629,9 @@ SELECT ?sensor ?label WHERE {```
 
 **Multi-Parameter Queries:**
 
-### Basic Queries```
+### Basic Queries
+
+```
 
 "Show me all environmental parameters for zone 5.15"
 
@@ -758,7 +781,9 @@ Bot: [Chart showing 7-day temperature trend]
 
      Temperature in zone 5.04 has been stable at 21.5±0.8°C**Find All CO2 Sensors:**
 
-     over the last week. Slight increase on weekdays due to```sparql
+     over the last week. Slight increase on weekdays due to
+
+```sparql
 
      occupancy. Trend: +0.1°C/day.PREFIX brick: <https://brickschema.org/schema/Brick#>
 
@@ -777,13 +802,17 @@ Bot: [Chart with anomalies highlighted]            brick:isPointOf ?zone ;
 
      • 2025-10-29 14:30: 1850 ppm (meeting)}
 
-     • 2025-10-30 10:15: 1650 ppm (class)```
+     • 2025-10-30 10:15: 1650 ppm (class)
+
+```
 
      • 2025-10-31 13:00: 1720 ppm (lunch)
 
      **Get Zone Equipment:**
 
-     Recommendation: Increase ventilation rate during```sparql
+     Recommendation: Increase ventilation rate during
+
+```sparql
 
      peak occupancy periods.PREFIX brick: <https://brickschema.org/schema/Brick#>
 
@@ -948,7 +977,9 @@ action_server_bldg1:            LIMIT 1
 
     - DB_NAME=telemetry        return []
 
-    - DB_USER=root```
+    - DB_USER=root
+
+```
 
     - DB_PASSWORD=password
 
@@ -956,7 +987,9 @@ action_server_bldg1:            LIMIT 1
 
     
 
-    # Typo tolerance (NEW)```yaml
+    # Typo tolerance (NEW)
+
+```yaml
 
     - SENSOR_FUZZY_THRESHOLD=80# data/nlu.yml
 
@@ -1046,7 +1079,9 @@ docker-compose -f docker-compose.bldg1.yml ps
 
 - Action Server: 10-15%
 
-- Analytics: 30-50% (during computation)```powershell
+- Analytics: 30-50% (during computation)
+
+```powershell
 
 - MySQL: 5-10%# Start interactive shell
 
@@ -1078,7 +1113,9 @@ docker-compose -f docker-compose.bldg1.yml exec rasa rasa shell
 
 3. Identify patterns (weekday vs weekend, time of day)**MySQL Query Performance:**
 
-4. Optimize ventilation schedules```sql
+4. Optimize ventilation schedules
+
+```sql
 
 ```-- Enable slow query log
 
@@ -1107,7 +1144,9 @@ WHERE table_schema = 'telemetry'
 
 ```EXPLAIN SELECT * FROM sensor_readings WHERE sensor_uuid = 'uuid-123';
 
-1. Analyze temperature setpoints vs actual temperatures```
+1. Analyze temperature setpoints vs actual temperatures
+
+```
 
 2. Detect zones with excessive heating/cooling
 
@@ -1161,7 +1200,9 @@ OPTIMIZE TABLE sensor_readings;
 
 Show me CO2 decay rates after occupancy**Problem: Action server can't connect to MySQL**
 
-Calculate air change rate for zone 5.01```yaml
+Calculate air change rate for zone 5.01
+
+```yaml
 
 Is ventilation adequate in zone 5.15?# Check environment variables in docker-compose.bldg1.yml
 

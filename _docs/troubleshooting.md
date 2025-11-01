@@ -115,7 +115,9 @@ docker compose -f docker-compose.bldg3.yml down- "Cannot allocate memory" errors
 
 ```powershell
 
-# Remove stopped containers```
+# Remove stopped containers
+
+```
 
 docker container prune -fDocker Desktop → Settings → Resources
 
@@ -146,7 +148,9 @@ docker system prune -a --volumes- Files not updating in containers
 
 - Start Docker Desktop again
 
-- Wait 30 seconds for full initialization```powershell
+- Wait 30 seconds for full initialization
+
+```powershell
 
 # Enable file sharing
 
@@ -187,7 +191,9 @@ TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE**Solutions:**
 
 Images          15        5         8.5GB     5.2GB (61%)
 
-Containers      8         3         2.1GB     1.8GB (85%)```yaml
+Containers      8         3         2.1GB     1.8GB (85%)
+
+```yaml
 
 Local Volumes   12        4         15GB      10GB (66%)# Ensure all services use same network
 
@@ -205,7 +211,9 @@ docker image prune -aANALYTICS_URL: http://microservices:6000  # ✅ Correct
 
 ANALYTICS_URL: http://localhost:6001      # ❌ Wrong
 
-# Remove stopped containers```
+# Remove stopped containers
+
+```
 
 docker container prune
 
@@ -254,7 +262,9 @@ docker volume rm ontobot_mysql_data
 
 **/.git# Increase Docker memory to 8GB+
 
-**/node_modules```
+**/node_modules
+
+```
 
 **/venv
 
@@ -262,7 +272,9 @@ docker volume rm ontobot_mysql_data
 
 **/models/*.tar.gz
 
-**/logs```sql
+**/logs
+
+```sql
 
 **/.DS_Store-- Enable slow query log
 
@@ -352,7 +364,9 @@ CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 # DB_PORT=3306SELECT * FROM timescaledb_information.hypertables;
 
-# DB_NAME=telemetry```
+# DB_NAME=telemetry
+
+```
 
 ```
 
@@ -395,9 +409,12 @@ SELECT compress_chunk(i) FROM show_chunks('sensor_readings') i;
 
 **1. Check hypertable compression**:SELECT remove_retention_policy('sensor_readings');
 
-```sqlSELECT add_retention_policy('sensor_readings', INTERVAL '6 months');
+```sql
+SELECT add_retention_policy('sensor_readings', INTERVAL '6 months');
 
-SELECT * FROM timescaledb_information.chunks```
+SELECT * FROM timescaledb_information.chunks
+
+```
 
 WHERE hypertable_name = 'sensor_data'
 
@@ -409,7 +426,8 @@ ORDER BY chunk_name;**Problem: Continuous aggregate not updating**
 
 **2. Enable compression policy** (if not already):-- Check continuous aggregate status
 
-```sqlSELECT * FROM timescaledb_information.continuous_aggregates;
+```sql
+SELECT * FROM timescaledb_information.continuous_aggregates;
 
 ALTER TABLE sensor_data SET (
 
@@ -431,7 +449,8 @@ SELECT add_compression_policy('sensor_data', INTERVAL '7 days');WHERE applicatio
 
 **3. Use continuous aggregates for long time ranges**:SELECT remove_continuous_aggregate_policy('sensor_readings_hourly');
 
-```sqlSELECT add_continuous_aggregate_policy('sensor_readings_hourly',
+```sql
+SELECT add_continuous_aggregate_policy('sensor_readings_hourly',
 
 -- Query hourly aggregate instead of raw data    start_offset => INTERVAL '3 hours',
 
@@ -450,7 +469,9 @@ WHERE sensor_name = 'Zone_101_Temperature_Sensor'```
 
 ```yaml
 
-# docker-compose.bldg2.yml```powershell
+# docker-compose.bldg2.yml
+
+```powershell
 
 timescaledb:# Check logs
 
@@ -579,7 +600,9 @@ docker ps | Select-String "rasa"session.execute(prepare, (uuid, timestamp, value
 
 ```powershellbatch = BatchStatement(batch_type=BatchType.UNLOGGED)
 
-docker logs rasa-bldg1 --tail 100```
+docker logs rasa-bldg1 --tail 100
+
+```
 
 
 # Look for errors or "Rasa server is up and running"---
@@ -661,7 +684,9 @@ docker-compose -f docker-compose.bldg1.yml exec rasa rasa data validate --domain
 docker logs rasa-action-server-bldg1**Problem: Action server not responding**
 
 
-# Look for: ModuleNotFoundError, ImportError```powershell
+# Look for: ModuleNotFoundError, ImportError
+
+```powershell
 
 ```# Check health
 
@@ -728,7 +753,9 @@ docker exec -it rasa-action-server-bldg1 python -c "from actions.actions import 
 
 - Analytics returns HTTP 500 Internal Server Error        return []
 
-- Logs show Python exceptions```
+- Logs show Python exceptions
+
+```
 
 
 **Solutions**:### Analytics Microservice (6001)
@@ -738,7 +765,9 @@ docker exec -it rasa-action-server-bldg1 python -c "from actions.actions import 
 
 ```powershell
 
-docker logs microservices --tail 100```powershell
+docker logs microservices --tail 100
+
+```powershell
 
 ```# Check logs
 
@@ -771,7 +800,9 @@ docker exec microservices ls -la /app/shared_data/artifacts/
 
 ```powershell
 
-docker compose -f docker-compose.bldg1.yml restart microservices```python
+docker compose -f docker-compose.bldg1.yml restart microservices
+
+```python
 
 ```# Increase timeout in requests
 
@@ -794,7 +825,9 @@ docker exec microservices df -h /app/shared_data    'http://localhost:6001/analy
 
 docker-compose -f docker-compose.bldg1.yml logs -f microservices
 
-### Issue 1: Intent Not Recognized```
+### Issue 1: Intent Not Recognized
+
+```
 
 
 **Symptoms**:### Frontend (3000)
@@ -924,7 +957,9 @@ docker compose -f docker-compose.bldg1.yml restart rasa-bldg1SELECT COUNT(*) FRO
 
     - show me [temperature](sensor_type)VALUES ('5.12', 5, 'Building1', 'Zone 5.12');
 
-    - what is the [co2](sensor_type) level```
+    - what is the [co2](sensor_type) level
+
+```
 
 ```
 
@@ -936,7 +971,9 @@ docker compose -f docker-compose.bldg1.yml restart rasa-bldg1SELECT COUNT(*) FRO
 
 # rasa-bldg1/data/nlu.yml
 
-- lookup: sensor_type```sql
+- lookup: sensor_type
+
+```sql
 
   examples: |-- Check if table is a hypertable
 
@@ -1013,7 +1050,9 @@ forms:-- Count records
 
       - start_dateSELECT * FROM sensor_data LIMIT 10;
 
-      - end_date```
+      - end_date
+
+```
 
 ```
 
@@ -1034,7 +1073,9 @@ slots:-- Verify alarm table exists
 
       - type: from_entity-- Alarms should be generated by monitoring service
 
-        entity: sensor_type```
+        entity: sensor_type
+
+```
 
 ```
 
@@ -1062,7 +1103,9 @@ class ValidateSensorForm(FormValidationAction):
 
         else:5. Consider caching frequently accessed data
 
-            return {"sensor_type": None}```
+            return {"sensor_type": None}
+
+```
 
 ```
 
@@ -1195,7 +1238,9 @@ docker-compose -f docker-compose.bldg1.yml exec actions pip install <package>
 
 docker exec microservices python -c "docker-compose -f docker-compose.bldg1.yml up --build actions
 
-import matplotlib```
+import matplotlib
+
+```
 
 matplotlib.use('Agg')
 
@@ -1203,7 +1248,9 @@ import matplotlib.pyplot as plt### Training Fails
 
 plt.plot([1,2,3], [4,5,6])
 
-plt.savefig('/app/shared_data/artifacts/test.png')```powershell
+plt.savefig('/app/shared_data/artifacts/test.png')
+
+```powershell
 
 print('Chart saved')# Validate data
 
@@ -1316,7 +1363,9 @@ docker-compose -f docker-compose.bldg2.yml exec timescale pg_dump -U postgres te
 
 **Symptoms**:docker-compose -f docker-compose.bldg3.yml exec cassandra nodetool snapshot telemetry_bldg3
 
-- Query returns UUID instead of human-readable name```
+- Query returns UUID instead of human-readable name
+
+```
 
 - Artifacts show: `a1b2c3d4-e5f6-7890...`
 
@@ -1372,7 +1421,9 @@ sensor_name = sensor_mappings.get(uuid, uuid)  # Fallback to UUID  rasa:
 
 docker-compose -f docker-compose.bldg1.yml up --build rasa
 
-### Building 2 (TimescaleDB) Issues```
+### Building 2 (TimescaleDB) Issues
+
+```
 
 
 **Issue: Hypertable Not Created**### Q: How do I add a new sensor?
@@ -1501,7 +1552,9 @@ CREATE INDEX ON sensor_data (alarm_status);
 ---### Logs to Check
 
 
-## Performance Problems```powershell
+## Performance Problems
+
+```powershell
 
 # All services
 
@@ -1565,7 +1618,9 @@ timescaledb:
 
 docker inspect ontobot_rasa_1
 
-# Cassandra```
+# Cassandra
+
+```
 
 cassandra:
 

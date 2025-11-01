@@ -65,11 +65,15 @@ Get OntoBot up and running in **5 minutes**. This guide covers the essentials to
 
 **Increase Memory Allocation**:**Memory Allocation:**
 
-1. Open Docker Desktop```
+1. Open Docker Desktop
+
+```
 
 2. Settings → Resources → MemoryDocker Desktop → Settings → Resources → Memory: 8 GB minimum
 
-3. Set to **8 GB minimum** (16 GB recommended)```
+3. Set to **8 GB minimum** (16 GB recommended)
+
+```
 
 4. Click "Apply & Restart"
 
@@ -116,13 +120,17 @@ OntoBot/# Or if already cloned
 
 ├── docker-compose.bldg2.yml      # Building 2 (Office - 329 sensors)git submodule update --init --recursive
 
-├── docker-compose.bldg3.yml      # Building 3 (Data Center - 597 sensors)```
+├── docker-compose.bldg3.yml      # Building 3 (Data Center - 597 sensors)
+
+```
 
 ├── docker-compose.extras.yml     # Optional: NL2SPARQL + Ollama
 
 ├── rasa-bldg1/                   # Rasa models & actions (Building 1)**Repository Structure:**
 
-├── rasa-frontend/                # React chat interface```
+├── rasa-frontend/                # React chat interface
+
+```
 
 ├── microservices/                # Analytics serviceOntoBot/
 
@@ -160,7 +168,8 @@ OntoBot/# Or if already cloned
 
 **Quick Start** (core services only):```powershell
 
-```bashCopy-Item -Path .env.example -Destination .env
+```bash
+Copy-Item -Path .env.example -Destination .env
 
 docker-compose -f docker-compose.bldg1.yml up -d# Open .env and set values, especially:
 
@@ -188,7 +197,9 @@ docker-compose -f docker-compose.bldg1.yml -f docker-compose.extras.yml up -d
 
 - ✅ MySQL (sensor telemetry)# docker compose --env-file .env -f docker-compose.bldg3.yml -f docker-compose.extras.yml config
 
-- ✅ Analytics Service (30+ analysis types)```
+- ✅ Analytics Service (30+ analysis types)
+
+```
 
 - ✅ Decider Service (query classification)
 
@@ -271,7 +282,9 @@ bash scripts/check-health.shIncludes analytics, frontend, and all features:
 
 ✓ Decider: OK (http://localhost:6009/health)
 
-✓ File Server: OK (http://localhost:8080/)```bash
+✓ File Server: OK (http://localhost:8080/)
+
+```bash
 
 ✓ Frontend: OK (http://localhost:3000)docker-compose -f docker-compose.bldg1.yml -f docker-compose.extras.yml up -d
 
@@ -284,7 +297,9 @@ bash scripts/check-health.shIncludes analytics, frontend, and all features:
 ## First ConversationServices take **2-3 minutes** to fully initialize:
 
 
-### Open Chat Interface```powershell
+### Open Chat Interface
+
+```powershell
 
 # Check status
 
@@ -372,7 +387,9 @@ What's the co2 level 5.04?1. Click **"Chat"** in the top navigation
 
 **How it works**:
 
-- Fuzzy matching with 80% similarity threshold (configurable)```
+- Fuzzy matching with 80% similarity threshold (configurable)
+
+```
 
 - Handles spaces, underscores, case variationsWhat is the temperature in zone 5.04?
 
@@ -386,7 +403,9 @@ What's the co2 level 5.04?1. Click **"Chat"** in the top navigation
 
 The current temperature in zone 5.04 is 22.5°C (measured at 2025-01-08 14:30:00).
 
-### Time-Based Queries```
+### Time-Based Queries
+
+```
 
 
 ```### Example Questions
@@ -409,7 +428,9 @@ Show me the humidity in zone 5.15
 
 ```**Time-Based Queries:**
 
-Show me temperature trends for room 5.04```
+Show me temperature trends for room 5.04
+
+```
 
 ```What was the average temperature yesterday?
 
@@ -417,7 +438,9 @@ Show me CO2 levels for the last 3 hours
 
 **Response** (~2-3 seconds):What's the peak humidity today?
 
-- Natural language summary```
+- Natural language summary
+
+```
 
 - Line chart showing trend
 
@@ -436,7 +459,9 @@ Detect anomalies in CO2 levels for the last 24 hoursWhat's the correlation betwe
 
 **Response**:**Analytics Queries:**
 
-- Anomaly count and timestamps```
+- Anomaly count and timestamps
+
+```
 
 - Chart with anomalies highlightedShow me temperature trends for zone 5.04
 
@@ -476,7 +501,9 @@ Compare air quality between room 5.01 and room 5.10    "timestamp": "2025-01-08 
 
 **Response**:}
 
-- Side-by-side comparison```
+- Side-by-side comparison
+
+```
 
 - Statistical differences
 
@@ -609,7 +636,9 @@ Bot: I couldn't find sensor "XYZ". Did you mean:
 
 # Frontend auto-detects new building
 
-### 1. Adjust Typo Tolerance Threshold```
+### 1. Adjust Typo Tolerance Threshold
+
+```
 
 
 **Default**: 80% similarity## Training Your First Model
@@ -656,7 +685,9 @@ docker-compose -f docker-compose.bldg1.yml restart action_server_bldg1  }
 
 Notes: Basic temperature retrieval for single zone
 
-### 2. Enable/Disable AI Services```
+### 2. Enable/Disable AI Services
+
+```
 
 
 **Disable LLM Summarization** (faster responses):**Click "Add Example"**
@@ -722,7 +753,9 @@ action_server_bldg1:   - Status changes to: 🟢 Running
 
 ```bash**Statistical Analysis:**
 
-docker-compose -f docker-compose.bldg1.yml down```
+docker-compose -f docker-compose.bldg1.yml down
+
+```
 
 ```Show me the average temperature for the last week
 
@@ -736,7 +769,9 @@ What's the standard deviation of CO2 levels?
 
 ```bash**Trend Detection:**
 
-docker-compose -f docker-compose.bldg2.yml up -d```
+docker-compose -f docker-compose.bldg2.yml up -d
+
+```
 
 ```Show me temperature trends for zone 5.04
 
@@ -759,7 +794,9 @@ Find CO2 spikes in the last 24 hours
 
 The frontend automatically detects the active building:Are there any anomalies in air quality?
 
-1. Checks Rasa model name (bldg1, bldg2, or bldg3)```
+1. Checks Rasa model name (bldg1, bldg2, or bldg3)
+
+```
 
 2. Loads appropriate sensor list
 
@@ -883,9 +920,12 @@ docker-compose -f docker-compose.bldg1.yml up -d
 
 **If database is slow**:```
 
-```bashError: bind: address already in use (port 5005)
+```bash
+Error: bind: address already in use (port 5005)
 
-# Check database health```
+# Check database health
+
+```
 
 docker exec -it mysqlserver mysql -uroot -ppassword -e "SHOW PROCESSLIST;"
 
@@ -912,7 +952,9 @@ docker logs frontend# Linux/macOS
 
 - Build failed → Rebuild: `docker-compose build frontend`  - "5006:5005"  # Use 5006 instead
 
-- CORS issues → Check ALLOWED_ORIGINS in .env```
+- CORS issues → Check ALLOWED_ORIGINS in .env
+
+```
 
 
 **Solution**:### Issue 3: Services Unhealthy
@@ -925,7 +967,9 @@ docker-compose -f docker-compose.bldg1.yml restart frontend**Symptom:**
 
 Container status: unhealthy (health check failed)
 
-### Issue 5: Analytics Not Working```
+### Issue 5: Analytics Not Working
+
+```
 
 
 **Test analytics endpoint**:**Solution:**
@@ -978,7 +1022,9 @@ curl http://localhost:6001/api/t5/sensors
 
 # See T5_TRAINING_PORT_FIX.md for fix
 
-### Explore the System```
+### Explore the System
+
+```
 
 
 **Service Architecture**:### Issue 5: Frontend Won't Load
@@ -1057,7 +1103,9 @@ docker logs -f action_server_bldg1   - Close other applications
 
 # Restart single service**Solution:**
 
-docker-compose -f docker-compose.bldg1.yml restart rasa_bldg1```bash
+docker-compose -f docker-compose.bldg1.yml restart rasa_bldg1
+
+```bash
 
 # Monitor resource usage
 
@@ -1069,7 +1117,9 @@ pwsh -File scripts/check-health.ps1
 
 # Clean up (removes volumes!)# Docker Desktop → Settings → Resources → Memory: 16 GB
 
-docker-compose -f docker-compose.bldg1.yml down -v```
+docker-compose -f docker-compose.bldg1.yml down -v
+
+```
 
 ```
 
@@ -1099,7 +1149,9 @@ docker-compose -f docker-compose.bldg1.yml down -v```
 
 **Add Custom Analytics:**
 
-### Quick Tests```python
+### Quick Tests
+
+```python
 
 # microservices/blueprints/custom_analytics.py
 
@@ -1141,7 +1193,9 @@ curl http://localhost:6001/health        # Your custom logic
 
 **Add Training Examples:**
 
-## Summary```json
+## Summary
+
+```json
 
 // Transformers/t5_base/training/bldg1/correlation_fixes.json
 
@@ -1197,7 +1251,9 @@ Show me temperature trends for the last week### Essential Commands
 
 Detect anomalies in CO2 levels
 
-Compare air quality between different rooms```powershell
+Compare air quality between different rooms
+
+```powershell
 
 Predict humidity for the next 2 hours# Start Building 1
 
