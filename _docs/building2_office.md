@@ -1,16 +1,9 @@
-------
-
-layout: postlayout: post
-
-title: Building 2 - Synthetic Office Buildingtitle: Building 2 - Synthetic Office Building
-
-date: 2025-10-31date: 2025-10-08
-
----categories: buildings
-
 ---
-
-# Building 2 - Synthetic Office Building
+title: Building 2 - Synthetic Office Building
+layout: post
+category: docs
+permalink: /docs/building2_office/
+---
 
 # Building 2 - Synthetic Office Building
 
@@ -19,8 +12,6 @@ date: 2025-10-31date: 2025-10-08
 **Rasa Conversational AI Stack for Building 2**
 
 ---
-
-## Overview
 
 ## Overview
 

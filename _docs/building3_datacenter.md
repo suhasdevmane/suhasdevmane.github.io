@@ -1,16 +1,9 @@
-------
-
-layout: postlayout: post
-
-title: Building 3 - Synthetic Data Centertitle: Building 3 - Data Center
-
-date: 2025-10-31date: 2025-10-08
-
----categories: buildings
-
 ---
-
-# Building 3 - Synthetic Data Center
+title: Building 3 - Synthetic Data Center
+layout: post
+category: docs
+permalink: /docs/building3_datacenter/
+---
 
 # Building 3 - Synthetic Data Center
 
@@ -19,8 +12,6 @@ date: 2025-10-31date: 2025-10-08
 **Rasa Conversational AI Stack for Building 3**
 
 ---
-
-## Overview
 
 ## Overview
 
