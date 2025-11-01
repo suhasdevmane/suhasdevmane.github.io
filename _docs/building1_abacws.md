@@ -1,16 +1,9 @@
-------
-
-layout: postlayout: post
-
-title: Building 1 - ABACWS University Testbedtitle: Building 1 - ABACWS Real Testbed
-
-date: 2025-10-31date: 2025-10-08
-
----categories: buildings
-
 ---
-
-# Building 1: ABACWS University Testbed
+title: Building 1 - ABACWS (Real University Testbed)
+layout: post
+category: docs
+permalink: /docs/building1_abacws/
+---
 
 # Building 1 - ABACWS (Real University Testbed)
 
