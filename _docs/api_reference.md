@@ -2282,93 +2282,65 @@ async function querySensorRasa(sensorName, hours = 24) {POST /abacws/query
 
 }
 
-// Run analytics directly```
+### Client example (JavaScript)
 
-async function runAnalytics(analysisType, sensorData) {
+```javascript
+async function runAnalytics(analysisType, timeseriesData) {
+  const url = 'http://localhost:6001/analytics/run';
+  const payload = {
+    analysis_type: analysisType,
+    timeseries_data: timeseriesData
+  };
+  const response = await axios.post(url, payload, { timeout: 60000 });
+  return response.data;
+}
 
-  const url = 'http://localhost:6001/analytics/run';**Response:**
-
-  ```json
-
-  const payload = {{
-
-    analysis_type: analysisType,  "head": {
-
-    timeseries_data: sensorData    "vars": ["sensor", "location"]
-
-  };  },
-
-    "results": {
-
-  const response = await axios.post(url, payload, { timeout: 60000 });    "bindings": [
-
-  return response.data;      {
-
-}        "sensor": {
-
-          "type": "uri",
-
-// Example usage          "value": "http://example.org/sensor/Air_Temperature_Sensor_5.04"
-
-(async () => {        },
-
-  const result = await querySensorRasa('temperature in zone 5.01', 24);        "location": {
-
-  console.log(result[0].text);          "type": "uri",
-
-            "value": "http://example.org/location/zone_5.04"
-
-  const analyticsResult = await runAnalytics('trend_analysis', [        }
-
-    {      }
-
-      sensor_name: 'Air_Temperature_Sensor_5.01',    ]
-
-      data: [  }
-
-        { datetime: '2025-10-30T10:00:00', reading_value: 21.5 },}
-
-        { datetime: '2025-10-30T11:00:00', reading_value: 21.8 }```
-
+(async () => {
+  const analyticsResult = await runAnalytics('trend_analysis', [
+    {
+      sensor_name: 'Air_Temperature_Sensor_5.01',
+      data: [
+        { datetime: '2025-10-30T10:00:00Z', reading_value: 21.5 },
+        { datetime: '2025-10-30T11:00:00Z', reading_value: 21.8 }
       ]
-
-    }### Update
-
+    }
   ]);
+  console.log(`Trend: ${analyticsResult.results?.trend}`);
+})();
+```
 
-  ```http
+### Update
 
-  console.log(`Trend: ${analyticsResult.results.trend}`);POST /abacws/update
+```http
+POST /abacws/update
+Content-Type: application/sparql-update
+```
 
-})();Content-Type: application/sparql-update
-
-``````
-
-
-
----**Request:**
+**Request:**
 
 ```sparql
-
-### cURL (bash)PREFIX brick: <https://brickschema.org/schema/Brick#>
-
+PREFIX brick: <https://brickschema.org/schema/Brick#>
 INSERT DATA {
+  <sensor:New_Sensor_5.35> a brick:Temperature_Sensor .
+  <sensor:New_Sensor_5.35> brick:hasLocation <zone:5.35> .
+}
+```
 
-```bash  <sensor:New_Sensor_5.35> a brick:Temperature_Sensor .
+Response: 204 No Content (success)
 
-# Query sensor data via Rasa  <sensor:New_Sensor_5.35> brick:hasLocation <zone:5.35> .
+### cURL (bash)
 
-curl -X POST http://localhost:5005/webhooks/rest/webhook \}
-
-  -H "Content-Type: application/json" \```
-
+```bash
+# Query sensor data via Rasa
+curl -X POST http://localhost:5005/webhooks/rest/webhook \
+  -H "Content-Type: application/json" \
   -d '{
-
-    "sender": "curl_client",**Response:** 204 No Content (success)
-
+    "sender": "curl_client",
     "message": "show me temperature in zone 5.01 for the last 24 hours"
+  }'
+```
 
-  }'## Error Handling
+## Error Handling
 
 
 ### Standard Error Response
