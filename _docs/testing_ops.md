@@ -624,10 +624,12 @@ docker-compose -f docker-compose.bldg1.yml logs rasa | Select-String -Pattern "E
 ```
 
 **Test Container Resources**:
+{% raw %}
 ```powershell
 # Check memory/CPU usage
 docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 ```
+{% endraw %}
 
 ---
 

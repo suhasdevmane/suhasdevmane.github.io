@@ -168,20 +168,16 @@ Content-Type: application/json```
 
 
 
-**Response**:**Response:**
+**Response:**
 
-```json```json
-
-{{
-
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",  "status": "ok",
-
-  "token_type": "Bearer",  "message": "Rasa Core is running"
-
-  "expires_in": 3600}
-
-}```
-
+```json
+{
+  "access_token": "***",
+  "status": "ok",
+  "token_type": "Bearer",
+  "message": "Rasa Core is running",
+  "expires_in": 3600
+}
 ```
 
 ### Webhook - Send Message
