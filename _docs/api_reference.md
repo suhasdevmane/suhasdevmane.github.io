@@ -1908,21 +1908,19 @@ DELETE /files/{filename}
 
 
 
-**500 Internal Server Error**:**Request:**
+**500 Internal Server Error**:
 
-```json```json
-
-{{
-
-  "success": false,  "question": "What is the temperature in zone 5.04?"
-
-  "error": "Database connection failed",}
-
-  "details": "Could not connect to MySQL server at mysqlserver:3306. Check if database service is running.",```
-
+```json
+{
+  "success": false,
+  "question": "What is the temperature in zone 5.04?",
+  "error": "Database connection failed",
+  "details": "Could not connect to MySQL server at mysqlserver:3306. Check if database service is running.",
   "timestamp": "2025-10-31T14:30:00Z"
+}
+```
 
-}**Response:**
+**Request:**
 
 ``````json
 
@@ -2373,36 +2371,23 @@ curl -X POST http://localhost:5005/webhooks/rest/webhook \}
   }'## Error Handling
 
 
+### Standard Error Response
 
-# Run analytics directly### Standard Error Response
-
-curl -X POST http://localhost:6001/analytics/run \
-
-  -H "Content-Type: application/json" \```json
-
-  -d '{{
-
-    "analysis_type": "trend_analysis",  "error": {
-
-    "timeseries_data": [    "code": "INVALID_REQUEST",
-
-      {    "message": "Invalid sensor name provided",
-
-        "sensor_name": "Air_Temperature_Sensor_5.01",    "details": {
-
-        "data": [      "field": "sensor",
-
-          {"datetime": "2025-10-30T10:00:00", "reading_value": 21.5},      "received": "Invalid_Sensor",
-
-          {"datetime": "2025-10-30T11:00:00", "reading_value": 21.8}      "expected": "Valid sensor from sensor_list.txt"
-
-        ]    },
-
-      }    "timestamp": "2025-01-08T14:30:00Z",
-
-    ]    "request_id": "req_abc123"
-
-  }'  }
+```json
+{
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Invalid sensor name provided",
+    "details": {
+      "field": "sensor",
+      "received": "Invalid_Sensor",
+      "expected": "Valid sensor from sensor_list.txt"
+    }
+  },
+  "timestamp": "2025-01-08T14:30:00Z",
+  "request_id": "req_abc123"
+}
+```
 
 }
 
