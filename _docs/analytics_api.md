@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Analytics API Referencetitle: Analytics API Reference
-
-date: 2025-10-31date: 2025-09-28
-
-------
+---
+title: Analytics API Reference
+layout: post
+category: docs
+permalink: /docs/analytics_api/
+date: 2025-09-28
+---
 
 
 

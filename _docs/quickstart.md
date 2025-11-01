@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Quick Start Guidetitle: Quick Start Guide
-
-date: 2025-10-31date: 2025-10-08
-
-------
+---
+title: Quick Start Guide
+layout: post
+category: docs
+permalink: /docs/quickstart/
+date: 2025-10-08
+---
 
 
 

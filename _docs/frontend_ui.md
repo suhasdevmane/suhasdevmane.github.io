@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Frontend UI Guidetitle: Frontend User Interface
-
-date: 2025-10-31date: 2025-10-08
-
-------
+---
+title: Frontend User Interface
+layout: post
+category: docs
+permalink: /docs/frontend_ui/
+date: 2025-10-08
+---
 
 
 

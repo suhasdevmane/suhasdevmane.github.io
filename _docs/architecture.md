@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: System Architecturetitle: Architecture
-
-date: 2025-10-31date: 2025-09-28
-
-------
+---
+title: Architecture
+layout: post
+category: docs
+permalink: /docs/architecture/
+date: 2025-09-28
+---
 
 
 

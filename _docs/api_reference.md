@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Complete API Referencetitle: API Reference
-
-date: 2025-10-31date: 2025-10-08
-
-------
+---
+title: API Reference
+layout: post
+category: docs
+permalink: /docs/api_reference/
+date: 2025-10-08
+---
 
 
 

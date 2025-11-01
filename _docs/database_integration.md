@@ -1,13 +1,9 @@
-------
-
-layout: postlayout: post
-
-title: Database Integration Guidetitle: Database Integration Guide
-
-date: 2025-10-31date: 2025-10-08
-
----categories: technical
-
+---
+title: Database Integration Guide
+layout: post
+category: docs
+permalink: /docs/database_integration/
+date: 2025-10-08
 ---
 
 # Database Integration Guide

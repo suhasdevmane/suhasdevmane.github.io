@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Backend Services Referencetitle: Backend Services
-
-date: 2025-10-31date: 2025-10-08
-
-------
+---
+title: Backend Services
+layout: post
+category: docs
+permalink: /docs/backend_services/
+date: 2025-10-08
+---
 
 
 

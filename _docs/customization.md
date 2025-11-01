@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Customization Guidetitle: Customization
-
-date: 2025-10-31date: 2025-09-28
-
-------
+---
+title: Customization
+layout: post
+category: docs
+permalink: /docs/customization/
+date: 2025-09-28
+---
 
 
 

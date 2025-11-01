@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: OntoBot Introductiontitle: OntoBot Introduction
-
-date: 2025-10-31date: 2025-09-28
-
-------
+---
+title: OntoBot Introduction
+layout: post
+category: docs
+permalink: /docs/introduction/
+date: 2025-09-28
+---
 
 
 

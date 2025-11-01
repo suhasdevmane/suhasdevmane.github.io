@@ -1,13 +1,9 @@
-------
-
-layout: postlayout: post
-
-title: Troubleshooting & FAQtitle: Troubleshooting & FAQ
-
-date: 2025-10-31date: 2025-10-08
-
----categories: support
-
+---
+title: Troubleshooting & FAQ
+layout: post
+category: docs
+permalink: /docs/troubleshooting/
+date: 2025-10-08
 ---
 
 # Troubleshooting & FAQ

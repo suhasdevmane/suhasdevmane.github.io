@@ -1,12 +1,10 @@
-------
-
-layout: postlayout: post
-
-title: Testing & Operationstitle: Testing & Operations
-
-date: 2025-10-31date: 2025-09-28
-
-------
+---
+title: Testing & Operations
+layout: post
+category: docs
+permalink: /docs/testing_ops/
+date: 2025-09-28
+---
 
 
 
