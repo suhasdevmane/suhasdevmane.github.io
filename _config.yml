@@ -1,12 +1,15 @@
 # Configurations
-title: OntoBot
-longtitle: OntoBot – Human–Building conversation in natural language
+title: OntoSage
+longtitle: OntoSage — Agentic AI for Smart Buildings
 author: Suhas Devmane
 email: devmanesp1@cardiff.ac.uk
 description: >
-  OntoBot is an end-to-end platform for human–building conversation in natural language, combining Rasa, analytics microservices, and knowledge stores (SQL/SPARQL).
+  OntoSage is an agentic conversational layer over one smart building's own data — connect a
+  building's Brick/BACnet ontology and time-series, then ask it anything in plain English. It
+  answers via SPARQL over GraphDB, live time-series, floor plans, and the OntoSage Conversational
+  Building Vocabulary (OCBV), with grounded, honest, persona-aware, multi-intent responses.
 
-version: 1.0
+version: 2.0
 gitbook_version: 3.2.3
 
 url: 'https://suhasdevmane.github.io'
