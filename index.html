@@ -1,0 +1,241 @@
+---
+layout: null
+title: OntoSage
+description: Agentic AI for smart buildings — ask your building anything in plain English. Sensor-grounded, persona-aware, multi-intent answers over one building's own data.
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ page.title }} — Agentic AI for Smart Buildings</title>
+<meta name="description" content="{{ page.description }}">
+<meta name="author" content="{{ site.author }}">
+<meta name="theme-color" content="#2563eb">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ page.title }} — Agentic AI for Smart Buildings">
+<meta property="og:description" content="{{ page.description }}">
+<meta property="og:url" content="{{ site.url }}{{ '/' | relative_url }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ page.title }} — Agentic AI for Smart Buildings">
+<meta name="twitter:description" content="{{ page.description }}">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f8fc; --bg-card:#ffffff; --ink:#0f1b2d; --ink-soft:#495a72;
+    --line:#e4e9f2; --brand:#2563eb; --brand-2:#0ea5e9; --brand-ink:#1d4ed8;
+    --accent-grad:linear-gradient(135deg,#2563eb 0%,#0ea5e9 100%);
+    --shadow:0 1px 2px rgba(15,27,45,.04),0 8px 24px rgba(15,27,45,.06);
+    --radius:16px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0b1220;--bg-soft:#0f1830;--bg-card:#111c31;--ink:#eaf0fb;--ink-soft:#a6b6d1;
+      --line:#20304d;--brand:#5a8bff;--brand-2:#3fc6f0;--brand-ink:#8fb4ff;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);}
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  a{color:var(--brand-ink);text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;
+    background:var(--bg-soft);border:1px solid var(--line);border-radius:6px;padding:.1em .4em}
+
+  header.nav{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:saturate(150%) blur(10px);-webkit-backdrop-filter:saturate(150%) blur(10px);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--ink);letter-spacing:-.02em}
+  .brand .dot{width:26px;height:26px;border-radius:8px;background:var(--accent-grad);
+    display:grid;place-items:center;color:#fff;font-size:15px}
+  .nav-links{display:flex;align-items:center;gap:26px}
+  .nav-links a{color:var(--ink-soft);font-weight:600;font-size:14.5px}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-links .hide-sm{display:inline}
+  @media(max-width:640px){.nav-links .hide-sm{display:none}}
+  .btn{display:inline-block;font-weight:700;border-radius:10px;padding:11px 18px;font-size:15px;transition:transform .06s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent-grad);color:#fff!important;box-shadow:var(--shadow)}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink)!important;background:var(--bg-card)}
+
+  .hero{position:relative;overflow:hidden;padding:76px 0 60px;
+    background:radial-gradient(1200px 500px at 70% -10%,color-mix(in srgb,var(--brand) 14%,transparent),transparent 60%),var(--bg)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;letter-spacing:.02em;
+    color:var(--brand-ink);background:color-mix(in srgb,var(--brand) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);border-radius:999px;padding:6px 13px}
+  h1.hero-h{font-size:clamp(34px,5.2vw,58px);line-height:1.05;letter-spacing:-.03em;margin:20px 0 0;max-width:15ch;font-weight:800}
+  h1.hero-h .g{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{font-size:clamp(17px,2vw,20px);color:var(--ink-soft);max-width:56ch;margin:20px 0 30px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:30px}}
+
+  .chat{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .chat-top{display:flex;align-items:center;gap:7px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--bg-soft)}
+  .chat-top i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+  .chat-top span{margin-left:8px;font-size:12.5px;color:var(--ink-soft);font-weight:600}
+  .chat-body{padding:18px}
+  .bubble{border-radius:13px;padding:12px 15px;margin:10px 0;max-width:88%;font-size:14.5px;line-height:1.5}
+  .bubble.you{background:var(--accent-grad);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+  .bubble.bot{background:var(--bg-soft);border:1px solid var(--line);border-bottom-left-radius:4px}
+  .bubble.bot b{color:var(--brand-ink)}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-size:11.5px;font-weight:600;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+
+  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-soft)}
+  .strip-in{display:flex;flex-wrap:wrap;gap:14px 40px;justify-content:center;padding:20px 0;
+    font-size:14px;font-weight:600;color:var(--ink-soft)}
+  .strip-in b{color:var(--ink)}
+
+  section.blk{padding:72px 0}
+  .kicker{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-ink)}
+  h2.blk-h{font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:10px 0 6px;font-weight:800}
+  .blk-lead{color:var(--ink-soft);max-width:60ch;font-size:17px;margin:0 0 34px}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  @media(max-width:900px){.cards{grid-template-columns:1fr 1fr}}
+  @media(max-width:620px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);transition:transform .12s ease,border-color .12s}
+  .card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
+  .card .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;
+    background:color-mix(in srgb,var(--brand) 12%,transparent);margin-bottom:14px}
+  .card h3{margin:0 0 7px;font-size:17.5px;letter-spacing:-.01em}
+  .card p{margin:0;color:var(--ink-soft);font-size:14.5px}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+  @media(max-width:760px){.steps{grid-template-columns:1fr}}
+  .step{position:relative;background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);padding:24px 22px;box-shadow:var(--shadow)}
+  .step::before{counter-increment:s;content:counter(s);position:absolute;top:-14px;left:22px;width:32px;height:32px;
+    background:var(--accent-grad);color:#fff;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:15px}
+  .step h3{margin:10px 0 6px;font-size:17px}
+  .step p{margin:0;color:var(--ink-soft);font-size:14.5px}
+
+  .doclist{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:900px){.doclist{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.doclist{grid-template-columns:1fr}}
+  .doc{display:block;background:var(--bg-card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;transition:border-color .12s,transform .12s}
+  .doc:hover{border-color:color-mix(in srgb,var(--brand) 40%,var(--line));transform:translateY(-2px)}
+  .doc b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:3px}
+  .doc span{color:var(--ink-soft);font-size:13.5px}
+
+  .band{background:var(--accent-grad);border-radius:22px;padding:46px;text-align:center;color:#fff;box-shadow:var(--shadow)}
+  .band h2{margin:0 0 10px;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em}
+  .band p{margin:0 auto 24px;max-width:52ch;opacity:.94;font-size:17px}
+  .band .btn-white{background:#fff;color:var(--brand-ink)!important}
+  .band code{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);color:#fff}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--ink-soft);font-size:14px}
+  .foot-in{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+  .foot-links{display:flex;gap:20px;flex-wrap:wrap}
+  .foot-links a{color:var(--ink-soft);font-weight:600}
+  .foot-links a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="nav"><div class="wrap nav-in">
+  <a class="brand" href="{{ '/' | relative_url }}"><span class="dot">◆</span>OntoSage</a>
+  <nav class="nav-links">
+    <a class="hide-sm" href="#features">Features</a>
+    <a class="hide-sm" href="#how">How it works</a>
+    <a href="{{ '/docs/introduction/' | relative_url }}">Docs</a>
+    <a class="hide-sm" href="{{ '/docs/admin-console/' | relative_url }}">Admin console</a>
+    <a class="btn btn-primary" href="{{ '/docs/quickstart/' | relative_url }}">Get started</a>
+  </nav>
+</div></header>
+
+<section class="hero"><div class="wrap hero-grid">
+  <div>
+    <span class="eyebrow">◆ Agentic AI for Smart Buildings</span>
+    <h1 class="hero-h">Ask your building <span class="g">anything</span> in plain English.</h1>
+    <p class="hero-sub">Connect a building's data, then ask it anything — sensor-grounded,
+      persona-aware, multi-intent answers. No SQL, no SPARQL, no schema knowledge required.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="{{ '/docs/quickstart/' | relative_url }}">Get started →</a>
+      <a class="btn btn-ghost" href="{{ '/docs/introduction/' | relative_url }}">Read the docs</a>
+    </div>
+  </div>
+  <div class="chat">
+    <div class="chat-top"><i></i><i></i><i></i><span>OntoSage · Abacws Building</span></div>
+    <div class="chat-body">
+      <div class="bubble you">Show me floor 3 and tell me how many rooms are there</div>
+      <div class="bubble bot">Here's <b>Floor 3</b> — its layout is rendered above. It has
+        <b>14 rooms</b> across 2 zones, total area <b>612 m²</b>.
+        <div class="chips"><span class="chip">floor_plan</span><span class="chip">spatial_query</span><span class="chip">grounded · DWG geometry</span></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<div class="strip"><div class="wrap strip-in">
+  <span>🐳 <b>One command</b> to boot</span>
+  <span>🧠 <b>Brick / BACnet</b> TTL-first</span>
+  <span>🔒 <b>6 roles</b> × RBAC</span>
+  <span>🏢 <b>Any building</b>, no code</span>
+  <span>⚙️ <b>Local or API</b> models</span>
+</div></div>
+
+<section class="blk" id="features"><div class="wrap">
+  <span class="kicker">Why OntoSage</span>
+  <h2 class="blk-h">Grounded answers, any stakeholder, any building.</h2>
+  <p class="blk-lead">One natural-language interface over a single building's own data — built so every
+    answer traces back to a real triple or row.</p>
+  <div class="cards">
+    <div class="card"><div class="ic">🎯</div><h3>Grounded, never fabricated</h3>
+      <p>Every figure traces to live data — the graph, the database, or the floor plan. If it isn't there, OntoSage says so.</p></div>
+    <div class="card"><div class="ic">🧩</div><h3>Agentic &amp; multi-intent</h3>
+      <p>A LangGraph state machine decomposes a question and routes each part to the right agent, then fuses one answer.</p></div>
+    <div class="card"><div class="ic">💬</div><h3>Zero-knowledge to expert</h3>
+      <p>Lay terms resolve ("stuffy" → CO₂) for anyone; experts still get Brick classes and the SPARQL browser.</p></div>
+    <div class="card"><div class="ic">🏢</div><h3>Building-agnostic</h3>
+      <p>Onboard any building from the admin console — identity, ontology, sensors, documents, floor plans. No code change.</p></div>
+    <div class="card"><div class="ic">🔒</div><h3>Admin-controlled access</h3>
+      <p>Every data endpoint is gated by RBAC — 6 roles × 20 permissions. Personas frame answers; they never grant access.</p></div>
+    <div class="card"><div class="ic">⚙️</div><h3>Local or API models</h3>
+      <p>Run fully local on Ollama (<code>gpt-oss:20b</code>) or via OpenAI — model and embeddings switch independently.</p></div>
+  </div>
+</div></section>
+
+<section class="blk" id="how" style="background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
+  <span class="kicker">How it works</span>
+  <h2 class="blk-h">Connect data → get answers.</h2>
+  <p class="blk-lead">A question is answerable when the sensor is a triple in the graph <em>and</em> its
+    readings are rows in a registered database. Onboarding is drop-in — no code.</p>
+  <div class="steps">
+    <div class="step"><h3>Connect the building</h3><p>Drop a Brick/BACnet TTL and register the database from the admin console. Both halves link via <code>ref:storedAt</code>.</p></div>
+    <div class="step"><h3>Ask in plain English</h3><p>Dialogue classifies intent, rewrites follow-ups, and routes through SPARQL → SQL → analytics / floor-plan agents.</p></div>
+    <div class="step"><h3>Get a grounded answer</h3><p>Values are computed live and framed for the asker — facility manager, occupant, researcher, or executive.</p></div>
+  </div>
+</div></section>
+
+<section class="blk"><div class="wrap">
+  <span class="kicker">Documentation</span>
+  <h2 class="blk-h">Everything to run and extend it.</h2>
+  <p class="blk-lead">From a five-minute boot to the full technical reference.</p>
+  <div class="doclist">
+    <a class="doc" href="{{ '/docs/introduction/' | relative_url }}"><b>Introduction</b><span>What OntoSage is and the design principles.</span></a>
+    <a class="doc" href="{{ '/docs/quickstart/' | relative_url }}"><b>Quick Start</b><span>Boot the stack and ask your first question.</span></a>
+    <a class="doc" href="{{ '/docs/admin-console/' | relative_url }}"><b>Admin Console</b><span>Onboard and operate a building from the browser.</span></a>
+    <a class="doc" href="{{ '/docs/onboarding-building/' | relative_url }}"><b>Onboard a Building</b><span>The two-half rule and the no-code path.</span></a>
+    <a class="doc" href="{{ '/docs/api-reference/' | relative_url }}"><b>API Reference</b><span>Every REST endpoint with examples.</span></a>
+    <a class="doc" href="{{ '/docs/stakeholder-guide/' | relative_url }}"><b>Stakeholder Guide</b><span>Which questions each role can ask.</span></a>
+  </div>
+</div></section>
+
+<section class="blk" style="padding-top:0"><div class="wrap"><div class="band">
+  <h2>Talk to your building in five minutes.</h2>
+  <p>Clone the repo, run <code>docker compose up -d</code>, open the chat, and ask.</p>
+  <a class="btn btn-white" href="{{ '/docs/quickstart/' | relative_url }}">Get started →</a>
+</div></div></section>
+
+<footer><div class="wrap foot-in">
+  <div>© 2026 OntoSage · Agentic AI for Smart Buildings</div>
+  <div class="foot-links">
+    <a href="{{ '/docs/introduction/' | relative_url }}">Docs</a>
+    <a href="https://github.com/suhasdevmane/OntoSage">GitHub</a>
+    <a href="/OntoBot/">OntoBot 1.0 (archived)</a>
+  </div>
+</div></footer>
+
+</body>
+</html>
