@@ -35,7 +35,7 @@ count — plus quick-action buttons to jump into the common flows.
 
 ![Admin console Overview tab]({{ '/admin-portal-screenshots/01-overview.png' | relative_url }})
 *Overview cards: 7/8 data sources enabled, 7/8 services healthy, Abacws Building active, Local Ollama
-(gemma) as the LLM, bge-large-en-v1.5 (1024-d) embeddings, 495 users across 6 roles.*
+(`gpt-oss:20b`) as the LLM, bge-large-en-v1.5 (1024-d) embeddings, 495 users across 6 roles.*
 
 **How to use it:** start here to confirm the system is healthy and pointed at the right building before
 you make changes. The quick-action buttons (*Connect data*, *Try a question*, *Manage data sources*,
@@ -87,8 +87,9 @@ backend** (local `bge-large-en-v1.5` 1024-d, or OpenAI 1536-d) — independently
 boot, so there is no live hot-swap).
 
 ![Admin console AI & Models tab]({{ '/admin-portal-screenshots/04-ai-models.png' | relative_url }})
-*LLM provider radios with the Ollama base URL + model (`gemma4:26b`) and Test-connection; below,
-the embedding backend with a warning that switching dimensions invalidates the Qdrant index.*
+*LLM provider radios with the Ollama base URL + model (default `gpt-oss:20b`, admin-selectable) and
+Test-connection; below, the embedding backend with a warning that switching dimensions invalidates the
+Qdrant index.*
 
 **How to use it:**
 1. Pick a provider; for local Ollama, **Fetch installed** lists models actually present, and **Test
