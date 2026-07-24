@@ -76,6 +76,10 @@ tabs:
    a `ref:storedAt bldg:<key>` triple so its queries route to that backend.
 3. **Ontology → + Add capability** — author amenities from the schema-driven form.
 4. **Ontology → Upload TTL** — paste/validate/upload larger TTL, and browse with the SPARQL browser.
+5. **Ontology → Documents / Floor plans** — upload policy/manual documents (`.md`/`.txt`/`.pdf`) and
+   floor-plan **PDF/DWG** files straight from the browser. They persist to the active building's
+   `input/` and re-index automatically — **no host-side file drop**, so the *entire* onboarding
+   (identity, TTL, sensors/DB, documents, floor plans) is doable from the console for any building.
 
 The **Guided setup** wizard on the Databases tab walks the whole no-code flow end to end:
 

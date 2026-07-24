@@ -102,6 +102,30 @@ list and Upload-TTL panel.*
 | `GET` | `/api/v1/admin/reindex/{job_id}` | Job status |
 | `GET` | `/api/v1/admin/reindex/similarity-status` | Similarity-index status (BUILDING / BUILT) |
 
+## Admin — documents & floor-plan upload (`config:write`)
+
+Pure-GUI onboarding: upload knowledge files straight from the console — no host-side file drop. Each
+writes into the **active** building's `input/` (resolved from `BUILDING_ID`, building-agnostic) and
+re-indexes automatically. Uploads are `multipart/form-data`.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/v1/admin/documents/upload` | Upload a `.md`/`.txt`/`.pdf` → `input/documents/` → document KB |
+| `GET` | `/api/v1/admin/documents` | List documents in the active building |
+| `DELETE` | `/api/v1/admin/documents/{name}` | Remove a document + re-index |
+| `POST` | `/api/v1/admin/floor-plans/upload` | Upload a PDF/DWG (`floor`, optional `label`) → manifest registry |
+| `GET` | `/api/v1/admin/floor-plans/files` | List floor-plan files in the active building |
+
+```bash
+# add a document (re-indexed into documents_<bldg>)
+curl -s -X POST http://localhost:8000/api/v1/admin/documents/upload \
+  -H "Authorization: Bearer $TOKEN" -F "file=@wifi_policy.md"
+
+# add a floor plan for floor 3 (defaults label to the active building id)
+curl -s -X POST http://localhost:8000/api/v1/admin/floor-plans/upload \
+  -H "Authorization: Bearer $TOKEN" -F "floor=3" -F "file=@floor3.pdf"
+```
+
 ## Admin — building identity & databases (`system:admin`)
 
 | Method | Path | Purpose |

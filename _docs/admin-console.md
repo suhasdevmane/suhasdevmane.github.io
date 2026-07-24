@@ -182,6 +182,12 @@ capabilities (+Add capability), named graphs, an Upload-TTL panel, and a read-on
 - **Upload TTL** — paste Turtle, **Validate**, then **Upload**. A `urn:ontosage:ttl:<file>` graph also
   persists to `input/<file>` (survives restart).
 - **SPARQL browser** — run read-only `SELECT` / `ASK` against the live graph.
+- **Documents** — upload a policy / manual / contact sheet (`.md` / `.txt` / `.pdf`) into the document
+  KB (Qdrant `documents_<bldg>`), which answers off-ontology questions ("what's the wifi policy?").
+  Saved to `input/documents/` and re-indexed automatically — no host-side file drop.
+- **Floor plans** — upload a **PDF** or **DWG** per floor for spatial / floor queries and geometry;
+  stored as `<label> floor <N>.<ext>` (label defaults to the active building id) and ingested into the
+  manifest registry.
 
 ![Ontology tab — named graphs, Upload TTL, and SPARQL browser with results]({{ '/admin-portal-screenshots/09c-sparql-results.png' | relative_url }})
 *The lower half of the tab: named graphs (with per-graph triple counts and Drop), the Upload-TTL panel,
