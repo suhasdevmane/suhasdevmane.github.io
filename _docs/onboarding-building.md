@@ -81,6 +81,11 @@ tabs:
    `input/` and re-index automatically — **no host-side file drop**, so the *entire* onboarding
    (identity, TTL, sensors/DB, documents, floor plans) is doable from the console for any building.
 
+![Ontology tab — Documents and Floor plans upload]({{ '/admin-portal-screenshots/09d-knowledge-files.png' | relative_url }})
+*Step 5 in the console: **Documents** (a `.md`/`.txt`/`.pdf` policy or manual → the document KB) and
+**Floor plans** (a PDF/DWG per floor → spatial queries and geometry). Both write to the active building's
+`input/` and re-index automatically — no editing files on the host.*
+
 The **Guided setup** wizard on the Databases tab walks the whole no-code flow end to end:
 
 ![Guided-setup wizard — connect, describe sensors, verify]({{ '/admin-portal-screenshots/08b-guided-setup.png' | relative_url }})

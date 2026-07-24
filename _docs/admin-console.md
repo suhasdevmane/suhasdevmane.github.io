@@ -194,6 +194,29 @@ capabilities (+Add capability), named graphs, an Upload-TTL panel, and a read-on
 *The lower half of the tab: named graphs (with per-graph triple counts and Drop), the Upload-TTL panel,
 and the SPARQL browser showing live class counts from the graph.*
 
+### Documents & floor plans — knowledge files (no host-side drop)
+
+The Ontology tab also uploads the two remaining building inputs straight from the browser, so the
+**entire** onboarding — identity, TTL, sensors/DB, documents, floor plans — is doable from the console
+for any building. Each writes into the **active** building's `input/` and re-indexes automatically.
+
+![Ontology tab — Documents and Floor plans upload]({{ '/admin-portal-screenshots/09d-knowledge-files.png' | relative_url }})
+*Left — **Documents**: pick a `.md` / `.txt` / `.pdf` policy or manual and **Upload document**; it lands
+in `input/documents/` and is embedded into the document KB (Qdrant `documents_<bldg>`). Right — **Floor
+plans**: give a floor number (label defaults to the active building id), pick a **PDF** or **DWG**, and
+**Upload floor plan**; it's stored as `<label> floor <N>.<ext>` and ingested into the spatial manifest
+registry.*
+
+**How to use it:**
+- **Documents** answer off-ontology questions ("what's the wifi policy?", "how do I book a room?") — drop
+  the building's policies, manuals, and contact sheets here. Uploaded files appear in the list below the
+  button and can be removed; every add/remove re-indexes the KB (no restart).
+- **Floor plans** power spatial and floor queries ("show me floor 3", "how many rooms are adjacent to
+  3.01?", "what's the total area?"). A DWG carries geometry (room polygons, areas, adjacency); a PDF gives
+  the visual. Upload one per floor.
+- Both endpoints are **building-agnostic** — they resolve the target from the active `BUILDING_ID`, so the
+  same buttons onboard `bldg1`, `bldg2`, or any building with no code change.
+
 ### The schema-driven "Add capability" form
 
 **+ Add capability** opens a form generated from the [OCBV schema]({{ '/docs/ocbv-schema/' | relative_url }}):
