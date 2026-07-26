@@ -17,6 +17,20 @@ No SQL, no SPARQL, no schema knowledge required from the user. Ask *"is it stuff
 OntoSage resolves "stuffy" to the CO₂ sensors, fetches their live readings, and answers in plain terms.
 Ask a follow-up — *"and what about humidity there?"* — and it remembers you meant floor 5.
 
+## Key features at a glance
+
+| | Feature | What it means |
+|---|---|---|
+| 🏢 | **Zero core-code changes to onboard a building** | The core and `shared/` carry no building literals. A new building is *config + data only* — a Brick TTL, a registered database, optional documents/floor plans. The same code serves `bldg1`, `bldg2`, or yours unchanged. |
+| 🖥️ | **Full onboarding from the Admin Console** | Set building identity, upload TTL, connect a database and register sensors, add documents and floor-plan PDFs/DWGs, author capabilities, browse SPARQL — all in the browser, no host-side editing. Dropping a file in `input/` and doing it in the GUI are equivalent. |
+| 🎯 | **Grounded, never fabricated** | Every figure traces to a live triple or row. If the sensor or data isn't there, OntoSage says "no data" — it never invents a value. |
+| 🧩 | **Agentic & multi-intent** | A LangGraph state machine classifies intent, rewrites follow-ups, decomposes compound questions, and routes each part to the right agent (SPARQL → SQL → analytics / floor-plan / capability), then fuses one answer. |
+| 💬 | **Zero-knowledge to expert** | Lay terms resolve ("stuffy" → CO₂) for anyone; experts still get Brick classes, the SPARQL browser, and the full API. |
+| 🔌 | **Multiple, pluggable datasources** | Time-series routes by `ref:storedAt` → an adapter registry (MySQL wide/narrow today; Postgres / Timescale / Influx templates). A new backend is a new adapter, never an agent edit. |
+| ⚙️ | **Local or API models, independently** | Run fully local on Ollama (`gpt-oss:20b`) or via OpenAI; the LLM and the embedding backend switch independently. |
+| 🔒 | **Admin-controlled access (RBAC)** | Every data/config endpoint is gated — 6 roles × 20 permissions. Personas frame answers; they never grant access. |
+| 🐳 | **One command to boot** | `docker compose up -d` brings up the whole stack; config lives in `.env` + `input/`. |
+
 ## The four surfaces it fuses
 
 A single `POST /chat` endpoint answers over four data surfaces:
