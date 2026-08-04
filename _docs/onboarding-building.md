@@ -12,6 +12,11 @@ OntoSage serves **one active building at a time**. Onboarding means giving it th
 halves — the **ontology** (what exists) and the **time-series** (what it reads) — plus optional
 conversational extras. No code changes; everything is `input/` + `.env` + the console.
 
+> **Bringing your own building?** `bldg1`, `bldg2` and `bldg3` are test fixtures. Start with
+> [Use Your Own Building]({{ site.baseurl }}/docs/your-own-building/), which covers claiming a slot,
+> choosing a fresh `BUILDING_ID`, which files to keep versus replace, and the TTL rules that decide
+> whether live values resolve.
+
 ## The mental model: both halves or no answer
 
 ```

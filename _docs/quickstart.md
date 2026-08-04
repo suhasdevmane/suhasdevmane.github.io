@@ -16,11 +16,23 @@ build steps outside Docker.
 ```bash
 git clone https://github.com/suhasdevmane/OntoSage.git
 cd OntoSage
-cp .env.example .env          # then edit — see below
+
+# Activate a building. A fresh clone ships every building PARKED and none active,
+# so input/, .env and docker-compose.yml do not exist yet. Activating is renaming:
+mv bldg1 input                                  # per-building data: TTLs, floor plans, docs
+mv docker-compose.bldg1.yml docker-compose.yml  # its services
+cp .env1.example .env                           # its settings (already has bldg1's identity)
+                                                # → then replace every CHANGE-ME value in .env
 
 docker compose up -d          # boots every service
 docker compose logs -f orchestrator
 ```
+
+> `bldg1`, `bldg2` and `bldg3` are **test fixtures** so you can see a working system immediately.
+> To run your own building, see [Use Your Own Building]({{ site.baseurl }}/docs/your-own-building/).
+> Each building ships its own template — `.env1.example`, `.env2.example`, `.env3.example` — already
+> carrying that building's identity, so activating `bldg2` is the same three lines with `2` substituted.
+> Your filled-in `.env` is gitignored and never committed; only the templates ship.
 
 Minimum `.env` to set before first start:
 
