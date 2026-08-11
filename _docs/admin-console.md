@@ -241,9 +241,15 @@ always has full access.
 *The user list with a role dropdown per account (admin, facility_manager, occupant…) and a Delete
 control; + Add user at the top.*
 
-**How to use it:** **+ Add user** to create an account, pick a role from the dropdown to change
-permissions (applies immediately), and optionally restrict a role to specific data sources. See
-[Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}).
+**How to use it:** **+ Add user** to create an account (12+ character password, with a show/hide
+toggle so you can confirm what you typed), pick a role from the dropdown to change permissions, and
+optionally restrict a role to specific data sources. **Password** on any row sets a new password —
+stored hashes are one-way, so an existing password can never be displayed, only replaced, and a
+reset signs out that user's active sessions.
+
+Everything here applies to the **next request**: creating a user, changing a role, or resetting a
+password needs no restart, re-login or cache flush. Roles also shape chat answers when identity
+forwarding is enabled — see [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}).
 
 ## Health — live dependency status
 

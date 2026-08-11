@@ -67,6 +67,11 @@ TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
 ## 3. Ask questions
 
 ```bash
+# Start here — OntoSage describes itself and lists what THIS building can be asked
+curl -s -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"what can you do?","session_id":"demo"}'
+
 # Structural — answered from the ontology alone (SPARQL, no time-series)
 curl -s -X POST http://localhost:8000/chat \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
@@ -81,13 +86,22 @@ curl -s -X POST http://localhost:8000/chat \
 curl -s -X POST http://localhost:8000/chat \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"message":"show me floor 3 and tell me how many rooms are there","session_id":"demo"}'
+
+# Ask for something the building does NOT have — the answer should be an honest
+# decline plus what to add, never another sensor's reading
+curl -s -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"how many sensors are in the swimming pool?","session_id":"demo"}'
 ```
+
+That last one is worth running on any new deployment: it is the quickest check that the grounding
+guards are active, and the reply tells you exactly what a real referent would need.
 
 ## 4. Open the web interfaces
 
 | Interface | URL | What |
 |---|---|---|
-| **Chat UI** | `http://localhost:3000` | OpenWebUI — full multi-turn conversation |
+| **Chat UI** | `http://localhost:3000` | OpenWebUI — full multi-turn conversation. Sign in with your own account; users without an OntoSage account are served at readonly |
 | **Admin console** | `http://localhost:3001` | [config-panel]({{ '/docs/admin-console/' | relative_url }}) — building identity, capabilities, sensors, ontology, reindex, health |
 | **GraphDB** | `http://localhost:7200` | SPARQL workbench |
 | **Qdrant** | `http://localhost:6333/dashboard` | Vector store dashboard |

@@ -67,6 +67,49 @@ This trips people up, so it's worth stating flatly:
 An "occupant persona" phrasing does not give occupant-role permissions, and an admin asking as a
 "visitor" still has admin access. Keep them mentally separate.
 
+## Managing users
+
+Accounts live in the **Admin Console → Users & Access**. Creating one takes a username, a
+password of 12+ characters (with a show/hide toggle so you can confirm what you typed) and a
+role. Every row carries a **Password** button for setting a new one.
+
+Stored passwords are one-way **Argon2id** hashes: an existing password can never be
+displayed — not to an admin, not to anyone with the database — only replaced. A reset also
+signs out that user's active sessions, because a shared or leaked password is the usual
+reason to reset one.
+
+Creating a user, changing a role, and resetting a password all apply to the **next request**:
+no restart, no re-login, no cache flush. The **Role → Data-source access** matrix on the same
+tab decides which data sources each role may draw on when answering; a role left fully
+unticked is unrestricted, since access control is opt-in.
+
+## Role-aware answers in the chat UI
+
+Open WebUI authenticates to OntoSage with a single shared API key, so by itself it cannot say
+*who* is asking — every chat request would arrive as the same least-privilege identity.
+Enabling `ENABLE_FORWARD_USER_INFO_HEADERS` on Open WebUI and `TRUST_FORWARDED_USER` on the
+orchestrator resolves the signed-in person to their OntoSage account, so **their** role
+shapes the answer:
+
+```
+"Set the temperature setpoint in zone 5.28 to 21 degrees"
+
+  readonly          → "You don't have permission to control building systems…"
+  facility_manager  → "Command queued for approval (ID: b2160acc)…"
+```
+
+Same request, same API key, different answers.
+
+Anyone who signs in without an OntoSage account is served at **readonly** — enough to explore
+the building, nothing more. To grant a role, create an account whose username matches their
+sign-in email or its local part (`alice@example.com` → `alice`).
+
+> **Trust boundary.** A forwarded identity header is only as trustworthy as whoever can set
+> it: anyone holding the pipeline key could claim to be any user. `TRUST_FORWARDED_USER` is
+> **off by default**, and with it off the header is ignored entirely. Enable it only where the
+> proxy is the sole key holder on a trusted network — the default Docker deployment — and keep
+> the API port off the public internet.
+
 ## Read-only by design
 
 OntoSage answers; it does not operate the building. Actuation requests are declined at the routing layer,
@@ -84,6 +127,10 @@ change, reindex, sensor upload, and TTL upload.*
 - [ ] `STRICT_SECRETS=true` and every default secret replaced (`SECRET_KEY`, `GRAPHDB_PASSWORD`,
       `MYSQL_PASSWORD`, `POSTGRES_USER_PASSWORD`).
 - [ ] Strong 12+ char admin password; no shared accounts.
+- [ ] `TRUST_FORWARDED_USER` enabled **only** where the chat proxy is the sole holder of
+      `PIPELINE_API_KEY` on a trusted network — that key otherwise becomes an impersonation key.
+- [ ] Self-registration on the chat UI closed once your users exist, unless open sign-up is
+      intended (new sign-ups land at readonly by design).
 - [ ] TLS terminated at your reverse proxy; the console (`:3001`) and API (`:8000`) not exposed raw.
 - [ ] Backend stores (GraphDB, MySQL, Postgres, Redis, Qdrant, Mongo) not published to the public
       internet.

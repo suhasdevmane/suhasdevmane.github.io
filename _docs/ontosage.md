@@ -26,16 +26,25 @@ permalink: /docs/ontosage/
 
 ## 1. What OntoSage is
 
-OntoSage is an open-source agentic-AI orchestration layer for **one smart building at a time** that fuses four data surfaces into a single chat endpoint:
+OntoSage is an open-source, **building-agnostic** agentic-AI framework for talking to a building in
+plain English. It is not built for one site: connect a building's ontology and the databases holding
+its readings, and it answers questions about that building with no code changes. A deployment serves
+**one active building at a time**, fusing four data surfaces into a single chat endpoint:
 
 | Surface | What it holds | Where it lives |
 |---|---|---|
-| **Ontology graph** | Sensor URIs, zones, equipment hierarchy (Brick Schema + BACnet TTL) | GraphDB (port 7200) |
-| **Time-series store** | Per-sensor readings keyed by UUID | MySQL (3306) — pluggable to Postgres / Timescale / Influx |
+| **Ontology graph** | Sensor URIs, zones, equipment hierarchy (Brick Schema + BACnet TTL) + the OCBV conversational vocabulary | GraphDB (port 7200) |
+| **Time-series store** | Per-sensor readings keyed by UUID; routed per sensor by `ref:storedAt`, so one building can span several databases (a shipped example uses MySQL and PostgreSQL together) | MySQL / PostgreSQL / … — pluggable adapter per backend |
 | **Floor plans** | Room polygons, areas, adjacency, MEP blocks | PDF (text) + AutoCAD DWG (geometry) → JSON manifests + Qdrant |
-| **Capability KB** | Off-ontology amenities, policies, contacts | `input/<bldg>/capability.yaml` → embedded into Qdrant |
+| **Capabilities & documents** | Amenities, policies, contacts, procedures — authored as `ontosage:Amenity` / `KnowledgeTopic` / `Policy` **triples**; a `Policy` names its governing document via `ontosage:documentRef` | OCBV schema + `input/<bldg>_capabilities.ttl` + `documents/` → GraphDB + Qdrant |
 
-A single `POST /chat` endpoint returns natural-language answers, markdown tables, structured reports, exports (CSV/JSON), or visualizations (PNG plots).
+A single `POST /chat` endpoint returns natural-language answers, markdown tables, structured reports, exports (CSV/JSON), or visualizations (PNG plots). Ask it about *itself* — "what can you do?" — and it answers from live configuration as the framework it is.
+
+**Grounded, never fabricated.** Every figure traces to a live triple or row. Ask about a floor, space,
+amenity or measurement the building does not have and OntoSage says so and tells you what to add — it
+will not substitute another sensor's reading, present an unrelated document as the answer, put a
+confident verdict on a raw unscaled value, or (even when the existence check times out under load)
+guess. The honesty guarantee is enforced by a stack of building-agnostic guards, not per-building tuning.
 
 The next major release (**Onto-community**) will serve multiple buildings concurrently; v1 (today) is single-tenant by design, with the per-building infrastructure (registry caches, BuildingContextResolver, per-building Qdrant collections, persona overlays) already in place as forward-compatibility.
 
@@ -99,14 +108,18 @@ shared/
 ├── pipeline_context.py             # Phase 17 — typed view over intermediate_results
 └── …
 
-input/
-├── bldg1/                          # The ACTIVE building (one at a time)
-│   ├── building.yaml
-│   ├── capability.yaml
-│   ├── intents.yaml                # per-building intent overlay
-│   ├── personas/                   # per-building persona overlay
-│   └── *.ttl, *.dwg, *.pdf
-└── _defaults/                      # Phase 11C — operator-editable defaults
+input/                              # The ACTIVE building's files sit directly here (flat layout)
+├── building.yaml
+├── *.ttl                           # Brick/BACnet + <id>_capabilities.ttl (Amenity/KnowledgeTopic/Policy triples)
+├── database_registry.yaml          # backends keyed by ref:storedAt (MySQL, PostgreSQL, …)
+├── intents.yaml                    # optional per-building intent overlay
+├── personas/                       # optional per-building persona overlay
+├── documents/                      # optional manuals/policies (linked from Policy triples via documentRef)
+└── *.dwg, *.pdf                    # optional floor plans
+
+ontology/                           # shared, building-independent TTL (mounted read-only)
+├── ontosage_schema.ttl             # the OCBV vocabulary — one copy for every building
+└── hbco_core.ttl, hbco_mappings.ttl
 
 scripts/
 └── swap_building.py                # Phase 12C — safe building-swap CLI
@@ -336,25 +349,31 @@ TTL validator hard-fails on `@prefix bldg:` ↔ `ontology_namespace` mismatch.
 
 ## 8. Test coverage
 
-### Deterministic suite (CI — 13 files)
+### Deterministic suite (CI)
 
-**225 tests pass · 3 skip · 0 fail**
+**981 tests pass · 8 skip · 0 fail** on the Python 3.10 / 3.11 / 3.12 matrix, from a clean checkout
+with no active building and no `.env` — exactly what CI sees. Selected files:
 
 | File | Tests | Coverage |
 |---|---|---|
-| `test_phase3_4_services.py` | many | Phase 3/4 services (legacy baseline) |
-| `test_phase_a_fixes.py` | 44 | Persona + new intents routing (Phase 14A) |
-| `test_survey_aligned_phases.py` | 64 | Capability KB + persona + G1 taxonomy + workflow wiring |
-| `test_workflow_wiring.py` | 4 | Behavioral wiring contracts (Phase 17) |
-| `test_routing_accuracy.py` | 29 | All 20 intents + 5 override scenarios + 4 audit invariants |
-| `test_intent_graph_autowire.py` | 5 | Every `node_method` resolves; every registry node in graph |
-| `test_unregistered_intent_safety_net.py` | 3 | YAML-added intent with no node → safe fallback |
-| `test_multi_tenant_fixture.py` | 5 | bldg2 fixture exercises per-building infra |
-| `test_blended_persona.py` | 14 | Persona blending semantics |
-| `test_compound_query_e2e.py` | 17 | Multi-intent heuristic + decomposition (Phase 16A short-compound) |
-| `test_state_persistence.py` | 7 | ConversationState ↔ JSON round-trip with `personas` |
-| `test_swap_building.py` | 6 | swap_building CLI integration |
+| `test_routing_accuracy.py` | 29 | All intents + override scenarios + audit invariants |
+| `test_routing_contract.py` | 51 | Every question-shape → intent rule + precedence + a scan proving no building literal |
+| `test_grounding_guard.py` | 47 | Unrelated-passage refusal; typed-referent existence gate; verb-inflection matching; the "I don't hold that fact" caveat |
+| `test_absent_referent_metrics.py` | 18 | A place the building lacks is declined, not answered with whole-building figures — even when the existence check times out |
+| `test_plausibility.py` | 11 | No verdict over a value outside every plausible unit-range for its measurand |
+| `test_self_description.py` | 16 | "What is OntoSage / what can you do" from live config as a building-agnostic framework — never a bare-LLM claim, never a building literal |
+| `test_ontology_inventory.py` | 18 | "What equipment/sensors does this building have" from the graph's own Brick classes |
+| `test_entity_label_resolution.py` | 12 | A prose-named sensor resolves to the one asked about, across two naming conventions |
+| `test_embedding_standardisation.py` | 14 | Retrieval floor + vector width derived from the loaded model |
+| `test_embedding_consistency.py` | 9 | Boot sweep drops any Qdrant collection at a mismatched width, for any building |
+| `test_agents_building_agnostic.py` | 2 | Source scan: no agent names a building in code |
+| `test_survey_aligned_phases.py` | 64 | Capability + persona + workflow wiring |
 | `services/test_ttl_validator.py` | 10 | TTL parse + prefix/namespace + SHACL gating |
+
+A **cross-building regression harness** (`scripts/regression_harness.py`) fills 14 behavioural checks
+from the active building's own graph and compares them to a recorded baseline — so the same set proves
+any building, including one onboarded tomorrow, and flags an honest decline that becomes an answer as a
+fabrication risk.
 
 ### Live survey (`scripts/survey_live_test.py`)
 

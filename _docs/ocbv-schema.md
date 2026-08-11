@@ -29,12 +29,12 @@ triples and invalidates nothing.
 
 | Module | What it models |
 |---|---|
-| **A — Capabilities** | `ontosage:Capability → Amenity` (PrayerRoom, Cafe, Lift, ToiletFacility, ShowerFacility, StudyArea…) and `→ KnowledgeTopic` (InformationTopic, Procedure, MaintenanceIssue); Brick-bridge object properties; 13 datatype properties (the guided-form fields) |
+| **A — Capabilities** | `ontosage:Capability → Amenity` (PrayerRoom, Cafe, Lift, ToiletFacility, ShowerFacility, StudyArea…) and `→ KnowledgeTopic` (InformationTopic, Procedure, **Policy**, MaintenanceIssue); Brick-bridge object properties; datatype properties including `documentRef`, `effectiveDate` and `policyOwner` (the guided-form fields) |
 | **B — Conversation concepts (HBCO)** | `hbco:Concept`, `hbco:mapsToBrickClass`, `hbco:layTerm` — lay word → Brick sensor ("stuffy" → CO₂), so plain language resolves to live data |
 | **C — Stakeholder roles** | `ontosage:StakeholderRole` (Occupant, FacilityManager, Researcher, SustainabilityOfficer, SafetyOfficer…) — frames answers, **explicitly not RBAC** |
 | **D — Question-intent grammar** | `ontosage:QuestionIntent` (Locate, Quantify, Trend, Compare, Anomaly, Forecast, Comfort, Discover, Procedure, Report) |
 | **E — Report intake** | `ontosage:Report → FaultReport / Complaint / SafetyReport / Feedback / Suggestion` |
-| **F — Answer provenance** | `ontosage:SourceType` + `groundedIn` + `isSimulated` — the vocabulary behind honest, auditable answers |
+| **F — Answer provenance** | `ontosage:SourceType` + `groundedIn` + `isSimulated` — the vocabulary behind honest, auditable answers. An asserted triple and a retrieved passage are different strengths of evidence, so **Ontology** and **Document** are separate source types rather than one shared label |
 | **G — Competency questions + example SPARQL** | `ontosage:competencyQuestion` + `ontosage:exampleSparql` annotations per class |
 | **H / I / J** | Brick/REC/BOT/SOSA alignment; SHACL validation shapes; worked examples |
 
@@ -98,6 +98,29 @@ bldg:Issue_WaterLeak a ontosage:MaintenanceIssue, ontosage:KnowledgeTopic ;
 ```
 
 Both are answerable immediately — no restart.
+
+### A policy points at the document that sets it out
+
+Some answers are genuinely long-form — a fire-evacuation procedure, a data-protection policy. Rather
+than paste the whole document into a literal, a `Policy` carries the short authoritative answer *and*
+names the file that governs it:
+
+```turtle
+bldg:Policy_FireSafety a ontosage:Policy, ontosage:KnowledgeTopic ;
+    rdfs:label "Fire safety & evacuation" ;
+    ontosage:layTerms "fire, evacuation, alarm, what do i do if the alarm goes off" ;
+    ontosage:answerText "On the alarm, leave by the nearest marked exit and assemble at the muster point. Do not use the lifts." ;
+    ontosage:documentRef "fire_safety.md" ;      # <- the long form lives here
+    ontosage:effectiveDate "2026-01-01"^^xsd:date ;
+    ontosage:policyOwner "Estates & Campus Services" .
+```
+
+`documentRef` makes retrieval **deterministic**: when the topic matches, the detail is read from *that
+named file*, not from whichever chunk a vector search happens to score highest. Without the link, which
+document answers a policy question depends on a similarity threshold tuned for one corpus and one
+embedding model — change either and the answer quietly changes with it. RDF holds the structure and the
+short answer, the document holds the long form, and `documentRef` is the join, so the vocabulary stays
+TTL-first without pretending RDF is a document store.
 
 ## See also
 

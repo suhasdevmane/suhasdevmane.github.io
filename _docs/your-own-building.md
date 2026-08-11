@@ -194,6 +194,14 @@ A building may span **several backends at once** — each `ref:storedAt` key rou
 energy can live in Postgres while IAQ stays in MySQL. Adding a backend type is a new adapter, never a
 change to the agents.
 
+This is not theoretical: a building shipped with the repo answers from **MySQL and PostgreSQL in the
+same conversation**, with the adapter chosen per sensor.
+
+![A reading served from MySQL]({{ '/admin-portal-screenshots/answer-mysql-reading.png' | relative_url }})
+![The same building, a reading served from PostgreSQL]({{ '/admin-portal-screenshots/answer-postgres-reading.png' | relative_url }})
+*Two questions, one building, two database technologies. Nothing in either question says which backend
+to use — the sensor's `ref:storedAt` decides, and the person asking never sees the difference.*
+
 ---
 
 ## Step 4 — Build and start

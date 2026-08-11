@@ -8,14 +8,22 @@ date: 2026-07-01
 
 # What is OntoSage?
 
-**OntoSage is an agentic conversational layer over one smart building's own data.** Connect a
-building's Brick/BACnet ontology and its time-series database, and you can then *ask it anything in
-plain English* — and get answers that are grounded in live data, framed for the person asking, and
-able to span several intents in a single turn.
+**OntoSage is a building-agnostic framework for talking to a building in plain English.** It is not
+built for any one site: connect a building's Brick/BACnet ontology and the databases holding its
+sensor readings, and OntoSage answers questions about *that* building — grounded in live data, framed
+for the person asking, and able to span several intents in a single turn. Onboarding a new building is
+configuration and data — a Brick TTL, database credentials, optional documents and floor plans — with
+no code changes. A single deployment serves one active building at a time; the same code serves the
+next building unchanged.
+
+Ask OntoSage what it is — *"what can you do?"*, *"how do you work?"* — and it answers from its own live
+configuration as the framework it is, never claiming to be a generic chatbot.
 
 No SQL, no SPARQL, no schema knowledge required from the user. Ask *"is it stuffy on floor 5?"* and
 OntoSage resolves "stuffy" to the CO₂ sensors, fetches their live readings, and answers in plain terms.
-Ask a follow-up — *"and what about humidity there?"* — and it remembers you meant floor 5.
+Ask a follow-up — *"and what about humidity there?"* — and it remembers you meant floor 5. Ask about a
+space or building it does not have — *"how many sensors are in the swimming pool?"* — and it says it
+cannot find that, rather than answering with another sensor's readings.
 
 ## Key features at a glance
 
@@ -26,7 +34,8 @@ Ask a follow-up — *"and what about humidity there?"* — and it remembers you 
 | 🎯 | **Grounded, never fabricated** | Every figure traces to a live triple or row. If the sensor or data isn't there, OntoSage says "no data" — it never invents a value. |
 | 🧩 | **Agentic & multi-intent** | A LangGraph state machine classifies intent, rewrites follow-ups, decomposes compound questions, and routes each part to the right agent (SPARQL → SQL → analytics / floor-plan / capability), then fuses one answer. |
 | 💬 | **Zero-knowledge to expert** | Lay terms resolve ("stuffy" → CO₂) for anyone; experts still get Brick classes, the SPARQL browser, and the full API. |
-| 🔌 | **Multiple, pluggable datasources** | Time-series routes by `ref:storedAt` → an adapter registry (MySQL wide/narrow today; Postgres / Timescale / Influx templates). A new backend is a new adapter, never an agent edit. |
+| 🔌 | **Multiple, pluggable datasources — even within one building** | Each sensor's `ref:storedAt` routes its readings to the right backend, so different sensors in the *same* building can live in different databases. A shipped example serves one building from **MySQL and PostgreSQL at once**. The registry has connection templates for ~50 stores; a new backend is a new adapter, never an agent edit. |
+| 🤖 | **Answers about itself** | Ask *"what is OntoSage / what can you do / how do you work"* and it answers from live configuration as a building-agnostic framework — the capability list comes from the active building's own intent registry, so it can never drift from what the system actually does. |
 | ⚙️ | **Local or API models, independently** | Run fully local on Ollama (`gpt-oss:20b`) or via OpenAI; the LLM and the embedding backend switch independently. |
 | 🔒 | **Admin-controlled access (RBAC)** | Every data/config endpoint is gated — 6 roles × 20 permissions. Personas frame answers; they never grant access. |
 | 🐳 | **One command to boot** | `docker compose up -d` brings up the whole stack; config lives in `.env` + `input/`. |
@@ -40,7 +49,7 @@ A single `POST /chat` endpoint answers over four data surfaces:
 | **Ontology graph** | Sensor URIs, zones, equipment hierarchy (Brick Schema + BACnet TTL) + the OCBV conversational layer | GraphDB (7200) |
 | **Time-series store** | Per-sensor readings keyed by UUID | MySQL (3306) — pluggable to Postgres / Timescale / Influx |
 | **Floor plans** | Room polygons, areas, adjacency, MEP blocks | PDF (text) + AutoCAD DWG (geometry) → JSON manifests + Qdrant |
-| **Capability KB** | Off-ontology amenities, policies, contacts, how-to procedures | The **OCBV** schema + `input/<bldg>_capabilities.ttl` → GraphDB + Qdrant |
+| **Capabilities & documents** | Amenities, policies, contacts, how-to procedures — authored as `ontosage:Amenity` / `KnowledgeTopic` / `Policy` triples; a `Policy` names the document that sets it out in full via `ontosage:documentRef`, so the long form is read from *that* file rather than a similarity guess | The **OCBV** schema + `input/<bldg>_capabilities.ttl` + `documents/` → GraphDB + Qdrant |
 
 The [admin console]({{ '/docs/admin-console/' | relative_url }}) shows all four surfaces and the running
 system at a glance:
@@ -71,8 +80,9 @@ Each of these is a deliberate commitment:
    management is admin-only. Roles are separate from personas.
 8. **Connect data, get answers.** A question is answerable when the sensor is in the ontology *and* its
    readings are in a registered database — both halves, no code.
-9. **Multiple datasources, pluggable.** Time-series routes by an ontology reference to the right
-   backend. A new backend is a new adapter.
+9. **Multiple datasources, pluggable — even within one building.** Each sensor's `ref:storedAt` routes
+   its readings to its own backend, so one building can run several database technologies at once
+   (a shipped example uses MySQL and PostgreSQL together). A new backend is a new adapter.
 10. **Local or API models, independently.** Language and embedding models each switch between OpenAI and
     local Ollama — fully offline for privacy or on the API for capability.
 11. **`docker compose up -d` is all you need.**
@@ -81,8 +91,18 @@ Each of these is a deliberate commitment:
 
 - **Actuate the building.** Requests to open windows, change setpoints, or email someone are politely
   **declined** — OntoSage is a read/answer layer, not a BMS controller.
-- **Invent data.** If a sensor isn't modelled or its readings aren't loaded, it says so.
-- **Answer about a different building.** v1 is single-building by design.
+- **Invent data.** Ask about a floor, wing, amenity, asset or measurement the building does not have —
+  *"the swimming pool"*, *"floor 42"*, *"the methane concentration"* — and OntoSage names what does
+  exist instead, or says plainly that it can't find that, and tells you what to add to make it
+  answerable. It will not quietly substitute another sensor's reading, present an unrelated document as
+  the answer, or pass a raw unscaled number off as a confident verdict. Even when the check that
+  confirms a place exists cannot complete under load, it refuses rather than guessing — a
+  plausible-sounding wrong number is worse than no number, because you can't tell it apart from a right
+  one.
+- **Answer about a different building.** A deployment is single-building by design; a reference to some
+  other building is treated as "not here."
+- **Pretend to be a generic chatbot.** Asked how it works, it describes itself as the framework it is —
+  it will not claim to be "a large language model."
 
 ## Where to go next
 

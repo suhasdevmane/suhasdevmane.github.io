@@ -41,7 +41,7 @@ MODEL_PROVIDER=local            # local (Ollama) | openai | cloud
 OPENAI_API_KEY=<key>            # if MODEL_PROVIDER/EMBEDDING_PROVIDER = openai
 OLLAMA_BASE_URL=http://ollama:11434
 
-EMBEDDING_PROVIDER=local        # local (bge/MiniLM) | openai — chosen independently
+EMBEDDING_PROVIDER=local        # local (bge-large-en-v1.5, 1024-d) | openai — chosen independently
 ```
 
 Language and embedding models switch separately, so you can run the LLM on the API while keeping
@@ -50,7 +50,14 @@ hardcode a model. The console's **AI & Models** tab is the friendly front end fo
 
 ![Admin console AI & Models tab]({{ '/admin-portal-screenshots/04-ai-models.png' | relative_url }})
 *Pick the LLM provider (Local Ollama / Ollama Cloud / OpenAI) + model, and the embedding backend
-(bge-large 1024-d or OpenAI 1536-d). Switching embeddings invalidates the Qdrant index — re-index after.*
+(bge-large 1024-d or OpenAI 1536-d).*
+
+The vector width and the retrieval threshold are **derived from the model that is loaded**, not from a
+separate setting that could drift out of step with it. Switching the embedding model invalidates any
+existing index, so a boot-time sweep enumerates the vector collections and drops any left at the old
+width for its owner to rebuild — stores that cannot be regenerated (such as user memory) are reported
+rather than deleted. Comparing vectors of different widths returns no rows rather than raising, so
+without that sweep a stale collection is silent until someone gets an empty answer.
 
 ### Active building
 

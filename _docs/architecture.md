@@ -45,7 +45,9 @@ analytics ──► visualization                                           │
 - **Nodes auto-register** from `orchestrator/intents/intent_definitions.yaml` — adding an intent is a
   YAML entry + one method, no graph edits.
 - **dialogue** classifies the intent and extracts entities; it also runs the co-reference rewrite and a
-  capability semantic-router probe.
+  capability semantic-router probe. A question about **OntoSage itself** ("what can you do?") is settled
+  at the very top, before any of that, so it can never be answered from a building's document or fall
+  through to a generic assistant.
 - **sparql** generates + executes SPARQL against GraphDB, with a semantic RAG fallback (rag-service on
   8001) when a query returns empty.
 - **sql** fetches time-series by UUID, routing to the right backend via the adapter registry.
@@ -54,6 +56,24 @@ analytics ──► visualization                                           │
 - **floor_plan / spatial** answer from PDF/DWG floor-plan manifests (no LLM for geometry).
 - **capability** answers off-ontology amenity/procedure/policy questions from the
   [OCBV]({{ '/docs/ocbv-schema/' | relative_url }}) graph + document KB.
+
+## What stops a fabricated answer
+
+A conversational layer over a building will always be *asked* about things the building does not have.
+Left alone, every fallback in the pipeline is a route to a plausible wrong answer — so the guards below
+sit across them. All are building-agnostic: they reason about the *shape* of a question and what the
+active graph contains, never about a particular site.
+
+| Guard | What it stops |
+|---|---|
+| **Referent existence gate** | A named floor, space, equipment item, measurand or *other building* that isn't in the active graph is declined, instead of being answered with some other sensor's readings. Because the question named something, a check that can't complete (a timeout under load) also declines — failing open there would produce a confident fabrication, so it deliberately fails closed. |
+| **Grounding guard** | A retrieved passage that never mentions what was asked can't be dressed up as the answer. Matching is lexical on distinctive terms, so it needs no per-model tuning. |
+| **Plausibility guard** | A comparative verdict ("very strong", "too warm") is stripped when the value can't be that quantity in *any* unit it's normally reported in; the raw number is shown with a note that its scaling needs checking. |
+| **Missing-fact caveat** | An answer that is *about* the subject but lacks the fact asked for (a service date, say) is prefixed with "I don't hold a specific date — here is the related information I do have." |
+| **Self-description first** | A question about the assistant is answered from live configuration, never from a building document and never by a generic assistant. |
+
+Every refusal ends with the concrete step that would make the question answerable, which is the
+connect-data → get-answers contract expressed in the answer itself.
 
 ## Why a smart-Python + smart-LLM hybrid?
 
@@ -97,7 +117,8 @@ then tagged with the system that produced it:
 ## Models & providers
 
 `shared/config.py` is the single source of truth. `MODEL_PROVIDER` = `openai` / `local` (Ollama) /
-`cloud`; `EMBEDDING_PROVIDER` (`openai` 1536-d / `local` bge/MiniLM) is independent — so you can run
+`cloud`; `EMBEDDING_PROVIDER` (`openai` 1536-d / `local` 1024-d `bge-large-en-v1.5`, baked into the
+image and run offline) is independent — so you can run
 fully offline or on the API, and swap either without touching the other.
 
 ## Conversation memory & co-reference
