@@ -8,131 +8,245 @@ date: 2026-07-02
 
 # Quick start
 
-The entire stack boots with one command. Configuration lives in `.env` and the `input/` folder — no
-build steps outside Docker.
+This page takes a fresh clone to a first answer using the bundled test building `bldg1`. Running
+your own building follows the same steps; see
+[Use your own building]({{ '/docs/your-own-building/' | relative_url }}).
 
-## 1. Configure and start
+## 0. Prerequisites
+
+| What | Why | Check |
+|---|---|---|
+| Docker Engine or Docker Desktop with Compose v2 | Every service except MySQL runs in Compose | `docker compose version` |
+| **MySQL 8 on the host**, port 3306 | Time-series readings. The MySQL service in the shipped compose file is commented out; the orchestrator reaches the host through `host.docker.internal:3306` | `mysql -h 127.0.0.1 -P 3306 -e "SHOW DATABASES"` |
+| A language model | Reads the question and writes the reply. One of: Ollama on the host with `gpt-oss:20b` pulled (about 16 GB of GPU memory keeps it fully on the GPU), an OpenAI API key, or an Ollama Cloud key | `curl -s http://127.0.0.1:11434/api/tags` for Ollama |
+| Memory | GraphDB is given up to 8 GB of heap and the orchestrator container a limit of 8 GB (`ORCHESTRATOR_MEM_LIMIT`) | |
+
+## 1. Activate a building
+
+OntoSage serves one building at a time. The active building is whichever folder is named
+`input/`, with `.env` and `docker-compose.yml` beside it. A fresh clone has every building
+parked, so these do not exist yet. Activating is renaming:
 
 ```bash
 git clone https://github.com/suhasdevmane/OntoSage.git
 cd OntoSage
 
-# Activate a building. A fresh clone ships every building PARKED and none active,
-# so input/, .env and docker-compose.yml do not exist yet. Activating is renaming:
-mv bldg1 input                                  # per-building data: TTLs, floor plans, docs
+mv bldg1 input                                  # the building's data
 mv docker-compose.bldg1.yml docker-compose.yml  # its services
-cp .env1.example .env                           # its settings (already has bldg1's identity)
-                                                # → then replace every CHANGE-ME value in .env
+cp .env1.example .env                           # its settings, with bldg1's identity filled in
+```
 
-docker compose up -d          # boots every service
+On Windows PowerShell:
+
+```powershell
+Move-Item bldg1 input
+Move-Item docker-compose.bldg1.yml docker-compose.yml
+Copy-Item .env1.example .env
+```
+
+`.env2.example` and `.env3.example` do the same for `bldg2` and `bldg3`. Your `.env` is ignored
+by git; only the templates are in the repository.
+
+## 2. Fill in `.env`
+
+The template ships with placeholders, and `STRICT_SECRETS=true` refuses to start while any of
+them remain. Set at least:
+
+```bash
+# Choose the language model. The template says "hosted", a private GPU gateway;
+# use one of these instead:
+MODEL_PROVIDER=local                  # Ollama on this machine (OLLAMA_MODEL=gpt-oss:20b)
+# MODEL_PROVIDER=openai               # with OPENAI_API_KEY=<key>
+# MODEL_PROVIDER=cloud                # with OLLAMA_CLOUD_API_KEY=<key>
+EMBEDDING_PROVIDER=local              # bge-large-en-v1.5, built into the image
+
+# Secrets (replace every CHANGE-ME value)
+SECRET_KEY=<random string>
+POSTGRES_USER_PASSWORD=<password>
+GRAPHDB_PASSWORD=<password>
+PIPELINE_API_KEY=<random string>      # Open WebUI uses it to reach OntoSage
+
+# Your host MySQL account (see step 3)
+MYSQL_USER=ontosage
+MYSQL_PASSWORD=<password>
+MYSQL_DATABASE=sensordb
+
+# First admin account, created at startup if it does not exist
+ADMIN_USERNAME=<admin user name>
+ADMIN_PASSWORD=<12 or more characters>
+```
+
+`COOKIE_SECURE=false` is already set in the template, which is right for plain HTTP on
+localhost. Generate random strings with, for example,
+`python -c "import secrets; print(secrets.token_urlsafe(32))"`. Every setting is described on
+[Configuration]({{ '/docs/configuration/' | relative_url }}).
+
+## 3. Prepare MySQL
+
+Create the database and a user the containers can reach. The user needs to create tables and
+insert rows, because synthetic data sources write their own tables:
+
+```sql
+CREATE DATABASE sensordb;
+CREATE USER 'ontosage'@'%' IDENTIFIED BY '<password>';
+GRANT ALL PRIVILEGES ON sensordb.* TO 'ontosage'@'%';
+```
+
+MySQL must accept connections from Docker (on Linux, check `bind-address`). Then create the
+narrow time-series tables, one per measured quantity:
+
+```bash
+mysql -u root -p sensordb < data/mysql-init/create_all_narrow_timeseries_tables.sql
+```
+
+bldg1's recorded readings are not part of the repository. With empty tables, structural questions
+answer from the graph and reading questions report that no readings were found. Step 6 shows how
+to generate synthetic readings.
+
+## 4. Start the stack
+
+```bash
+docker compose up -d
 docker compose logs -f orchestrator
 ```
 
-> `bldg1`, `bldg2` and `bldg3` are **test fixtures** so you can see a working system immediately.
-> To run your own building, see [Use Your Own Building]({{ site.baseurl }}/docs/your-own-building/).
-> Each building ships its own template — `.env1.example`, `.env2.example`, `.env3.example` — already
-> carrying that building's identity, so activating `bldg2` is the same three lines with `2` substituted.
-> Your filled-in `.env` is gitignored and never committed; only the templates ship.
-
-Minimum `.env` to set before first start:
+The first boot builds the orchestrator image (it includes the embedding model, about 1.3 GB),
+warms GraphDB and loads the building's Turtle files; allow several minutes. Ontology
+initialisation retries by itself. Then:
 
 ```bash
-# Admin account (created on startup; no default admin exists)
-ADMIN_USERNAME=admin@yourorg.com
-ADMIN_PASSWORD=<strong-password-12+chars>
-
-# Refuse to boot on default secrets (recommended)
-STRICT_SECRETS=true
-SECRET_KEY=<random-64-char>
-GRAPHDB_PASSWORD=<real-password>
-MYSQL_PASSWORD=<real-password>
-POSTGRES_USER_PASSWORD=<real-password>
-
-# Model providers (each independent) — openai | local | cloud
-MODEL_PROVIDER=local          # local = Ollama, offline
-EMBEDDING_PROVIDER=local
+curl -s http://127.0.0.1:8000/health | python -m json.tool
 ```
 
-See [Configuration]({{ '/docs/configuration/' | relative_url }}) for the full surface.
+`data.status` should read `healthy`, and `data.building_id` should be `bldg1`. If the
+orchestrator exits at once, its log names the cause: usually a remaining placeholder secret or a
+building identity that disagrees between `.env`, `input/building.yaml` and the Turtle prefixes.
 
-## 2. Authenticate
+## 5. Ask in the chat interface
+
+Open **Open WebUI** at `http://127.0.0.1:3000`. The first account created there becomes the
+Open WebUI administrator. The model `ontobot-pipeline` is preselected.
+
+Who you are to OntoSage depends on `TRUST_FORWARDED_USER`. With it on, Open WebUI forwards your
+email and OntoSage uses the role of the matching OntoSage account; an email it has not seen gets
+a new `readonly` account, which an admin can promote. With it off, everyone chats as one shared
+`readonly` identity. See [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}).
+
+Questions to start with, all from the repository's own question banks:
+
+| Ask | What it exercises |
+|---|---|
+| *What can you do?* | OntoSage describes itself from the active building's configuration |
+| *How many sensors does the building have?* | Structural answer from the graph alone |
+| *What is the current temperature in zone 5.28?* | Graph plus a time-series read |
+| *Show me floor 3 plan.* | Floor plan |
+| *Where is the prayer room?* | Amenity triples |
+| *Compare air quality between floor 1 and floor 5.* | Two-sided comparison over readings |
+| *Show me the swimming pool temperature* | A referent the building does not have: the answer says so instead of using another sensor |
+
+![A live reading in the chat interface]({{ '/assets/images/screenshots/chat-live-reading.png' | relative_url }})
+*A reading answered in Open WebUI.*
+
+When a turn has an evidence record, the answer ends with a collapsible "How I know this" panel
+naming the sources behind it:
+
+![The evidence panel under an answer]({{ '/assets/images/screenshots/chat-evidence-panel.png' | relative_url }})
+*The evidence panel lists where each figure came from.*
+
+![An honest decline]({{ '/assets/images/screenshots/chat-decline.png' | relative_url }})
+*A question the building's data cannot answer is declined, not guessed.*
+
+What happens behind each answer is described in
+[How OntoSage answers]({{ '/docs/how-it-answers/' | relative_url }}) and
+[Checks and honest answers]({{ '/docs/checks-and-honesty/' | relative_url }}).
+
+## 6. Open the admin console
+
+Open `http://127.0.0.1:3001` and sign in with `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
+
+- **Health** shows every dependency.
+- **Data Sources** (when `DATASOURCE_TOGGLES_ENABLED=true`, as in the bldg1 template) lists
+  synthetic sources. **Regenerate** writes synthetic readings into a source's table and the
+  switch turns its questions on.
+- **Ask (test)** runs a question and shows the routed intent, with provenance chips when the
+  data-source feature is on.
+
+The `data-publisher` service also appends generated readings every 30 seconds to bldg1's
+tables, so questions about "now" have recent rows during development. See
+[Admin console]({{ '/docs/admin-console/' | relative_url }}).
+
+## 7. Use the API directly
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"admin@yourorg.com","password":"<password>"}' \
+  -d '{"username":"<admin user name>","password":"<password>"}' \
   | python -c "import sys,json; print(json.load(sys.stdin)['data']['session_token'])")
+
+curl -s -X POST http://127.0.0.1:8000/chat \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"message":"How many sensors does the building have?","session_id":"demo"}'
 ```
 
-## 3. Ask questions
+The OpenAI-compatible endpoint that Open WebUI uses takes the pipeline key instead:
 
 ```bash
-# Start here — OntoSage describes itself and lists what THIS building can be asked
-curl -s -X POST http://localhost:8000/chat \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"message":"what can you do?","session_id":"demo"}'
-
-# Structural — answered from the ontology alone (SPARQL, no time-series)
-curl -s -X POST http://localhost:8000/chat \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"message":"how many CO2 sensors are there?","session_id":"demo"}'
-
-# Live reading — needs ontology + time-series
-curl -s -X POST http://localhost:8000/chat \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"message":"what is the temperature on floor 3 right now?","session_id":"demo"}'
-
-# Multi-intent in one turn
-curl -s -X POST http://localhost:8000/chat \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"message":"show me floor 3 and tell me how many rooms are there","session_id":"demo"}'
-
-# Ask for something the building does NOT have — the answer should be an honest
-# decline plus what to add, never another sensor's reading
-curl -s -X POST http://localhost:8000/chat \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"message":"how many sensors are in the swimming pool?","session_id":"demo"}'
+curl -s http://127.0.0.1:8000/v1/chat/completions \
+  -H "Authorization: Bearer $PIPELINE_API_KEY" -H "Content-Type: application/json" \
+  -d '{"model":"ontobot-pipeline","messages":[{"role":"user","content":"What can you do?"}]}'
 ```
 
-That last one is worth running on any new deployment: it is the quickest check that the grounding
-guards are active, and the reply tells you exactly what a real referent would need.
+All routes are listed in the [API reference]({{ '/docs/api-reference/' | relative_url }}).
 
-## 4. Open the web interfaces
+## Interfaces
 
-| Interface | URL | What |
+| Interface | Address | Notes |
 |---|---|---|
-| **Chat UI** | `http://localhost:3000` | OpenWebUI — full multi-turn conversation. Sign in with your own account; users without an OntoSage account are served at readonly |
-| **Admin console** | `http://localhost:3001` | [config-panel]({{ '/docs/admin-console/' | relative_url }}) — building identity, capabilities, sensors, ontology, reindex, health |
-| **GraphDB** | `http://localhost:7200` | SPARQL workbench |
-| **Qdrant** | `http://localhost:6333/dashboard` | Vector store dashboard |
+| Chat (Open WebUI) | `http://127.0.0.1:3000` | Multi-turn conversation |
+| Admin console | `http://127.0.0.1:3001` | Configuration, data sources, ontology, users |
+| API and OpenAPI page | `http://127.0.0.1:8000/docs` | |
+| GraphDB workbench | `http://127.0.0.1:7200` | SPARQL against the building graph |
+| Qdrant dashboard | `http://127.0.0.1:6333/dashboard` | Vector collections |
+| Adminer | `http://127.0.0.1:8093` | Browse MySQL and PostgreSQL |
 
-The admin console's Overview tab gives you the whole deployment at a glance:
+Every port is bound to `127.0.0.1`. To let other people use the chat interface, put a reverse
+proxy with TLS in front of port 3000 and read the checklist on
+[Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}). Chart and export links point at
+`STATIC_BASE_URL` (by default the file server on port 8080), so set it to an address remote users
+can reach.
 
-![Admin console Overview]({{ '/admin-portal-screenshots/01-overview.png' | relative_url }})
-*Provider, enabled data sources, active building, embedding model, users/roles, and service health — with
-quick-action buttons into each flow. See the [Admin console]({{ '/docs/admin-console/' | relative_url }}) guide.*
+## After a change
 
-## 5. Health & build provenance
+- Edited `.env`: `docker compose up -d orchestrator` (recreate; `restart` keeps the old
+  environment).
+- Changed data or Turtle and want to re-test: flush the four Redis caches listed on
+  [Configuration]({{ '/docs/configuration/' | relative_url }}#caches), or a stored answer from
+  before the change comes back.
+- Stamp the build so `/health` shows which commit is running:
+  `GIT_SHA=$(git rev-parse --short HEAD) BUILD_TIME=$(date -u +%FT%TZ) docker compose build orchestrator`.
+
+## Switch to another building
+
+Stop the stack first (renaming folders while containers run breaks the mounts), then park the
+active building under its own id and activate another:
 
 ```bash
-curl -s http://localhost:8000/health | python -m json.tool
+docker compose down
+mv input bldg1 && mv .env .env1 && mv docker-compose.yml docker-compose.bldg1.yml
+mv bldg2 input && mv docker-compose.bldg2.yml docker-compose.yml && cp .env2.example .env
+# fill in .env, then
+docker compose up -d
 ```
 
-The response reports each dependency's status plus `build.sha` / `build.time` — the exact commit each
-image was built from. The console's Health tab shows the same live status visually:
-
-![Admin console Health tab]({{ '/admin-portal-screenshots/11-health.png' | relative_url }})
-*Overall health, request latency, every dependency (Postgres, MySQL, GraphDB, Redis, Qdrant,
-rag-service, code-executor), and the LLM/MySQL circuit breakers.*
-
-Build images with the commit stamped in:
-
-```bash
-GIT_SHA=$(git rev-parse --short HEAD) BUILD_TIME=$(date -u +%FT%TZ) docker compose build
-docker compose up -d orchestrator graphdb-rag-service   # 'up -d' (recreate), not 'restart'
-```
+`BUILDING_ID` in `.env`, `building_id` in `input/building.yaml` and `input/env.building` must
+agree. Each building keeps its own state in `volumes/<BUILDING_ID>/`. `bldg2` also reads from
+TimescaleDB and Cassandra, which run from an optional overlay:
+`docker compose -f docker-compose.yml -f docker-compose.timeseries-backends.yml up -d`, seeded
+with `python scripts/seed_timeseries_backends.py`. See
+[Data sources]({{ '/docs/data-sources/' | relative_url }}).
 
 ## Next
 
-- [Onboard your own building]({{ '/docs/onboarding-building/' | relative_url }}) — namespace, TTL, database, capabilities.
-- [Admin console]({{ '/docs/admin-console/' | relative_url }}) — do it all from the GUI, no code.
+- [Use your own building]({{ '/docs/your-own-building/' | relative_url }})
+- [Onboard a building]({{ '/docs/onboarding-building/' | relative_url }}) from the admin console
+- [Stakeholder guide]({{ '/docs/stakeholder-guide/' | relative_url }}): what people can ask

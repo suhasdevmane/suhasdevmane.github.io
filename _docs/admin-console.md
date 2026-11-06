@@ -3,285 +3,285 @@ title: Admin Console
 layout: post
 category: docs
 permalink: /docs/admin-console/
-date: 2026-07-05
+date: 2026-07-19
 ---
 
 # Admin console
 
-The admin console at **`http://localhost:3001`** (the `config-panel` service) is where you run and
-administer a building without touching code or Turtle. It has **13 tabs**, is RBAC-gated — admin-only
-actions need a `system:admin` account — and every action calls the same permission-protected
-`/api/v1/admin/*` endpoints the [API]({{ '/docs/api-reference/' | relative_url }}) exposes.
+The admin console is served by the `config-panel` service at **`http://127.0.0.1:3001`**. It is
+a static page (HTML and plain JavaScript, source in `config-panel/html/`) behind nginx, which
+forwards `/api`, `/auth`, `/health` and `/chat` to the orchestrator on the same origin. There is
+no build step.
 
-All screenshots below are from a live deployment (the Abacws building), shown in light theme.
+Every action calls the same permission-checked endpoints listed in the
+[API reference]({{ '/docs/api-reference/' | relative_url }}). The page itself loads without signing
+in; anything that reads or changes configuration needs a session, and most tabs need an account
+with `system:admin`.
 
-> The React app at `:3000/admin` is a development surface and is off by default. `:3001` is the console
-> to use.
+> `frontend/` in the repository holds an older React admin portal. No compose service serves it;
+> the console described here is the one to use.
+
+The console has **13 tabs**, in this order: Overview, Data Sources, Ask (test), AI & Models,
+Services, Integrations, Settings (.env), Databases, Ontology, Users & Access, Health, Audit, Guide.
+The page header has a light/dark theme switch, a Help button and a pill showing whether the
+data-source feature is on.
+
+> **About the screenshots.** Images in `admin-portal-screenshots/` were taken in July 2026 on the
+> same 13-tab layout; button labels and badge wording have changed slightly since. The Overview
+> and Ontology tab images (under `assets/images/screenshots/`) come from the current build.
+> Figures shown in any screenshot belong to the building that was active at the time.
 
 ## Signing in
 
-Read-only views (Overview, Ask, Health, Guide) load without a login. Admin actions — editing `.env`,
-connecting databases, uploading TTL, managing users — need a `system:admin` account. Click **Sign in**
-and authenticate; the console stores a session token and the sidebar shows *signed in · &lt;user&gt;*.
+Click **Sign in** at the bottom of the sidebar. The console keeps the session token in the
+browser and shows *signed in · &lt;user&gt;*. The first admin account comes from
+`ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env` (see [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }})).
 
-![OntoSage admin console sign-in modal]({{ '/admin-portal-screenshots/00-login.png' | relative_url }})
-*The sign-in modal states plainly that admin actions need a `system:admin` account.*
+![Admin console sign-in modal]({{ '/admin-portal-screenshots/00-login.png' | relative_url }})
+*The sign-in dialog. Admin actions need a `system:admin` account.*
 
-## Overview — system state at a glance
+Without signing in you can see the Overview tiles that come from public endpoints, the data-source
+list, Health and the Guide. Ask (test) needs any signed-in account.
 
-The landing tab summarises the whole deployment: how many **data sources** are enabled, **services**
-healthy, the active **building**, the **LLM provider** and **embedding** model, and the **user/role**
-count — plus quick-action buttons to jump into the common flows.
+**When a change needs a restart.** After a change that is read at boot (`.env`, building
+identity), a notice appears with the command `docker compose up -d orchestrator` and a copy
+button. The **Restart service** button restarts the orchestrator process, which reloads code but
+does **not** re-read `.env`; for `.env` changes use the recreate command.
 
-![Admin console Overview tab]({{ '/admin-portal-screenshots/01-overview.png' | relative_url }})
-*Overview cards: 7/8 data sources enabled, 7/8 services healthy, Abacws Building active, Local Ollama
-(`gpt-oss:20b`) as the LLM, bge-large-en-v1.5 (1024-d) embeddings, 495 users across 6 roles.*
+## Overview
 
-**How to use it:** start here to confirm the system is healthy and pointed at the right building before
-you make changes. The quick-action buttons (*Connect data*, *Try a question*, *Manage data sources*,
-*AI & Models*, *How to use this console*) deep-link into the relevant tab.
+Tiles for the number of enabled data sources (and whether the feature is on), services healthy
+out of those `/health` reports, the active building, and, when signed in as admin, the language
+model provider and model, the embedding model and its width, and the number of user accounts and
+roles. Buttons below jump to the common flows: **Connect data**, **Try a question**,
+**Manage data sources**, **AI & Models** and **How to use this console**.
 
-## Data Sources — toggle capabilities on/off, with provenance
+![Admin console Overview tab]({{ '/assets/images/screenshots/admin-overview.png' | relative_url }})
+*Overview tiles: data sources, services, active building, language model, embeddings, users.*
 
-Each card is a synthetic data source (occupancy, energy, noise, air quality, light, equipment, water,
-complaints…). Toggling one **on** writes its Brick triples *and* database rows so the matching
-questions become answerable; **off** means those questions are politely declined. The **provenance
-legend** on the right names every source system — because every answer is tagged with the system that
-produced it.
+## Data Sources
 
-![Admin console Data Sources tab with provenance legend]({{ '/admin-portal-screenshots/02-data-sources.png' | relative_url }})
-*Per-source toggles, each showing its provenance system, a `simulated` badge, point count, and what it
-unlocks. Illuminance/Daylight is toggled off here.*
+Works when `DATASOURCE_TOGGLES_ENABLED=true`. Each card is a synthetic data source defined in
+`input/datasources.yaml` (occupancy, energy, noise, indoor air quality, light, equipment, water,
+complaints and others). Switching a source **on** loads its Brick triples into its own named
+graph, so the matching questions become answerable; **off** clears that graph, and those
+questions are declined with a message naming the source.
 
-**How to use it:**
-1. Toggle a source **on** to unlock its questions, or **off** to decline them.
-2. **Regenerate** writes fresh synthetic data for that source; **Capabilities & questions** lists what
-   it unlocks; **Preview** shows sample rows.
-3. **Reset (clean slate)** switches everything off for a repeatable demo; **Enable all** turns them all
-   on. The `simulated` badge marks data injected to demonstrate a capability a real BMS wouldn't expose.
+- **Regenerate** writes fresh synthetic readings into the source's table; **Preview** shows a
+  sample series without writing; **Capabilities** lists the questions the source makes
+  answerable.
+- **Enable all**, **Reset (clean slate)** (switch everything off and flush the answer cache) and
+  **+ Add source**.
+- The side panel has a **provenance legend** (which system each answer chip refers to) and a
+  **live data provenance** summary, counted from the active building's graph: which backend each
+  sensor reads from and whether that backend holds real or synthetic data.
 
-## Ask (test) — run the real pipeline in-console
+Switching sources needs `config:write`.
 
-Ask a question straight against the live pipeline and see the **answer**, the **provenance** (which
-systems produced it), and the **routed intent** — without leaving the console. This is the fastest way
-to prove that a data-source toggle or a new sensor actually took effect.
+![Admin console Data Sources tab]({{ '/admin-portal-screenshots/02-data-sources.png' | relative_url }})
+*Source cards with their switches and the provenance legend.*
 
-![Admin console Ask test tab]({{ '/admin-portal-screenshots/03-ask.png' | relative_url }})
-*The Ask tab with suggested probes ("What is the noise level on floor 5?", "How many temperature
-sensors are there?").*
+## Ask (test)
 
-**How to use it:** type a question (or click a suggestion) and press **Ask**. After enabling a source
-on the Data Sources tab, ask the matching question here — a real answer with the right provenance chip
-confirms the toggle worked.
+Runs a question through the real pipeline (`POST /chat`) and shows the answer, the routed
+intent and, when `DATASOURCE_TOGGLES_ENABLED=true`, the provenance chips of the sources it used. Use it to confirm that a change took effect,
+for example that switching a source on makes its question answerable. Suggested questions are
+offered as buttons ("What is the noise level on floor 5?", "How many temperature sensors are
+there?").
 
-![Ask tab showing a grounded answer with routing]({{ '/admin-portal-screenshots/03b-ask-answer.png' | relative_url }})
-*A live answer to "How many rooms are there?" — real figures computed from the ontology and floor plans
-(233 rooms, 1,318 sensors, 20,370 m²), each block cited to its source, with the routed intent shown
-bottom-right. Honest and grounded, never fabricated.*
+![Ask tab with an answer]({{ '/admin-portal-screenshots/03b-ask-answer.png' | relative_url }})
+*An answer with its source chips and the routed intent.*
 
-## AI & Models — pick the LLM and embedding backend
+## AI & Models
 
-Choose the **LLM provider** (Local Ollama, Ollama Cloud, or OpenAI) and model, and the **embedding
-backend** (local `bge-large-en-v1.5` 1024-d, or OpenAI 1536-d) — independently. Changes are written to
-`.env` and apply after an orchestrator recreate (the provider is validated and its clients built at
-boot, so there is no live hot-swap).
+Shows and sets the language model provider and model, and the embedding backend. The tab offers
+**Local Ollama**, a **Hosted gateway (OpenAI-compatible)**, **Ollama Cloud** and **OpenAI**. For
+local Ollama, **Fetch installed** lists the models actually present; for the hosted gateway,
+**Fetch served** lists the models it serves; **Test connection** checks the endpoint. API keys
+are shown only as *set* or *not set*. **Save** writes `.env`; the change applies after the orchestrator is
+recreated, because model clients are built at boot. Switching the embedding backend changes the
+vector width and invalidates existing indexes, so rebuild them afterwards (Ontology tab, Semantic
+search index).
 
 ![Admin console AI & Models tab]({{ '/admin-portal-screenshots/04-ai-models.png' | relative_url }})
-*LLM provider radios with the Ollama base URL + model (default `gpt-oss:20b`, admin-selectable) and
-Test-connection; below, the embedding backend with a warning that switching dimensions invalidates the
-Qdrant index.*
+*Provider choice, model, endpoint test, and the embedding backend.*
 
-**How to use it:**
-1. Pick a provider; for local Ollama, **Fetch installed** lists models actually present, and **Test
-   connection** verifies reachability.
-2. Choose the embedding backend. ⚠️ Switching it changes vector dimensions (1024 ↔ 1536) and
-   **invalidates the existing Qdrant index — you must re-index** afterward (Ontology → Rebuild).
-3. **Save to .env**, then recreate the orchestrator to apply.
+## Services
 
-## Services — open the attached tools
-
-Launch each attached tool's own web UI (GraphDB workbench, Qdrant dashboard, DB browsers, dashboards)
-in a new tab. Status is probed live from inside the stack; optional tools that aren't running yet are
-enabled in `docker-compose.yml`.
+Cards for the attached tools, each with a live online or offline status and an **Open** button
+that launches the tool's own interface in a new tab: GraphDB workbench, Qdrant dashboard,
+Adminer, the artefact file server, the orchestrator's OpenAPI page, the rag-service, Open WebUI
+and Ollama, and optional tools (Grafana, Prometheus, the MCP server, pgAdmin) that run only when
+they are enabled in the compose file.
 
 ![Admin console Services tab]({{ '/admin-portal-screenshots/05-services.png' | relative_url }})
-*The Services tab — "Open launches each service's own web UI in a new tab; status is probed live from
-inside the stack."*
+*Attached tools with live status.*
 
-## Integrations — live feeds & notification channels
+## Integrations
 
-External **live data feeds** (`input/feeds.yaml`) and **notification channels** (`input/channels.yaml`).
-The view shows what's active and lets you **test-send** a channel; the feed/channel definitions are
-edited in their YAML files (to preserve their inline docs).
+Read-only view of live data feeds (`input/feeds.yaml`) and notification channels
+(`input/channels.yaml`), with **Test-send** for a channel. Feeds and channels are edited in their
+YAML files, which keep their inline documentation.
 
 ![Admin console Integrations tab]({{ '/admin-portal-screenshots/06-integrations.png' | relative_url }})
-*Three `rest_poll` weather feeds (temperature, humidity, wind) polling Open-Meteo every 300s into
-`bldg:database1`, plus a `log` notification channel with Test-send.*
+*Weather feeds and a notification channel.*
 
-## Settings (.env) — the backend environment
+## Settings (.env)
 
-The complete `.env` surface as an editable table, with **secrets masked**. Filter by key, edit values,
-and **Save** (changes apply after a restart). A **backup & restore** panel downloads/restores a
-portable config snapshot.
+- **Config backup & restore**: download a bundle of console-managed configuration (data
+  sources, database connections, role access, switch states). `.env` secrets are never included.
+  Restore validates every file before writing any.
+- **Environment (.env)**: every key of the root `.env` as an editable table with a filter.
+  Values of keys that look like secrets are masked; leave a masked field alone to keep its value,
+  or type a new one to replace it. **+ Add credential** adds a key. **Save changes** writes the
+  file; recreate the orchestrator to apply.
 
-![Admin console Settings .env tab]({{ '/admin-portal-screenshots/07-settings-env.png' | relative_url }})
-*The environment editor — every key (providers, DB hosts, feature flags) with masked secrets and a
-config backup/restore panel at the top.*
+See [Configuration]({{ '/docs/configuration/' | relative_url }}) for what each key does.
 
-**How to use it:** never hand-edit inside the container — edit here, Save, then recreate the
-orchestrator so the new environment is read at boot. Type a new value over a masked secret to overwrite
-it. See [Configuration]({{ '/docs/configuration/' | relative_url }}) for the key reference.
+## Databases
 
-## Databases — connect time-series backends
+One card per database connection: the curated registry (`input/database_registry.yaml`) plus
+connections added here (`database_registry.custom.yaml`; the curated file is never rewritten).
+Badges show **curated**, **real** or **synthetic**, and **active** (listed under
+`storage.databases` in `building.yaml`) or dormant. **Active only** filters the list.
 
-Every registered database connection, with badges for **active/dormant** and **synthetic**. A sensor's
-UUID routes to a connection via `ref:storedAt`; credentials live in `.env`. Per connection you can
-**Test**, browse **Data**, **Register sensors**, and **Verify** answerability.
+Per connection:
+
+- **Test**: connect and time a trivial query.
+- **Data**: row count, distinct sensors and recent rows of a table.
+- **Register sensors**: describe the connection's sensors as triples, by a points form, CSV or
+  Brick Turtle. Each sensor gets its real time-series id and `ref:storedAt bldg:<key>`, so its
+  questions are routed to this database. Registration applies immediately.
+- **Verify**: compares sensors declared in the graph with ids that actually have rows.
+
+**+ Add connection** stores credentials in `.env` and the entry in the custom registry, and
+reloads the adapters so the connection can be used straight away. **Guided setup** walks through
+connect, describe sensors and verify in one flow. **Load demo database** pre-fills a connection
+to the optional `demo-mysql` service (start it first with
+`docker compose --profile demo up -d demo-mysql`).
 
 ![Admin console Databases tab]({{ '/admin-portal-screenshots/08-databases.png' | relative_url }})
-*The Databases tab lists many backends (MySQL narrow/wide, Postgres, Timescale, Mongo, Influx,
-Cassandra, Redis…), each with Test / Data / Register sensors / Verify.*
+*Connection cards with their badges and actions.*
 
-**Data** opens a live preview of a connection's time-series rows:
+![Databases guided setup]({{ '/admin-portal-screenshots/08b-guided-setup.png' | relative_url }})
+*The guided setup: connect, describe the sensors, verify.*
 
-![Database data preview]({{ '/admin-portal-screenshots/08c-db-data.png' | relative_url }})
-*A preview of `energy_data` — 132,688 rows across 8 sensors, with recent timestamped values keyed by
-sensor UUID.*
+A question becomes answerable only when both halves exist: the sensor in the graph and its
+readings in a registered database. See [Data sources]({{ '/docs/data-sources/' | relative_url }}).
 
-The **Guided setup** wizard walks the whole no-code flow — connect a database, describe its sensors as
-triples, then verify OntoSage can answer about them:
+## Ontology
 
-![Databases guided-setup wizard]({{ '/admin-portal-screenshots/08b-guided-setup.png' | relative_url }})
-*Step 1 of the "Connect a data source" wizard: use an existing connection or add a new one → describe
-sensors → verify.*
+Everything about the knowledge graph, from top to bottom.
 
-**How to use it:** click **Guided setup** (or **+ Add connection**), enter host + credentials, then
-**Register sensors** by describing them (points form, CSV, or Brick TTL). Each sensor's UUID gets a
-`ref:storedAt bldg:<key>` triple so its queries route to that DB — applies immediately. See
-[Onboard a building]({{ '/docs/onboarding-building/' | relative_url }}).
+**Coverage line.** How many declared sensors are actually answerable.
 
-## Ontology — building identity, index, capabilities, TTL & SPARQL
+**Building identity.** Building id (read-only), name, ontology namespace and prefix, saved to
+`input/building.yaml`. The `bldg:` prefix is only a label; the namespace is what makes triples
+belong to this building, and it must match the `@prefix bldg:` in every Turtle file. Set it before
+loading triples. Applies after a restart.
 
-The richest tab. It consolidates everything about the knowledge graph:
+**Semantic search index.** Status of the GraphDB similarity index used to find sensors by
+meaning. It rebuilds by itself after sensors are added or Turtle is uploaded; **Rebuild now** is
+for bulk loads done outside the console.
 
-![Admin console Ontology tab]({{ '/admin-portal-screenshots/09-ontology.png' | relative_url }})
-*Building identity (namespace/prefix/name), the semantic search index (rebuild/refresh), building
-capabilities (+Add capability), named graphs, an Upload-TTL panel, and a read-only SPARQL browser.*
+**Building capabilities.** Amenities answered in plain English (prayer room, lift, café,
+showers). The type list in **+ Add capability** comes from the
+[OCBV schema]({{ '/docs/ocbv-schema/' | relative_url }}) (its subclasses of `ontosage:Amenity` and
+`ontosage:KnowledgeTopic`). Below Type, ID and Label the dialog draws the fields the schema
+gives that type, read from each datatype property's `rdfs:domain`: every type gets lay terms,
+category, opening hours and a note; an amenity adds a location and floor; a knowledge topic adds
+an answer, a link, contact details and who to report to; a procedure adds steps and a
+maintenance issue a default priority. Switching type keeps what you have typed.
 
-- **Building identity** — set the ontology **namespace**, **prefix**, and **name**. The `bldg:` prefix
-  is only a label; the namespace it binds to is what makes triples belong to *this* building, and it
-  lives in `input/building.yaml`. Set this **first** for a new building, before loading triples — it
-  must match the `@prefix` in your TTLs. Applies after a restart.
-- **Semantic search index** — lets OntoSage find sensors by meaning (semantic RAG). It **rebuilds
-  automatically** when you add sensors or upload TTL (debounced); exact name/type questions work
-  immediately. Use **Rebuild now** only after a bulk load done outside the console.
-- **Building capabilities** — amenities and services answered in plain English, added as
-  `ontosage:Amenity` triples saved to `input/<bldg>_capabilities.ttl` (with a `.trash/` backup) so they
-  persist across restarts — no Turtle, no code.
-- **Named graphs** — every `input/*.ttl` loads into a named graph on startup; dropping a file graph
-  moves its `input/` file to `.trash/` so the drop survives a restart.
-- **Upload TTL** — paste Turtle, **Validate**, then **Upload**. A `urn:ontosage:ttl:<file>` graph also
-  persists to `input/<file>` (survives restart).
-- **SPARQL browser** — run read-only `SELECT` / `ASK` against the live graph.
-- **Documents** — upload a policy / manual / contact sheet (`.md` / `.txt` / `.pdf`) into the document
-  KB (Qdrant `documents_<bldg>`), which answers off-ontology questions ("what's the wifi policy?").
-  Saved to `input/documents/` and re-indexed automatically — no host-side file drop.
-- **Floor plans** — upload a **PDF** or **DWG** per floor for spatial / floor queries and geometry;
-  stored as `<label> floor <N>.<ext>` (label defaults to the active building id) and ingested into the
-  manifest registry.
+**Add capability** saves the entry as triples in `input/<id>_capabilities.ttl` (a backup of the
+previous file goes to `input/.trash/`), loads it into the graph, and clears the caches that could
+hold an older answer, so the next question can use it. The file is rewritten as a whole when you
+add or delete an entry, so comments you wrote in it by hand are not kept; edit it by hand instead
+if you need them.
 
-![Ontology tab — named graphs, Upload TTL, and SPARQL browser with results]({{ '/admin-portal-screenshots/09c-sparql-results.png' | relative_url }})
-*The lower half of the tab: named graphs (with per-graph triple counts and Drop), the Upload-TTL panel,
-and the SPARQL browser showing live class counts from the graph.*
+![The Add capability dialog]({{ '/assets/images/screenshots/admin-capabilities.png' | relative_url }})
+*The Add capability dialog with the fields the schema gives an amenity.*
 
-### Documents & floor plans — knowledge files (no host-side drop)
+**Named graphs.** Every `input/*.ttl` is loaded into its own named graph at startup. Dropping a
+file graph (`urn:ontosage:ttl:<file>`) moves its file to `input/.trash/`, so the drop survives a
+restart.
 
-The Ontology tab also uploads the two remaining building inputs straight from the browser, so the
-**entire** onboarding — identity, TTL, sensors/DB, documents, floor plans — is doable from the console
-for any building. Each writes into the **active** building's `input/` and re-indexes automatically.
+![Named graphs]({{ '/assets/images/screenshots/admin-ontology-graphs.png' | relative_url }})
+*Named graphs with their triple counts.*
 
-![Ontology tab — Documents and Floor plans upload]({{ '/admin-portal-screenshots/09d-knowledge-files.png' | relative_url }})
-*Left — **Documents**: pick a `.md` / `.txt` / `.pdf` policy or manual and **Upload document**; it lands
-in `input/documents/` and is embedded into the document KB (Qdrant `documents_<bldg>`). Right — **Floor
-plans**: give a floor number (label defaults to the active building id), pick a **PDF** or **DWG**, and
-**Upload floor plan**; it's stored as `<label> floor <N>.<ext>` and ingested into the spatial manifest
-registry.*
+**Upload TTL.** Paste Turtle, **Validate** (parse only, no write), then **Upload**. A graph named
+`urn:ontosage:ttl:<file>` is also written to `input/<file>` and survives a restart; other graph
+names live in GraphDB only.
 
-**How to use it:**
-- **Documents** answer off-ontology questions ("what's the wifi policy?", "how do I book a room?") — drop
-  the building's policies, manuals, and contact sheets here. Uploaded files appear in the list below the
-  button and can be removed; every add/remove re-indexes the KB (no restart).
-- **Floor plans** power spatial and floor queries ("show me floor 3", "how many rooms are adjacent to
-  3.01?", "what's the total area?"). A DWG carries geometry (room polygons, areas, adjacency); a PDF gives
-  the visual. Upload one per floor.
-- Both endpoints are **building-agnostic** — they resolve the target from the active `BUILDING_ID`, so the
-  same buttons onboard `bldg1`, `bldg2`, or any building with no code change.
+![Validating Turtle before upload]({{ '/assets/images/screenshots/admin-ttl-validate.png' | relative_url }})
+*Validation reports the triple count and prefixes, or the parse error.*
 
-### The schema-driven "Add capability" form
+![Turtle uploaded into a named graph]({{ '/assets/images/screenshots/admin-ttl-uploaded.png' | relative_url }})
+*After upload, the new graph appears in the list.*
 
-**+ Add capability** opens a form generated from the [OCBV schema]({{ '/docs/ocbv-schema/' | relative_url }}):
-the **Type** dropdown lists the OCBV subclasses, and the fields shown are the datatype properties whose
-`rdfs:domain` applies to the chosen type.
+**SPARQL browser.** Read-only `SELECT` and `ASK` against the live graph.
 
-![Add capability modal — schema-driven form]({{ '/admin-portal-screenshots/09b-add-capability.png' | relative_url }})
-*"Fields for this type (from the OCBV schema)" — a Facility needs only a label; other types surface
-their own fields. Saved as `ontosage:Amenity` triples, answerable immediately.*
+![SPARQL browser]({{ '/assets/images/screenshots/admin-sparql.png' | relative_url }})
+*A query and its results.*
 
-**How to use it:** pick a Type, give an ID and Label, fill any type-specific fields, and **Add
-capability**. Add a class or property to `ontosage_schema.ttl` and it appears here after a reload — no
-code change. (The form falls back to a built-in list if GraphDB is briefly unreachable.)
+**Documents.** Upload a policy, manual or contact sheet as `.md`, `.txt` or `.pdf`. The file is
+saved to `input/documents/` and the document index is rebuilt; the status line follows that job
+and reports how many passages were indexed. A PDF is read through its text layer, so a scanned PDF
+with no text is stored but reported as not indexed (there is no OCR). Each listed file is marked
+**indexed** or **not indexed**. Indexed documents answer questions such as "what is the wifi
+policy?". Deleting a file removes it from the index.
 
-## Users & Access — accounts, roles, and per-role data access
+**Floor plans.** Upload a PDF or DWG for a floor number, with an optional label (the active
+building id by default). It is stored as `<label> floor <N>.<ext>` and ingested into the floor-plan
+registry. A DWG gives room polygons, areas and adjacency; a PDF gives the drawing.
 
-Create accounts and assign one of the six roles; a user's role determines their permissions **and**
-which data sources they may query. A role left unconfigured is unrestricted (opt-in control); `admin`
-always has full access.
+![Documents and floor-plan upload]({{ '/assets/images/screenshots/admin-knowledge-files.png' | relative_url }})
+*Document upload on the left, floor-plan upload on the right.*
 
-![Admin console Users & Access tab]({{ '/admin-portal-screenshots/10-users-access.png' | relative_url }})
-*The user list with a role dropdown per account (admin, facility_manager, occupant…) and a Delete
-control; + Add user at the top.*
+Writing and editing Turtle by hand is covered in
+[Write TTL for your building]({{ '/docs/write-ttl/' | relative_url }}) and
+[Edit TTL in a running system]({{ '/docs/edit-ttl/' | relative_url }}).
 
-**How to use it:** **+ Add user** to create an account (12+ character password, with a show/hide
-toggle so you can confirm what you typed), pick a role from the dropdown to change permissions, and
-optionally restrict a role to specific data sources. **Password** on any row sets a new password —
-stored hashes are one-way, so an existing password can never be displayed, only replaced, and a
-reset signs out that user's active sessions.
+## Users & Access
 
-Everything here applies to the **next request**: creating a user, changing a role, or resetting a
-password needs no restart, re-login or cache flush. Roles also shape chat answers when identity
-forwarding is enabled — see [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}).
+- **User accounts**: create an account (user name, a password of 12 or more characters with a
+  show/hide switch, a role), change a role from the dropdown, set a new password, or delete. A
+  password reset ends that user's sessions.
+- **Role → data-source access**: tick the data sources each role may use when answering. A role
+  with nothing ticked and **All** off is unrestricted (access control here is opt-in), and
+  `admin` always has full access. Saved to `input/role_datasource_access.yaml` and applied to the
+  next question.
 
-## Health — live dependency status
+See [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}) for what roles permit and how a
+role change reaches people who are already signed in.
 
-Live orchestrator status and feature state: overall health, request latency, and each dependency
-(Postgres, MySQL, GraphDB, Redis, Qdrant, rag-service, code-executor) with a status dot, plus the
-**circuit breakers** guarding the LLM and MySQL.
+## Health
+
+Live orchestrator status from `/health`: overall state, response time, each dependency
+(PostgreSQL, MySQL, GraphDB, Redis, Qdrant, rag-service, code-executor) and the circuit breakers
+that protect the language model and MySQL. **Auto-refresh (5s)** is optional.
 
 ![Admin console Health tab]({{ '/admin-portal-screenshots/11-health.png' | relative_url }})
-*Overall healthy, 87.3 ms latency, every dependency ok, and both circuit breakers closed (0/5
-failures). Auto-refresh every 5s.*
+*Dependencies and circuit breakers.*
 
-## Audit — who did what
+## Audit
 
-A running log of every **mutating admin action** — timestamp, user, HTTP method, path, and outcome — so
-config changes are accountable.
+The most recent 200 mutating admin actions: time, user and role, method, path and status. Every
+`POST`, `PUT`, `DELETE` or `PATCH` to `/api/v1/admin/*` or `/api/v1/datasources` is recorded,
+including failed and unauthenticated attempts.
 
-![Admin console Audit tab]({{ '/admin-portal-screenshots/12-audit.png' | relative_url }})
-*The admin-action audit table: capability create/delete, building-config PUTs, reindex, sensor CSV
-uploads, TTL upload — each with the acting user and a 200 status.*
+## Guide
 
-## Guide — the in-console how-to
-
-An always-available primer inside the console: the two-halves mental model, a tab-by-tab summary, and
-step-by-step demo flows (unlock a capability, connect a database, switch the AI model, manage roles).
+A short in-console primer: the two halves a data source needs (triples in the graph, rows in a
+database), a tab summary, a four-step demonstration of switching a capability on, connecting an
+external database, switching the model, and roles.
 
 ![Admin console Guide tab]({{ '/admin-portal-screenshots/13-guide.png' | relative_url }})
-*The Guide tab — "a data source has two halves", tabs at a glance, and the four-step capability-unlock
-demo.*
+*The in-console guide.*
 
 ## See also
 
-- [OCBV vocabulary]({{ '/docs/ocbv-schema/' | relative_url }}) — what drives the capability form.
-- [Onboard a building]({{ '/docs/onboarding-building/' | relative_url }}) — the console in a full onboarding.
-- [Configuration]({{ '/docs/configuration/' | relative_url }}) — the `.env` keys behind the Settings tab.
-- [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}) — the roles behind Users & Access.
+- [Onboard a building]({{ '/docs/onboarding-building/' | relative_url }}): the console in a full onboarding.
+- [OCBV vocabulary]({{ '/docs/ocbv-schema/' | relative_url }}): the schema behind the capability form.
+- [Configuration]({{ '/docs/configuration/' | relative_url }}): the keys behind the Settings tab.
+- [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}): the roles behind Users & Access.

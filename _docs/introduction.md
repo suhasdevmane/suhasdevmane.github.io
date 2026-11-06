@@ -8,105 +8,99 @@ date: 2026-07-01
 
 # What is OntoSage?
 
-**OntoSage is a building-agnostic framework for talking to a building in plain English.** It is not
-built for any one site: connect a building's Brick/BACnet ontology and the databases holding its
-sensor readings, and OntoSage answers questions about *that* building — grounded in live data, framed
-for the person asking, and able to span several intents in a single turn. Onboarding a new building is
-configuration and data — a Brick TTL, database credentials, optional documents and floor plans — with
-no code changes. A single deployment serves one active building at a time; the same code serves the
-next building unchanged.
+OntoSage answers plain-English questions about one building from that building's own data. You
+connect the building's Brick/RDF model and the databases that hold its sensor readings, and
+people ask questions in a chat window: no SQL, no SPARQL and no knowledge of the schema needed.
 
-Ask OntoSage what it is — *"what can you do?"*, *"how do you work?"* — and it answers from its own live
-configuration as the framework it is, never claiming to be a generic chatbot.
+It is a framework, not a product for one site. A building is added with configuration and data
+(Turtle files, database connections, optional documents and floor plans), not code. One deployment
+serves one active building at a time; the same code serves the next building unchanged.
 
-No SQL, no SPARQL, no schema knowledge required from the user. Ask *"is it stuffy on floor 5?"* and
-OntoSage resolves "stuffy" to the CO₂ sensors, fetches their live readings, and answers in plain terms.
-Ask a follow-up — *"and what about humidity there?"* — and it remembers you meant floor 5. Ask about a
-space or building it does not have — *"how many sensors are in the swimming pool?"* — and it says it
-cannot find that, rather than answering with another sensor's readings.
+A typical exchange:
 
-## Key features at a glance
+- *"Is it stuffy on floor 5?"* The lay term "stuffy" resolves to CO₂. OntoSage finds the CO₂
+  sensors on floor 5 in the graph, reads their latest values from the database that stores them,
+  and answers with the figures and a panel saying where they came from.
+- *"And what about humidity there?"* The follow-up is rewritten as a complete question about
+  humidity on floor 5 before it is answered.
+- *"Show me the swimming pool temperature."* The building has no swimming pool. OntoSage says
+  so instead of returning another sensor's reading.
 
-| | Feature | What it means |
+![A follow-up question in the chat interface]({{ '/assets/images/screenshots/chat-follow-up.png' | relative_url }})
+*A follow-up resolved against the previous turn.*
+
+## Where answers come from
+
+| Source | What it holds | Where it lives |
 |---|---|---|
-| 🏢 | **Zero core-code changes to onboard a building** | The core and `shared/` carry no building literals. A new building is *config + data only* — a Brick TTL, a registered database, optional documents/floor plans. The same code serves `bldg1`, `bldg2`, or yours unchanged. |
-| 🖥️ | **Full onboarding from the Admin Console** | Set building identity, upload TTL, connect a database and register sensors, add documents and floor-plan PDFs/DWGs, author capabilities, browse SPARQL — all in the browser, no host-side editing. Dropping a file in `input/` and doing it in the GUI are equivalent. |
-| 🎯 | **Grounded, never fabricated** | Every figure traces to a live triple or row. If the sensor or data isn't there, OntoSage says "no data" — it never invents a value. |
-| 🧩 | **Agentic & multi-intent** | A LangGraph state machine classifies intent, rewrites follow-ups, decomposes compound questions, and routes each part to the right agent (SPARQL → SQL → analytics / floor-plan / capability), then fuses one answer. |
-| 💬 | **Zero-knowledge to expert** | Lay terms resolve ("stuffy" → CO₂) for anyone; experts still get Brick classes, the SPARQL browser, and the full API. |
-| 🔌 | **Multiple, pluggable datasources — even within one building** | Each sensor's `ref:storedAt` routes its readings to the right backend, so different sensors in the *same* building can live in different databases. A shipped example serves one building from **MySQL and PostgreSQL at once**. The registry has connection templates for ~50 stores; a new backend is a new adapter, never an agent edit. |
-| 🤖 | **Answers about itself** | Ask *"what is OntoSage / what can you do / how do you work"* and it answers from live configuration as a building-agnostic framework — the capability list comes from the active building's own intent registry, so it can never drift from what the system actually does. |
-| ⚙️ | **Local or API models, independently** | Run fully local on Ollama (`gpt-oss:20b`) or via OpenAI; the LLM and the embedding backend switch independently. |
-| 🔒 | **Admin-controlled access (RBAC)** | Every data/config endpoint is gated — 6 roles × 20 permissions. Personas frame answers; they never grant access. |
-| 🐳 | **One command to boot** | `docker compose up -d` brings up the whole stack; config lives in `.env` + `input/`. |
+| **Building graph** | Floors, spaces, equipment, sensors and their relationships (Brick, plus the OntoSage vocabulary for amenities, policies and records) | GraphDB |
+| **Time-series stores** | Readings keyed by each sensor's time-series id | MySQL (wide and narrow tables) by default; PostgreSQL, TimescaleDB, Cassandra and others through adapters |
+| **Records** | Registers a building keeps: bookings, timetables, work orders, incidents, permits, inspections, assets, contracts | Loaded as records in the graph |
+| **Documents** | Policies, manuals and contact sheets | Markdown and plain-text files indexed in Qdrant; a policy triple can name the document that sets it out |
+| **Floor plans** | Room polygons, areas and adjacency | PDF and DWG files, turned into per-floor manifests |
 
-## The four surfaces it fuses
+A sensor reading is answerable when two halves exist: the sensor is a triple in the graph with a
+time-series reference (`ref:hasTimeseriesId` and `ref:storedAt`), and its readings are rows in a
+registered database. See [Data sources]({{ '/docs/data-sources/' | relative_url }}).
 
-A single `POST /chat` endpoint answers over four data surfaces:
+## Main properties
 
-| Surface | What it holds | Where it lives |
-|---|---|---|
-| **Ontology graph** | Sensor URIs, zones, equipment hierarchy (Brick Schema + BACnet TTL) + the OCBV conversational layer | GraphDB (7200) |
-| **Time-series store** | Per-sensor readings keyed by UUID | MySQL (3306) — pluggable to Postgres / Timescale / Influx |
-| **Floor plans** | Room polygons, areas, adjacency, MEP blocks | PDF (text) + AutoCAD DWG (geometry) → JSON manifests + Qdrant |
-| **Capabilities & documents** | Amenities, policies, contacts, how-to procedures — authored as `ontosage:Amenity` / `KnowledgeTopic` / `Policy` triples; a `Policy` names the document that sets it out in full via `ontosage:documentRef`, so the long form is read from *that* file rather than a similarity guess | The **OCBV** schema + `input/<bldg>_capabilities.ttl` + `documents/` → GraphDB + Qdrant |
+| Property | What it means in practice |
+|---|---|
+| **No building literals in the code** | Namespaces, floor lists, sensor counts and areas are read from the active building at run time. The same code runs for `bldg1`, `bldg2`, `bldg3` or a new building. |
+| **Onboarding from the browser** | Building identity, Turtle upload, database connections and sensor registration, documents, floor plans and amenities can all be added in the [admin console]({{ '/docs/admin-console/' | relative_url }}). Dropping files into `input/` is equivalent. |
+| **Grounded figures** | Lanes compute figures from the graph, a database or a floor plan, and an answer with an evidence record carries a "How I know this" panel naming its sources. A claim-binding check compares each stated figure with that evidence; by default it records mismatches, and it can be set to remove them (`CLAIM_BINDING_MODE=enforce`). When the data is missing the answer says so. |
+| **Routed, not improvised** | Each question is classified into one of about forty intents and sent to a lane built for it: readings, comparisons, trends and forecasts, ranking spaces, registers, floor plans, documents, report intake and others. See [Answer lanes]({{ '/docs/answer-lanes/' | relative_url }}). |
+| **Lay terms to Brick classes** | "Stuffy", "too warm" or "noisy" resolve to the right quantity. Experts can still use Brick class names and the SPARQL browser. |
+| **Several databases per building** | Each sensor's `ref:storedAt` picks the connection that holds its readings, so one building can mix stores. The bundled `bldg3` uses MySQL and PostgreSQL; `bldg2` adds TimescaleDB and Cassandra. |
+| **Local or hosted models** | The language model can be local Ollama (`gpt-oss:20b` by default), OpenAI, Ollama Cloud or an OpenAI-compatible gateway; embeddings are chosen separately. |
+| **Role-based access** | Six roles and 22 permissions gate every data and admin endpoint. Personas change how an answer is framed, never what a person may see. See [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}). |
+| **One command to start** | `docker compose up -d` brings up the stack once a building is activated and `.env` is filled in. MySQL runs on the host. See [Quick start]({{ '/docs/quickstart/' | relative_url }}). |
 
-The [admin console]({{ '/docs/admin-console/' | relative_url }}) shows all four surfaces and the running
-system at a glance:
+## Design principles
 
-![Admin console Overview]({{ '/admin-portal-screenshots/01-overview.png' | relative_url }})
-*One deployment, one active building: provider, enabled data sources, embedding model, users/roles, and
-service health.*
+1. **One building at a time.** A deployment serves the building named by `BUILDING_ID`.
+   Registries are keyed by building id for later use, but there is no multi-building mode.
+2. **The ontology is the source of truth.** If a fact can be a triple, it belongs in the Turtle
+   files, not in a side file or a code constant. Structural questions are answered with SPARQL;
+   databases and computation are used for readings and arithmetic the graph cannot hold.
+3. **Building-agnostic code.** Core code carries no building names, namespaces or counts.
+4. **Honest answers.** Figures are meant to trace to live data, and the checks described in
+   [Checks and honest answers]({{ '/docs/checks-and-honesty/' | relative_url }}) exist to hold
+   that line. An unknown place, a missing sensor or absent readings should produce a plain
+   statement of what is missing, not a plausible substitute.
+5. **Any stakeholder.** One interface serves occupants, facility managers, researchers,
+   sustainability and safety staff, executives, visitors, students and administrators.
+6. **No expertise needed, expertise welcome.** Lay terms work; Brick classes and SPARQL work too.
+7. **Administrator-controlled access.** Every data and configuration endpoint needs a
+   permission; ontology changes need `system:admin`.
+8. **Connect data, get answers.** Adding a source means adding triples, registering the database
+   and loading rows, not changing code.
+9. **Pluggable stores.** A new kind of database is a new adapter, never a change to the agents.
+10. **Local or API models.** Providers are configuration, not code.
+11. **`docker compose up -d` starts everything** apart from host prerequisites (MySQL, and Ollama
+    when used).
 
-## What makes it different — the design principles
+## What it will not do
 
-Each of these is a deliberate commitment:
-
-1. **One building at a time.** A deployment serves a single active building; the multi-building
-   machinery is forward-compatibility, not a live multi-tenant mode.
-2. **TTL-first — the ontology is the source of truth.** If a fact can be an RDF triple, it lives in the
-   Brick/BACnet ontology (or the [OCBV vocabulary]({{ '/docs/ocbv-schema/' | relative_url }})), not a
-   sidecar file or a code constant. Questions are answered via SPARQL first.
-3. **No hardcoding — building-agnostic core.** Core code carries no building-specific literals; every
-   figure is computed live, so it never drifts stale, and the same code runs for any building.
-4. **Honest, grounded answers — never fabricate.** Every number traces to live data. If a referent
-   doesn't exist or the data isn't loaded, OntoSage says so plainly.
-5. **Any stakeholder, any purpose.** One interface serves facility managers, occupants, researchers,
-   sustainability/safety officers, executives, visitors, students, and admins. Personas frame answers;
-   they don't gate access.
-6. **Zero-knowledge to expert.** Lay terms resolve to the right sensors; experts still get Brick
-   classes, RDF types, and a live SPARQL browser.
-7. **Admin-controlled access (RBAC).** Every data/config endpoint is permission-gated; ontology
-   management is admin-only. Roles are separate from personas.
-8. **Connect data, get answers.** A question is answerable when the sensor is in the ontology *and* its
-   readings are in a registered database — both halves, no code.
-9. **Multiple datasources, pluggable — even within one building.** Each sensor's `ref:storedAt` routes
-   its readings to its own backend, so one building can run several database technologies at once
-   (a shipped example uses MySQL and PostgreSQL together). A new backend is a new adapter.
-10. **Local or API models, independently.** Language and embedding models each switch between OpenAI and
-    local Ollama — fully offline for privacy or on the API for capability.
-11. **`docker compose up -d` is all you need.**
-
-## What it will *not* do
-
-- **Actuate the building.** Requests to open windows, change setpoints, or email someone are politely
-  **declined** — OntoSage is a read/answer layer, not a BMS controller.
-- **Invent data.** Ask about a floor, wing, amenity, asset or measurement the building does not have —
-  *"the swimming pool"*, *"floor 42"*, *"the methane concentration"* — and OntoSage names what does
-  exist instead, or says plainly that it can't find that, and tells you what to add to make it
-  answerable. It will not quietly substitute another sensor's reading, present an unrelated document as
-  the answer, or pass a raw unscaled number off as a confident verdict. Even when the check that
-  confirms a place exists cannot complete under load, it refuses rather than guessing — a
-  plausible-sounding wrong number is worse than no number, because you can't tell it apart from a right
-  one.
-- **Answer about a different building.** A deployment is single-building by design; a reference to some
-  other building is treated as "not here."
-- **Pretend to be a generic chatbot.** Asked how it works, it describes itself as the framework it is —
-  it will not claim to be "a large language model."
+- **Operate the building.** Requests to open windows or change setpoints go to a control lane
+  that refuses roles without `control:write`; with it, the command reaches a simulated actuation
+  gateway that records it. No live building management system is wired in by default.
+- **Invent data.** A floor, space, amenity or quantity the building does not have is reported as
+  missing. Administrators are also told what to add to make the question answerable; other
+  readers get the plain statement.
+- **Answer about another building.** A reference to a different building is treated as outside
+  the deployment.
+- **Pretend to be a general chatbot.** Asked what it is or what it can do, it describes itself
+  from the active building's configuration.
 
 ## Where to go next
 
-- [**Quick start**]({{ '/docs/quickstart/' | relative_url }}) — boot the stack and ask your first question.
-- [**Architecture**]({{ '/docs/architecture/' | relative_url }}) — how a question flows through the pipeline.
-- [**OCBV vocabulary**]({{ '/docs/ocbv-schema/' | relative_url }}) — the schema that makes a building talkable-to.
-- [**Stakeholder guide**]({{ '/docs/stakeholder-guide/' | relative_url }}) — which questions can be answered.
+- [Quick start]({{ '/docs/quickstart/' | relative_url }}): start the stack and ask a first question.
+- [How OntoSage answers]({{ '/docs/how-it-answers/' | relative_url }}): what happens to a question.
+- [Answer lanes]({{ '/docs/answer-lanes/' | relative_url }}): the kinds of question and how each is answered.
+- [Checks and honest answers]({{ '/docs/checks-and-honesty/' | relative_url }}): why an answer can be trusted, or declines.
+- [Architecture]({{ '/docs/architecture/' | relative_url }}): the services and how they connect.
+- [Write TTL for your building]({{ '/docs/write-ttl/' | relative_url }}): model a building OntoSage can answer about.
+- [Ontology browser]({{ '/docs/ontology-browser/' | relative_url }}): the classes and properties OntoSage uses.
+- [Stakeholder guide]({{ '/docs/stakeholder-guide/' | relative_url }}): what different people can ask.

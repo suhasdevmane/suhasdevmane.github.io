@@ -1,0 +1,45 @@
+---
+title: "ontosage:isBookable"
+layout: post
+permalink: /ontology/property/isBookable/
+---
+
+[Ontology Browser]({{ '/docs/ontology-browser/' | relative_url }}) › [Properties]({{ '/docs/ontology-browser/' | relative_url }}#property-index) › isBookable
+
+| Field | Value |
+|---|---|
+| IRI | `http://ontosage.org/capabilities#isBookable` |
+| Label | is bookable |
+| Kind | datatype property |
+| Domain | [`ontosage:WorkspaceProfile`]({{ '/ontology/class/WorkspaceProfile/' | relative_url }}) |
+| Range | `xsd:boolean` |
+| Inverse | none declared |
+| Sub-property of | none |
+| Defined in | [`ontology/ontosage_schema.ttl`](https://github.com/suhasdevmane/OntoSage/blob/main/ontology/ontosage_schema.ttl) |
+
+## Definition
+
+Whether the space can be reserved. A space that cannot be booked can still be free, and the two questions differ.
+
+## Used in record document mappings
+
+| Record type | Column | Datatype |
+|---|---|---|
+| [`workspace_profile`]({{ '/ontology/vocabulary/record-document-mappings/' | relative_url }}#workspace_profile) | `bookable` | `xsd:boolean` |
+
+## Turtle
+
+{% raw %}
+```turtle
+@prefix ontosage: <http://ontosage.org/capabilities#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ontosage:isBookable a owl:DatatypeProperty ;
+    rdfs:label "is bookable"@en ;
+    rdfs:comment "Whether the space can be reserved. A space that cannot be booked can still be free, and the two questions differ."@en ;
+    rdfs:domain ontosage:WorkspaceProfile ;
+    rdfs:range xsd:boolean .
+```
+{% endraw %}

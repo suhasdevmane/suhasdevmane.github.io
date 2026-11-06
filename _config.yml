@@ -61,6 +61,9 @@ collections:
   others:
     output: true
     permalink: /:collection/:path/
+  ontology:
+    output: true
+    permalink: /ontology/:path/
 
 ordered_collections:
   - docs

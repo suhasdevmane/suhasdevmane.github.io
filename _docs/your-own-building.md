@@ -3,263 +3,270 @@ title: Use Your Own Building
 layout: post
 category: docs
 permalink: /docs/your-own-building/
-date: 2026-08-04
+date: 2026-07-11
 ---
 
 # Use OntoSage with your own building
 
-OntoSage ships with three buildings — `bldg1` (Cardiff University's Abacws), `bldg2` and `bldg3`.
-**They are test fixtures.** They exist so that a fresh clone demonstrates a working system within
-minutes, and so portability is provable on more than one model rather than merely claimed. Nothing
-in the core code knows they exist.
+This page takes you from a fresh clone to your own building answering questions. It is for
+someone with a building model (or the knowledge to write one) and a database of readings. It
+covers choosing an identity, creating the building's files, connecting its data, starting it, and
+checking both halves of the answer path.
 
-Your building uses **exactly the same slots**. Onboarding it means replacing data and configuration —
-never code. If you find yourself editing Python to make your building work, that is a bug worth
-reporting, not a step.
-
----
-
-## What a building actually is
-
-A building in OntoSage is a trio of files, and "being active" is simply having the canonical names:
-
-```
- <data folder>     <env file>    <compose file>
-  input/             .env         docker-compose.yml     ← the ACTIVE building
-  bldg2/             .env2        docker-compose.bldg2.yml   (parked)
-  bldg3/             .env3        docker-compose.bldg3.yml   (parked)
-```
-
-Only one building is active at a time. Everything the system knows about it comes from those three
-places plus the databases you register.
+OntoSage ships with three buildings: `bldg1` (Cardiff University's Abacws), `bldg2` and `bldg3`.
+They are test fixtures. They let a fresh clone show a working system and let portability be
+tested on more than one model. Nothing in the core code knows them. Your building uses the same
+slots, and onboarding it means adding data and configuration, never code. If you find yourself
+editing Python to make your building work, report it as a defect.
 
 ---
 
-## The two halves — the rule that explains every "no data" answer
+## The two halves
 
-A question is answerable when **both halves** exist:
+A question about a reading is answerable when both halves exist:
 
 ```
-(a) the thing is a triple in the ontology        →  "there IS a CO₂ sensor in room 3.04"
+(a) the thing is a triple in the graph          "there IS a CO2 sensor in Room 1.01"
         AND
-(b) its readings are rows in a registered DB     →  linked by ref:hasTimeseriesId + ref:storedAt
+(b) its readings are rows in a registered store  linked by ref:hasTimeseriesId + ref:storedAt
 ```
 
-A database full of readings with no ontology is invisible — OntoSage cannot know what those columns
-mean. An ontology with no readings can answer *structural* questions ("how many CO₂ sensors are
-there?") but not *live* ones ("what is it now?"). When a half is missing OntoSage says so plainly
-rather than inventing a number, and tells you which half to add.
+A database full of readings with no graph is invisible: OntoSage cannot know what the series
+measure. A graph with no readings answers structural questions (*"how many CO2 sensors are
+there?"*) but not *"what is it now?"*. When a half is missing, OntoSage says so instead of
+offering a number from somewhere else.
 
 ---
 
-## Step 1 — Activate a slot and claim it as yours
+## Step 1: choose an identity
+
+Pick three values and keep them identical everywhere they appear:
+
+| Value | Example | Used for |
+|---|---|---|
+| Building id | `riverside` | `BUILDING_ID`, the folder name when parked, `volumes/riverside/` |
+| Namespace | `http://riverside.example/building#` | Every instance IRI; must match `@prefix bldg:` in every TTL file |
+| Project name | `ontosage_riverside` | `COMPOSE_PROJECT_NAME`: containers and images |
+
+**Use a new id.** All per-building state (GraphDB, Qdrant, Redis, Postgres, Mongo, uploaded
+files' records) lives in `volumes/<BUILDING_ID>/`. A new id starts from empty stores. Reusing
+`bldg1` would load your triples into Abacws's graph, and counts and *"what is in this
+building"* answers would mix two buildings. If you must reuse an id, stop the stack and delete
+`volumes/<id>/` first.
+
+**Use a namespace you control**, ending in `#` or `/`. The readiness check treats one that starts
+with `http://example.org/` as unset.
+
+---
+
+## Step 2: create your building's set
+
+In a fresh clone no building is active: the repository holds `bldg1/`, `bldg2/` and `bldg3/`, a
+`docker-compose.bldg<N>.yml` for each, and `.env<N>.example` templates. Create a fourth set beside
+them, so the fixtures stay intact:
 
 ```bash
-git clone https://github.com/suhasdevmane/OntoSage.git
-cd OntoSage
-
-# activate a slot (bldg1 is the conventional choice)
-mv bldg1 input                                  # the building-data folder
-mv docker-compose.bldg1.yml docker-compose.yml  # its services
-cp .env1.example .env                           # its settings — then edit for YOUR building
+mkdir -p riverside/documents
+cp bldg1/Brick_v1.4.ttl "bldg1/Brick+extensions.ttl" riverside/
+cp docker-compose.bldg1.yml docker-compose.riverside.yml
+cp .env1.example .env.riverside
 ```
 
-Env files hold secrets, so the real ones are **never committed**: the repo ships only
-`.env1.example` / `.env2.example` / `.env3.example`, each pre-filled with that building's identity
-and with every credential replaced by a `CHANGE-ME` placeholder. Copy one, then replace the
-placeholders — `STRICT_SECRETS=true` refuses to boot while any remain.
+If `bldg1` is the active building at the time, copy from `input/` and `docker-compose.yml`
+instead. On Windows PowerShell use `New-Item -ItemType Directory` and `Copy-Item`.
 
-> **Windows PowerShell**
-> `Move-Item bldg1 input; Move-Item docker-compose.bldg1.yml docker-compose.yml; Copy-Item .env1.example .env`
+### `riverside/building.yaml`
 
-### Choose a NEW `BUILDING_ID`
+```yaml
+building_id: riverside
+building_name: Riverside House
+ontology_namespace: "http://riverside.example/building#"
+ontology_prefix: bldg
+timezone: "Europe/London"
 
-This is the one decision that causes real confusion if you get it wrong. Per-building state — GraphDB,
-Qdrant, Redis, Postgres, Mongo — lives in `volumes/<BUILDING_ID>/`.
-
-* **A new id** gives you brand-new, empty stores: a genuinely clean start. **Do this.**
-* **Reusing `bldg1`** inherits Abacws's populated graph. Your triples are *added alongside* it, so
-  counts and "what exists in this building" answers silently mix two buildings.
-
-If you must reuse an id, wipe its state first:
-
-```bash
-docker compose down
-rm -rf volumes/bldg1
+storage:
+  databases:
+    - riverside_iaq
 ```
 
-### Set the identity in `.env`
+`storage.databases` lists the database keys whose adapters are built (Step 4). The demonstration
+buildings' `building.yaml` files show the other optional blocks (actuation, floor-plan aliases,
+evidence policy).
+
+### `.env.riverside`
+
+Set the identity, the time-series database and every secret. The template marks each credential
+`CHANGE-ME`, and with `STRICT_SECRETS=true` the orchestrator refuses to start while any credential
+is still a placeholder or a shipped default.
 
 ```bash
-BUILDING_ID=riverside_hq                            # drives volumes/<id>/ and log lines
-BUILDING_NAME=Riverside HQ                          # appears in answers
-BUILDING_NAMESPACE=http://example.org/riverside#    # MUST equal @prefix bldg: in your TTL
+BUILDING_ID=riverside
+BUILDING_NAME=Riverside House
+BUILDING_NAMESPACE=http://riverside.example/building#
 BUILDING_PREFIX=bldg
-BUILDING_TIMEZONE=Europe/London                     # interprets "today" / "yesterday"
-MYSQL_DATABASE=riverside_sensordb                   # your time-series database
-COMPOSE_PROJECT_NAME=ontosage_riverside             # namespaces containers and networks
+BUILDING_TIMEZONE=Europe/London
+MYSQL_DATABASE=riverside_sensordb
+COMPOSE_PROJECT_NAME=ontosage_riverside
 ```
 
-Mirror the same values into `input/env.building` — that file travels with the folder, so the identity
-is never lost when the building is parked.
+Set `SECRET_KEY` to a random value. The compose file passes it to the orchestrator, unless
+`ONTOSAGE_SECRET_KEY` is also set, which then takes its place.
 
-Set real secrets too. `STRICT_SECRETS=true` refuses to boot while any password is still a shipped
-default: `SECRET_KEY`, `GRAPHDB_PASSWORD`, `MYSQL_PASSWORD`, `POSTGRES_USER_PASSWORD`,
-`PIPELINE_API_KEY`, plus `OPENAI_API_KEY` (or `MODEL_PROVIDER=local` with `OLLAMA_MODEL` to stay
-fully offline).
+The model provider (`MODEL_PROVIDER`, `OLLAMA_MODEL` and related keys) and the admin account
+(`ADMIN_USERNAME`, `ADMIN_PASSWORD`) are covered in
+[Configuration]({{ '/docs/configuration/' | relative_url }}). Every `.env*` file is ignored by
+git; keep it that way.
+
+### `riverside/env.building`
+
+Copy the same seven identity lines into `riverside/env.building`. It travels with the folder, so a
+parked building still says which building it is.
 
 ---
 
-## Step 2 — Put your building's data in `input/`
+## Step 3: write the graph
 
-Remove the fixture's building files and add yours. **Three files are shared schema, not building
-data — keep them:**
+Write your building as TTL files in `riverside/`: the building, floors and rooms, points with
+their units, one timeseries reference per point, equipment, and optionally capabilities, records
+and lay terms. [Write TTL for Your Building]({{ '/docs/write-ttl/' | relative_url }}) is the
+tutorial, with a snippet and a check for each step.
 
-| Keep (OntoSage's vocabulary) | Replace (your building) |
-|---|---|
-| `Brick_v1.4.ttl` | `<your_id>.ttl` — your Brick/BACnet model |
-| `Brick+extensions.ttl` | `building.yaml` — id, name, `ontology_namespace` |
-| `ontosage_schema.ttl` (OCBV) | `env.building` — identity mirror |
-| | `database_registry.yaml` — your database connections |
-| | `<your_id>_capabilities.ttl` — amenities / topics *(optional)* |
-| | `<label> floor <N>.pdf` / `.dwg` — floor plans *(optional)* |
-| | `documents/` — manuals, policies *(optional)* |
-| | `personas/` — persona priors *(optional)* |
+OntoSage reads the classes you already use. A model written in Brick needs the least work; the
+TTL rules that matter are the ones in that tutorial (the `bldg:` prefix, labels people can name,
+IRIs for relations, and one complete reference per point).
+
+Before you go further, run the offline check against the folder, from the repository root with
+the orchestrator's Python requirements installed (`pip install -r orchestrator/requirements.txt`):
 
 ```bash
-cd input
-rm -f bldg1_*.ttl equipment_linkage.ttl "Abacws floor"*.pdf "Abacws floor"*.dwg
-rm -rf documents personas
-# …then copy in your own model and config
+STRICT_SECRETS=false python scripts/swap_building.py --to riverside --dry-run --input-root .
 ```
 
-File names are yours to choose: the uploader ingests **any** `*.ttl` in `input/`, and floor plans are
-matched by the `<label> floor <N>.<ext>` pattern.
-
-### Your TTL must satisfy three rules
-
-Each of these caused a real, day-long onboarding failure during development — they are the difference
-between "it works" and "the graph loads but nothing answers".
-
-```turtle
-@prefix bldg:  <http://example.org/riverside#> .   # 1. byte-identical to ontology_namespace
-@prefix brick: <https://brickschema.org/schema/Brick#> .
-@prefix ref:   <https://brickschema.org/schema/Brick/ref#> .
-@base          <http://example.org/riverside#> .   # 2. REQUIRED. Without @base, a single
-                                                   #    relative IRI makes GraphDB reject
-                                                   #    the ENTIRE file as malformed.
-
-bldg:Room_204_Temp a brick:Air_Temperature_Sensor ;
-    rdfs:label "Room 204 Temperature" ;
-    brick:hasExternalReference [
-        a ref:TimeseriesReference ;
-        ref:hasTimeseriesId "8f3c…-uuid" ;         # the column name / uuid in YOUR database
-        ref:storedAt        bldg:database1 ] .     # 3. an IRI, NOT "database1" in quotes.
-                                                   #    A string literal cannot join, so every
-                                                   #    live query silently returns nothing.
-```
-
-OntoSage reads your existing classes as they are — Brick, RealEstateCore, ASHRAE 223P, Haystack-in-RDF,
-or a custom vocabulary. It does not require you to remodel your building.
+It must report the TTL files as validated, with no `[FAIL]` line. `STRICT_SECRETS=false` lets the
+script load OntoSage's settings before `.env` holds real secrets; it affects this command only.
+In PowerShell, run `$env:STRICT_SECRETS = "false"` first.
 
 ---
 
-## Step 3 — Connect your data sources
+## Step 4: connect the readings
 
-Register each database under the key your TTL's `ref:storedAt` points at, in
-`input/database_registry.yaml`:
+Add a `riverside/database_registry.yaml` with one entry per store, keyed by the name your TTL's
+`ref:storedAt` uses:
 
 ```yaml
 databases:
-  database1:                                   # ← matches ref:storedAt bldg:database1
-    type: mysql                                # mysql | mysql_narrow | postgresql | timescaledb |
-                                               # influxdb | mongodb | sqlite | cassandra | …
-    host: "${MYSQL_HOST:-host.docker.internal}"
+  riverside_iaq:                    # matches ref:storedAt bldg:riverside_iaq
+    type: mysql_narrow              # rows of (uuid, datetime, value)
+    table: iaq_readings
+    host: "${MYSQL_HOST:-mysql}"
     port: "${MYSQL_PORT:-3306}"
     user: "${MYSQL_USER}"
     password: "${MYSQL_PASSWORD}"
     database: "${MYSQL_DATABASE}"
-    nature: real                               # real | synthetic — surfaced as provenance
+    nature: real                    # real | synthetic, shown as provenance
     note: "Riverside BMS historian"
 ```
 
-Two table shapes are supported:
+- **Narrow tables** (`type: mysql_narrow` with `table:`) hold rows of `uuid`, `datetime`,
+  `value`. Several can coexist, one per modality. This shape scales.
+- **Wide tables** (`type: mysql`) hold one column per series identifier. MySQL limits a row to
+  about 1,017 columns, so large estates outgrow them.
+- PostgreSQL, TimescaleDB and Cassandra are supported, and a building can use several stores at
+  once: each point's `ref:storedAt` key chooses its store.
+  [Data Sources]({{ '/docs/data-sources/' | relative_url }}) lists the adapters.
 
-* **Wide** (`type: mysql`) — one column per sensor uuid. Simple, but MySQL caps a row at ~1017
-  columns, so large estates outgrow it.
-* **Narrow** (`type: mysql_narrow` with `table:`) — rows of `(uuid, datetime, value)`. Preferred at
-  scale, and several modality tables can coexist.
+Store times in UTC. The database must be reachable from the orchestrator container: the
+demonstration compose file points `MYSQL_HOST` at `host.docker.internal`, which is the Docker
+host.
 
-A building may span **several backends at once** — each `ref:storedAt` key routes independently, so
-energy can live in Postgres while IAQ stays in MySQL. Adding a backend type is a new adapter, never a
-change to the agents.
+You can also register connections and sensors later from the admin console's Databases tab,
+without editing these files; see
+[Onboard a Building]({{ '/docs/onboarding-building/#onboard-through-the-admin-console' | relative_url }}).
 
-This is not theoretical: a building shipped with the repo answers from **MySQL and PostgreSQL in the
-same conversation**, with the adapter chosen per sensor.
-
-![A reading served from MySQL]({{ '/admin-portal-screenshots/answer-mysql-reading.png' | relative_url }})
-![The same building, a reading served from PostgreSQL]({{ '/admin-portal-screenshots/answer-postgres-reading.png' | relative_url }})
-*Two questions, one building, two database technologies. Nothing in either question says which backend
-to use — the sensor's `ref:storedAt` decides, and the person asking never sees the difference.*
+**Remove the demonstration publisher for a real building.** The compose file you copied contains
+a `data-publisher` service that writes generated readings so the fixtures have recent data.
+Delete that service from `docker-compose.riverside.yml` so nothing synthetic is ever written into
+your store.
 
 ---
 
-## Step 4 — Build and start
+## Step 5: activate and start
+
+Activation is the rename described in
+[Onboard a Building]({{ '/docs/onboarding-building/#activate-park-and-swap-buildings' | relative_url }}).
+If another building is active, stop it and park it first. Then:
 
 ```bash
-docker compose down                 # if something is already running
-docker compose build orchestrator   # first build, or after pulling code changes
+mv riverside input
+mv .env.riverside .env
+mv docker-compose.riverside.yml docker-compose.yml
+
 docker compose up -d
-curl http://localhost:8000/health   # wait for "healthy"
+curl -s http://127.0.0.1:8000/health      # repeat until it returns 200
 ```
 
-On boot OntoSage ingests every `*.ttl` in `input/` (re-uploading only what changed), builds a sensor
-map from the live graph, and indexes floor plans and documents. A large ontology can take several
-minutes to warm GraphDB on first start; ontology initialisation retries by itself, so no manual
-restart is needed.
+The first start builds the images, creates the GraphDB repository and loads every TTL file; a
+large model can take several minutes. If the orchestrator keeps restarting, a TTL file failed the
+start-up check and the log names it:
 
-> **Remove the demo publisher for a real building.** The `data-publisher` service fabricates readings
-> so the fixtures have something to show. For a building with real telemetry, stop or delete that
-> service so nothing ever writes synthetic values into your historian.
+```bash
+docker compose logs --tail=50 orchestrator | grep ttl_validator
+```
+
+To switch back to a demonstration building later, park your set as `riverside/`,
+`.env.riverside` and `docker-compose.riverside.yml` and activate the other.
 
 ---
 
-## Step 5 — Verify both halves
+## Step 6: verify both halves
+
+Open the admin console at `http://127.0.0.1:3001`, sign in as the admin, and use **Ask (test)**,
+or ask in the chat interface:
 
 ```
-Half 1 — ontology loaded?      "How many temperature sensors are in this building?"
-Half 2 — readings connected?   "What is the current temperature in Room 204?"
+Half (a), the graph:       "How many temperature sensors are in this building?"
+Half (b), the readings:    "What is the temperature in Room 1.01 right now?"
 ```
 
-The inventory answer reports **declared vs reporting** sensors — for example *"1,318 declared in the
-building model, 683 reported data in the last 24 h"*. That single line is the fastest way to see how
-much of your model is genuinely wired to data. A sensor that exists in the graph but never reports
-has a wrong `ref:hasTimeseriesId`, a wrong `ref:storedAt`, or no rows.
+Then compare declared and populated sensors. The Ontology tab's **Sensor data coverage** line
+states how many datasource-linked sensors have readings and how many reported in the last 24
+hours; each connection's **Verify** button on the Databases tab gives the same figures per store.
+A sensor that is in the graph and never has readings has a wrong `ref:hasTimeseriesId`, a wrong
+`ref:storedAt` key, or no rows. The SPARQL checks in
+[Write TTL]({{ '/docs/write-ttl/#check-your-graph-with-sparql' | relative_url }}) find which.
 
 ---
 
-## Pitfalls we hit for real
+## Pitfalls
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Orchestrator refuses to boot, complains about the namespace | `@prefix bldg:` ≠ `ontology_namespace` | Make them byte-identical, trailing `#` included |
-| GraphDB rejects the whole TTL as malformed | Relative IRIs and no `@base` | Add `@base` matching your namespace |
-| Structural questions work; live values never do | `ref:storedAt` missing, or refs written as quoted **strings** instead of IRIs | Both properties required; `ref:storedAt` must be an IRI matching a registry key |
-| Answers mention a building you never loaded | Reused a `BUILDING_ID` whose `volumes/<id>/` still holds the old graph | Use a new id, or delete that state directory |
-| "UUIDs missing / no readings" right after seeding | The adapter caches table columns for 5 minutes | Seed before boot, or restart the orchestrator |
-| A wide table refuses more sensors | MySQL's ~1017-column row limit | Move those sensors to a narrow `(uuid, datetime, value)` table |
+| The orchestrator keeps restarting; the log mentions `@prefix bldg:` | A TTL file without the prefix, or with a namespace that differs from `building.yaml` (often a trailing `#`) | Make them identical; run the dry-run check; start again |
+| The orchestrator refuses to start and lists secrets | `STRICT_SECRETS=true` and a credential is still `CHANGE-ME` or a default | Set real values in `.env` |
+| Structural questions work; readings never do | Missing `ref:storedAt`, a key not in `database_registry.yaml` or not in `storage.databases`, a wrong identifier, or no rows | Run the SPARQL checks; check the key in both YAML files |
+| Answers mention a building you never loaded | A reused `BUILDING_ID` whose `volumes/<id>/` still holds the old graph | Use a new id, or stop the stack and delete that folder |
+| A room exists but questions about it are declined | Its label and IRI lack the number or words people use | See [names the referent check can find]({{ '/docs/write-ttl/#names-the-referent-check-can-find' | relative_url }}) |
+| Rows added to a wide table are not found for a few minutes | The wide-table adapter caches the table's columns for 5 minutes | Load data before start-up, or restart the orchestrator |
+| A wide table refuses more sensors | MySQL's limit of about 1,017 columns per row | Move those series to a narrow `(uuid, datetime, value)` table |
+| `.env` changes have no effect | `docker compose restart` keeps the environment the container was created with | Use `docker compose up -d` |
+| A fix in the source does not appear | The service's image predates it | `docker compose build <service>` then `docker compose up -d` |
 
 ---
 
 ## Prefer clicking to editing?
 
-Everything above is also available in the **Admin Console** at `http://localhost:3001` — building
-identity, TTL upload and validation, database registration, sensor mapping, capabilities, documents
-and floor plans — with no host-side file editing. See [Admin Console]({{ site.baseurl }}/docs/admin-console/).
+Identity, TTL upload, database connections, sensor registration, capabilities, documents and
+floor plans can all be set from the admin console at `http://127.0.0.1:3001`, with every change
+saved to the active building's `input/` folder. The console still needs an active building to
+attach to, so Steps 1, 2 and 5 come first: an identity, a set of files, and a running stack. See
+[Onboard a Building]({{ '/docs/onboarding-building/' | relative_url }}) and
+[Admin Console]({{ '/docs/admin-console/' | relative_url }}).
 
 ## See also
 
-- [Quick Start]({{ site.baseurl }}/docs/quickstart/) — get the fixtures running first
-- [Onboard a Building]({{ site.baseurl }}/docs/onboarding-building/) — the console and CLI paths in detail
-- [Configuration]({{ site.baseurl }}/docs/configuration/) — every environment variable
-- [OCBV Schema]({{ site.baseurl }}/docs/ocbv-schema/) — the conversational vocabulary layer
+- [Quick Start]({{ '/docs/quickstart/' | relative_url }}): run a demonstration building first.
+- [Write TTL for Your Building]({{ '/docs/write-ttl/' | relative_url }}): the graph, step by step.
+- [Edit TTL in a Running System]({{ '/docs/edit-ttl/' | relative_url }}): changing it later.
+- [Onboard a Building]({{ '/docs/onboarding-building/' | relative_url }}): swapping, console onboarding, readiness.
+- [Configuration]({{ '/docs/configuration/' | relative_url }}): every environment variable.
+- [OCBV Schema]({{ '/docs/ocbv-schema/' | relative_url }}): the capability vocabulary.

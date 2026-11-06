@@ -1,23 +1,23 @@
 ---
 layout: null
 title: OntoSage
-description: Agentic AI for smart buildings — ask your building anything in plain English. Sensor-grounded, persona-aware, multi-intent answers over one building's own data.
+description: Ask a smart building questions in plain English. OntoSage answers from the building's own Brick/RDF graph, sensor databases, records, documents and floor plans, and says so when the data is not there.
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ page.title }} — Agentic AI for Smart Buildings</title>
+<title>{{ page.title }}: Agentic AI for Smart Buildings</title>
 <meta name="description" content="{{ page.description }}">
 <meta name="author" content="{{ site.author }}">
 <meta name="theme-color" content="#2563eb">
 <meta property="og:type" content="website">
-<meta property="og:title" content="{{ page.title }} — Agentic AI for Smart Buildings">
+<meta property="og:title" content="{{ page.title }}: Agentic AI for Smart Buildings">
 <meta property="og:description" content="{{ page.description }}">
 <meta property="og:url" content="{{ site.url }}{{ '/' | relative_url }}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ page.title }} — Agentic AI for Smart Buildings">
+<meta name="twitter:title" content="{{ page.title }}: Agentic AI for Smart Buildings">
 <meta name="twitter:description" content="{{ page.description }}">
 <style>
   :root{
@@ -117,6 +117,7 @@ description: Agentic AI for smart buildings — ask your building anything in pl
   .doc:hover{border-color:color-mix(in srgb,var(--brand) 40%,var(--line));transform:translateY(-2px)}
   .doc b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:3px}
   .doc span{color:var(--ink-soft);font-size:13.5px}
+  .docgroup{display:block;margin:30px 0 12px}
 
   .band{background:var(--accent-grad);border-radius:22px;padding:46px;text-align:center;color:#fff;box-shadow:var(--shadow)}
   .band h2{margin:0 0 10px;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em}
@@ -139,6 +140,7 @@ description: Agentic AI for smart buildings — ask your building anything in pl
     <a class="hide-sm" href="#features">Features</a>
     <a class="hide-sm" href="#how">How it works</a>
     <a href="{{ '/docs/introduction/' | relative_url }}">Docs</a>
+    <a class="hide-sm" href="{{ '/docs/ontology-browser/' | relative_url }}">Ontology</a>
     <a class="hide-sm" href="{{ '/docs/admin-console/' | relative_url }}">Admin console</a>
     <a class="btn btn-primary" href="{{ '/docs/quickstart/' | relative_url }}">Get started</a>
   </nav>
@@ -148,84 +150,120 @@ description: Agentic AI for smart buildings — ask your building anything in pl
   <div>
     <span class="eyebrow">◆ Agentic AI for Smart Buildings</span>
     <h1 class="hero-h">Ask your building <span class="g">anything</span> in plain English.</h1>
-    <p class="hero-sub">Connect a building's data, then ask it anything — sensor-grounded,
-      persona-aware, multi-intent answers. No SQL, no SPARQL, no schema knowledge required.</p>
+    <p class="hero-sub">Connect a building's Brick model and its sensor databases, then ask
+      questions in plain English. Answers come from the building's own data, name their
+      sources, and say so when the data is not there. No SQL, no SPARQL, no schema knowledge
+      needed.</p>
     <div class="hero-cta">
       <a class="btn btn-primary" href="{{ '/docs/quickstart/' | relative_url }}">Get started →</a>
-      <a class="btn btn-ghost" href="{{ '/docs/introduction/' | relative_url }}">Read the docs</a>
+      <a class="btn btn-ghost" href="{{ '/docs/how-it-answers/' | relative_url }}">How it answers</a>
     </div>
   </div>
   <div class="chat">
-    <div class="chat-top"><i></i><i></i><i></i><span>OntoSage · Abacws Building</span></div>
+    <div class="chat-top"><i></i><i></i><i></i><span>OntoSage · example conversation</span></div>
     <div class="chat-body">
-      <div class="bubble you">Show me floor 3 and tell me how many rooms are there</div>
-      <div class="bubble bot">Here's <b>Floor 3</b> — its layout is rendered above. It has
-        <b>14 rooms</b> across 2 zones, total area <b>612 m²</b>.
-        <div class="chips"><span class="chip">floor_plan</span><span class="chip">spatial_query</span><span class="chip">grounded · DWG geometry</span></div>
+      <div class="bubble you">Is it stuffy on floor 5?</div>
+      <div class="bubble bot">"Stuffy" is read as <b>CO₂</b>. I found the CO₂ sensors on
+        <b>Floor 5</b> in the building graph and read their latest values from the database
+        that stores them. Each figure is listed with its sensor and time.
+        <div class="chips"><span class="chip">stuffy → CO₂</span><span class="chip">graph + readings</span><span class="chip">evidence panel</span></div>
+      </div>
+      <div class="bubble you">Show me the swimming pool temperature</div>
+      <div class="bubble bot">This building has <b>no swimming pool</b> in its records, so
+        there is no temperature to report. I will not use another sensor's reading instead.
+        <div class="chips"><span class="chip">place check</span><span class="chip">no substitute</span></div>
       </div>
     </div>
   </div>
 </div></section>
 
 <div class="strip"><div class="wrap strip-in">
-  <span>🐳 <b>One command</b> to boot</span>
-  <span>🧠 <b>Brick / BACnet</b> TTL-first</span>
-  <span>🔒 <b>6 roles</b> × RBAC</span>
-  <span>🏢 <b>Any building</b>, no code</span>
+  <span>🐳 <b>One compose command</b> to start</span>
+  <span>🧠 <b>Brick / RDF</b> as the source of truth</span>
+  <span>🔒 <b>6 roles</b>, 22 permissions</span>
+  <span>🏢 <b>Any building</b>, no code changes</span>
   <span>⚙️ <b>Local or API</b> models</span>
 </div></div>
 
 <section class="blk" id="features"><div class="wrap">
   <span class="kicker">Why OntoSage</span>
   <h2 class="blk-h">Grounded answers, any stakeholder, any building.</h2>
-  <p class="blk-lead">One natural-language interface over a single building's own data — built so every
-    answer traces back to a real triple or row.</p>
+  <p class="blk-lead">One natural-language interface over a single building's own data, designed
+    so that each figure in an answer traces back to a triple, a database row or a floor plan.</p>
   <div class="cards">
-    <div class="card"><div class="ic">🎯</div><h3>Grounded, never fabricated</h3>
-      <p>Every figure traces to live data — the graph, the database, or the floor plan. If it isn't there, OntoSage says so.</p></div>
-    <div class="card"><div class="ic">🧩</div><h3>Agentic &amp; multi-intent</h3>
-      <p>A LangGraph state machine decomposes a question and routes each part to the right agent, then fuses one answer.</p></div>
-    <div class="card"><div class="ic">💬</div><h3>Zero-knowledge to expert</h3>
-      <p>Lay terms resolve ("stuffy" → CO₂) for anyone; experts still get Brick classes and the SPARQL browser.</p></div>
+    <div class="card"><div class="ic">🎯</div><h3>Grounded in the building's data</h3>
+      <p>Figures are computed from the graph, a database or a floor plan, and the answer names its sources. If a place or reading is missing, OntoSage says so.</p></div>
+    <div class="card"><div class="ic">🧩</div><h3>Routed to the right lane</h3>
+      <p>Each question is classified and sent to a lane built for it: readings, trends and forecasts, ranking spaces, records, floor plans, documents or report intake.</p></div>
+    <div class="card"><div class="ic">💬</div><h3>Lay terms to Brick classes</h3>
+      <p>"Stuffy" resolves to CO₂ and "too warm" to temperature. Experts can still use Brick class names and a SPARQL browser.</p></div>
     <div class="card"><div class="ic">🏢</div><h3>Building-agnostic</h3>
-      <p>Onboard any building from the admin console — identity, ontology, sensors, documents, floor plans. No code change.</p></div>
-    <div class="card"><div class="ic">🔒</div><h3>Admin-controlled access</h3>
-      <p>Every data endpoint is gated by RBAC — 6 roles × 20 permissions. Personas frame answers; they never grant access.</p></div>
+      <p>Add a building from the admin console or by dropping files into <code>input/</code>: identity, Turtle, databases, documents, floor plans. No code change.</p></div>
+    <div class="card"><div class="ic">🔒</div><h3>Administrator-controlled access</h3>
+      <p>Every data and admin endpoint needs a permission: 6 roles, 22 permissions. Personas change how an answer is framed, never what a person may see.</p></div>
     <div class="card"><div class="ic">⚙️</div><h3>Local or API models</h3>
-      <p>Run fully local on Ollama (<code>gpt-oss:20b</code>) or via OpenAI — model and embeddings switch independently.</p></div>
+      <p>Run the language model on local Ollama (<code>gpt-oss:20b</code>), OpenAI, Ollama Cloud or an OpenAI-compatible gateway. Embeddings are chosen separately.</p></div>
   </div>
 </div></section>
 
 <section class="blk" id="how" style="background:var(--bg-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
   <span class="kicker">How it works</span>
   <h2 class="blk-h">Connect data → get answers.</h2>
-  <p class="blk-lead">A question is answerable when the sensor is a triple in the graph <em>and</em> its
-    readings are rows in a registered database. Onboarding is drop-in — no code.</p>
+  <p class="blk-lead">A reading is answerable when the sensor is a triple in the graph <em>and</em>
+    its readings are rows in a registered database. Adding a building is configuration and
+    data, not code.</p>
   <div class="steps">
-    <div class="step"><h3>Connect the building</h3><p>Drop a Brick/BACnet TTL and register the database from the admin console. Both halves link via <code>ref:storedAt</code>.</p></div>
-    <div class="step"><h3>Ask in plain English</h3><p>Dialogue classifies intent, rewrites follow-ups, and routes through SPARQL → SQL → analytics / floor-plan agents.</p></div>
-    <div class="step"><h3>Get a grounded answer</h3><p>Values are computed live and framed for the asker — facility manager, occupant, researcher, or executive.</p></div>
+    <div class="step"><h3>Connect the building</h3><p>Load the Brick Turtle and register its databases. Each sensor's <code>ref:storedAt</code> names the database that holds its readings.</p></div>
+    <div class="step"><h3>Ask in plain English</h3><p>The question is classified, a follow-up is rewritten into a complete question, and the right lane reads the graph and the databases.</p></div>
+    <div class="step"><h3>Get a checked answer</h3><p>Named places are checked against the graph, figures are computed from the data, and a "How I know this" panel names the sources.</p></div>
   </div>
 </div></section>
 
 <section class="blk"><div class="wrap">
   <span class="kicker">Documentation</span>
   <h2 class="blk-h">Everything to run and extend it.</h2>
-  <p class="blk-lead">From a five-minute boot to the full technical reference.</p>
+  <p class="blk-lead">From the first start to writing the Turtle for your own building.</p>
+
+  <span class="kicker docgroup">Start here</span>
   <div class="doclist">
-    <a class="doc" href="{{ '/docs/introduction/' | relative_url }}"><b>Introduction</b><span>What OntoSage is and the design principles.</span></a>
-    <a class="doc" href="{{ '/docs/quickstart/' | relative_url }}"><b>Quick Start</b><span>Boot the stack and ask your first question.</span></a>
-    <a class="doc" href="{{ '/docs/admin-console/' | relative_url }}"><b>Admin Console</b><span>Onboard and operate a building from the browser.</span></a>
-    <a class="doc" href="{{ '/docs/your-own-building/' | relative_url }}"><b>Use Your Own Building</b><span>Replace the demo fixtures with your ontology and data.</span></a>
-    <a class="doc" href="{{ '/docs/onboarding-building/' | relative_url }}"><b>Onboard a Building</b><span>The two-half rule and the no-code path.</span></a>
-    <a class="doc" href="{{ '/docs/api-reference/' | relative_url }}"><b>API Reference</b><span>Every REST endpoint with examples.</span></a>
-    <a class="doc" href="{{ '/docs/stakeholder-guide/' | relative_url }}"><b>Stakeholder Guide</b><span>Which questions each role can ask.</span></a>
+    <a class="doc" href="{{ '/docs/introduction/' | relative_url }}"><b>Introduction</b><span>What OntoSage is and the principles it follows.</span></a>
+    <a class="doc" href="{{ '/docs/quickstart/' | relative_url }}"><b>Quick Start</b><span>From a fresh clone to a first answer.</span></a>
+    <a class="doc" href="{{ '/docs/stakeholder-guide/' | relative_url }}"><b>Stakeholder Guide</b><span>What different people can ask.</span></a>
+  </div>
+
+  <span class="kicker docgroup">How it answers</span>
+  <div class="doclist">
+    <a class="doc" href="{{ '/docs/how-it-answers/' | relative_url }}"><b>How OntoSage Answers</b><span>What happens to a question, step by step.</span></a>
+    <a class="doc" href="{{ '/docs/answer-lanes/' | relative_url }}"><b>Answer Lanes</b><span>The kinds of question and the lane that answers each.</span></a>
+    <a class="doc" href="{{ '/docs/checks-and-honesty/' | relative_url }}"><b>Checks and Honest Answers</b><span>The checks behind an answer, and why it declines.</span></a>
+  </div>
+
+  <span class="kicker docgroup">Your building and its ontology</span>
+  <div class="doclist">
+    <a class="doc" href="{{ '/docs/write-ttl/' | relative_url }}"><b>Write TTL for Your Building</b><span>Model a building OntoSage can answer about.</span></a>
+    <a class="doc" href="{{ '/docs/edit-ttl/' | relative_url }}"><b>Edit TTL in a Running System</b><span>Change the graph without breaking the deployment.</span></a>
+    <a class="doc" href="{{ '/docs/data-sources/' | relative_url }}"><b>Data Sources</b><span>Databases, adapters and the time-series link.</span></a>
+    <a class="doc" href="{{ '/docs/ontology-browser/' | relative_url }}"><b>Ontology Browser</b><span>Every class and property OntoSage uses.</span></a>
+    <a class="doc" href="{{ '/docs/ontology-relationships/' | relative_url }}"><b>Ontology Relationships</b><span>How spaces, equipment, points and records connect.</span></a>
+    <a class="doc" href="{{ '/docs/ontology-extensions/' | relative_url }}"><b>How OntoSage Extends Brick</b><span>What the OntoSage vocabulary adds and how it aligns.</span></a>
+    <a class="doc" href="{{ '/docs/your-own-building/' | relative_url }}"><b>Use Your Own Building</b><span>Replace the test buildings with your own.</span></a>
+    <a class="doc" href="{{ '/docs/onboarding-building/' | relative_url }}"><b>Onboard a Building</b><span>The two halves and the browser-only path.</span></a>
+  </div>
+
+  <span class="kicker docgroup">Run and operate</span>
+  <div class="doclist">
+    <a class="doc" href="{{ '/docs/admin-console/' | relative_url }}"><b>Admin Console</b><span>Onboard and run a building from the browser.</span></a>
+    <a class="doc" href="{{ '/docs/configuration/' | relative_url }}"><b>Configuration</b><span>Every setting, its default and the feature flags.</span></a>
+    <a class="doc" href="{{ '/docs/security-rbac/' | relative_url }}"><b>Security &amp; RBAC</b><span>Sessions, roles, permissions and data access.</span></a>
+    <a class="doc" href="{{ '/docs/api-reference/' | relative_url }}"><b>API Reference</b><span>Every route and the permission it needs.</span></a>
+    <a class="doc" href="{{ '/docs/architecture/' | relative_url }}"><b>Architecture</b><span>The services and how they connect.</span></a>
   </div>
 </div></section>
 
 <section class="blk" style="padding-top:0"><div class="wrap"><div class="band">
-  <h2>Talk to your building in five minutes.</h2>
-  <p>Clone the repo, run <code>docker compose up -d</code>, open the chat, and ask.</p>
+  <h2>Talk to your building.</h2>
+  <p>Clone the repository, activate a building, fill in <code>.env</code>, run
+    <code>docker compose up -d</code>, and ask.</p>
   <a class="btn btn-white" href="{{ '/docs/quickstart/' | relative_url }}">Get started →</a>
 </div></div></section>
 

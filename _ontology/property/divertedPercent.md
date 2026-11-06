@@ -1,0 +1,45 @@
+---
+title: "ontosage:divertedPercent"
+layout: post
+permalink: /ontology/property/divertedPercent/
+---
+
+[Ontology Browser]({{ '/docs/ontology-browser/' | relative_url }}) › [Properties]({{ '/docs/ontology-browser/' | relative_url }}#property-index) › divertedPercent
+
+| Field | Value |
+|---|---|
+| IRI | `http://ontosage.org/capabilities#divertedPercent` |
+| Label | diverted percent |
+| Kind | datatype property |
+| Domain | [`ontosage:WasteReturn`]({{ '/ontology/class/WasteReturn/' | relative_url }}) |
+| Range | `xsd:decimal` |
+| Inverse | none declared |
+| Sub-property of | none |
+| Defined in | [`ontology/ontosage_schema.ttl`](https://github.com/suhasdevmane/OntoSage/blob/main/ontology/ontosage_schema.ttl) |
+
+## Definition
+
+The share of this stream's tonnage the contractor reports as not sent to landfill. The building's share is the tonnage-weighted figure, not the mean of these.
+
+## Used in record document mappings
+
+| Record type | Column | Datatype |
+|---|---|---|
+| [`waste_return`]({{ '/ontology/vocabulary/record-document-mappings/' | relative_url }}#waste_return) | `diverted_pct` | `xsd:decimal` |
+
+## Turtle
+
+{% raw %}
+```turtle
+@prefix ontosage: <http://ontosage.org/capabilities#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ontosage:divertedPercent a owl:DatatypeProperty ;
+    rdfs:label "diverted percent"@en ;
+    rdfs:comment "The share of this stream's tonnage the contractor reports as not sent to landfill. The building's share is the tonnage-weighted figure, not the mean of these."@en ;
+    rdfs:domain ontosage:WasteReturn ;
+    rdfs:range xsd:decimal .
+```
+{% endraw %}
