@@ -53,6 +53,7 @@ The sidebar lists `_docs/` pages in order of their `date` front-matter value.
 | Write TTL for your building | `/docs/write-ttl/` |
 | Edit TTL in a running system | `/docs/edit-ttl/` |
 | Ontology browser | `/docs/ontology-browser/` |
+| Ontology explorer (class tree and search, generated) | `/explorer/` |
 | Ontology relationships | `/docs/ontology-relationships/` |
 | How OntoSage extends Brick | `/docs/ontology-extensions/` |
 | Use your own building | `/docs/your-own-building/` |
@@ -126,6 +127,24 @@ usage, `--skip-building` leaves that block unchanged, and `--report FILE` lists 
 publication filter changed. The script needs `rdflib` 7 and `PyYAML`. Only schema-level content
 is published; building instance data (rooms, sensors, ids) is never written. Re-running over
 unchanged sources changes nothing.
+
+## Regenerate the ontology explorer
+
+`explorer/` is a static site in the style of ontology.brickschema.org, built by
+[rdf-toolkit](https://github.com/ektrah/rdf-toolkit) (MIT) from the same published graph as the
+reference pages. Run it after the script above:
+
+```bash
+docker build -t ontosage-rdf-toolkit _tools/explorer    # once; the fork Brick uses, pinned
+python _tools/gen_ontology_explorer.py --source ../OntoSage
+```
+
+The script writes an rdf-toolkit project to `_tools/explorer/project/` (ignored by git), runs the
+toolkit in Docker, then adjusts the output: links to individuals go to their reference entries,
+the search index gains every lay term, and the generic footer is replaced. It exits non-zero if
+any link to an OntoSage IRI is left pointing at the IRI, which does not resolve. The output is
+about 275 MB on disk because every page carries the whole class tree; git stores it in about
+1 MB, since the pages are nearly identical.
 
 ## Licence
 

@@ -19,6 +19,13 @@ computed by that script. For how the terms are used in a building graph, read
 schema sits beside Brick and how to add your own terms, read
 [How OntoSage Extends Brick]({{ '/docs/ontology-extensions/' | relative_url }}).
 
+To browse the same schema as a class tree, in the style of the
+[Brick ontology explorer](https://ontology.brickschema.org/), open the
+[Ontology Explorer]({{ '/explorer/' | relative_url }}). It shows each OntoSage class under the
+Brick class it specialises, and its search also accepts everyday words: *stuffy* leads to
+`hbco:stuffiness`, *bathroom* to `ontosage:ToiletFacility`. Concepts, roles, intents and other
+individuals link back to their entries on the pages below.
+
 ## At a glance
 
 <!-- BEGIN GENERATED: summary -->
@@ -649,3 +656,14 @@ sorted, so a re-run over unchanged sources produces no changes. The relationship
 read one building's TTL files (`--building bldg1` by default, found in `input/` when that
 building is active or in `bldg1/` when it is parked); pass `--skip-building` to leave them as
 they are.
+
+The [Ontology Explorer]({{ '/explorer/' | relative_url }}) is built from the same published
+graph by a second script, which runs [rdf-toolkit](https://github.com/ektrah/rdf-toolkit) in
+Docker (the fork that ontology.brickschema.org uses, pinned to one commit):
+
+```bash
+docker build -t ontosage-rdf-toolkit _tools/explorer    # once
+python _tools/gen_ontology_explorer.py --source ../OntoSage
+```
+
+It rewrites `explorer/`. Re-run both scripts after a schema change, so the two stay in step.

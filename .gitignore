@@ -4,3 +4,5 @@ _site
 .jekyll-metadata
 vendor
 PAT
+_tools/explorer/project/
+__pycache__/
