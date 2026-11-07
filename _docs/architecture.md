@@ -1,13 +1,12 @@
 ---
 title: Architecture
+description: "The services, the request pipeline and the stores, and how they connect."
 layout: post
 category: docs
 permalink: /docs/architecture/
 date: 2026-07-08
 mermaid: true
 ---
-
-# Architecture
 
 This page describes how OntoSage is put together: the services Docker Compose starts, the
 LangGraph state machine that handles each question, the shared state the nodes pass along, the
@@ -53,44 +52,55 @@ Two things run outside Compose:
 Cassandra; see [Data sources and adapters]({{ '/docs/data-sources/' | relative_url }}).
 
 ```mermaid
-flowchart LR
-    browser["Browser"]
-    owui["Open WebUI :3000"]
-    panel["Admin console :3001"]
-    mcp["MCP server :8003<br/>profile mcp"]
-    orch["Orchestrator :8000<br/>FastAPI + LangGraph"]
-    graphdb[("GraphDB :7200")]
-    rag["rag-service :8001"]
-    exec["code-executor :8002<br/>internal network only"]
-    redis[("Redis :6379")]
-    pg[("PostgreSQL :5433")]
-    qdrant[("Qdrant :6333")]
-    mysql[("MySQL on host :3306<br/>and other registered stores")]
-    llm["LLM provider<br/>local, hosted, cloud or openai"]
-    pub["data-publisher"]
-    out[("outputs/ volume")]
-    fs["file-server :8080"]
+%% caption: The services of one running building. Docker compose starts the ways in, the orchestrator, the stores and the helpers; MySQL and a local model run on the host.
+flowchart TB
+    browser(["Browser or API client"]):::user
 
-    browser --> owui
-    browser --> panel
-    owui -->|"/v1/chat/completions"| orch
-    panel -->|"/api, /auth"| orch
-    mcp -->|"/chat"| orch
-    orch --> graphdb
-    orch --> rag
-    rag --> graphdb
-    orch --> exec
-    orch --> redis
-    orch --> pg
-    orch --> qdrant
-    orch --> mysql
-    orch --> llm
-    pub --> mysql
-    orch --> out
-    exec --> out
-    fs --> out
-    browser -.->|"chart, export and plan links"| fs
+    subgraph clients["Ways in"]
+        direction TB
+        owui["Open WebUI :3000<br/>/v1/chat/completions"]
+        panel["Admin console :3001<br/>/api, /auth"]
+        mcp["MCP server :8003<br/>/chat, optional"]:::ext
+    end
+
+    orch["Orchestrator :8000<br/>FastAPI + LangGraph"]
+
+    subgraph stores["Stores, started by compose"]
+        direction TB
+        graphdb[("GraphDB :7200<br/>building graph")]:::store
+        redis[("Redis :6379<br/>state, caches")]:::store
+        pg[("PostgreSQL :5433<br/>users, turns")]:::store
+        qdrant[("Qdrant :6333<br/>documents, plans")]:::store
+    end
+
+    subgraph helpers["Helpers, started by compose"]
+        direction TB
+        rag["rag-service :8001<br/>search over GraphDB"]
+        exec["code-executor :8002<br/>sandboxed"]:::check
+        fs["file-server :8080<br/>charts, exports, plans"]
+        pub["data-publisher<br/>dev readings"]:::ext
+    end
+
+    subgraph host["On the host"]
+        direction TB
+        mysql[("MySQL :3306<br/>and other registered stores")]:::store
+        llm["LLM provider<br/>local, hosted, cloud or openai"]:::llm
+    end
+
+    browser --> clients
+    clients --> orch
+    orch --> stores
+    orch --> helpers
+    orch --> host
+    stores ~~~ helpers ~~~ host
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef ext fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 4
 ```
+<p class="os-legend"><span class="k-user"><i></i>person</span><span class="k-node"><i></i>service</span><span class="k-store"><i></i>store</span><span class="k-llm"><i></i>language model</span><span class="k-check"><i></i>sandboxed</span><span class="k-ext"><i></i>optional</span></p>
 
 ### The code-executor sandbox
 
@@ -107,6 +117,32 @@ treated as hostile:
   modules) and `os`, `sys`, `subprocess`, `socket`, `open`, `eval` and similar are refused.
 
 The in-process checks are a second line of defence. The container settings are the boundary.
+
+```mermaid
+%% caption: The code-executor sits only on a network declared internal, so model-written code can reach the shared outputs folder and nothing else.
+flowchart LR
+    subgraph othernet["Other network"]
+        direction TB
+        mysql[("MySQL on the host")]:::store
+        net(["Internet"]):::ext
+    end
+    orch["Orchestrator<br/>joins both networks"]
+    subgraph internal["executor-internal"]
+        direction TB
+        exec["code-executor<br/>read-only root, no capabilities,<br/>2 GB, 2 CPUs, 30 s per run,<br/>no credentials in its environment"]:::check
+    end
+    out[("outputs/<br/>charts and data files")]:::store
+
+    orch --> mysql
+    orch -->|"code + data"| exec
+    exec -->|"chart, table"| out
+    exec -. "no route" .-x mysql
+    exec -. "no route" .-x net
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef ext fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 4
+```
 
 ## The request pipeline
 
@@ -139,6 +175,33 @@ Every turn enters at `dialogue` and leaves through `response`. In between:
    control, report intake and others) answer on their own and go straight to `response`.
 5. **response** composes the reply, runs the answer checks and attaches sources.
 
+```mermaid
+%% caption: The LangGraph state machine. Every turn enters at dialogue and leaves through response; data intents run the graph-then-readings pipeline, standalone intents run one node.
+flowchart TD
+    start(["Question"]):::user --> dialogue["dialogue<br/>rewrite, concepts, intent,<br/>routing contract, referent gate"]:::llm
+    dialogue --> route{"_route_from_dialogue"}
+    route -->|"data intent"| sparql["sparql<br/>sensors and timeseries refs"]
+    sparql --> sql["sql<br/>readings via adapters"]
+    sql --> analytics["analytics<br/>statistics, forecasts"]
+    analytics --> viz["visualization<br/>chart"]
+    sql -.-> anomaly["anomaly"]
+    sql -.-> report["report"]
+    route -->|"standalone intent"| lanes["capability, floor_plan, spatial,<br/>events, registers, observability,<br/>control, report intake, ..."]
+    route -->|"meta intent"| response
+    sql --> response
+    analytics --> response
+    viz --> response
+    anomaly --> response
+    report --> response
+    lanes --> response
+    response["response<br/>compose, check, cite"]:::check --> done(["Reply"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 The current routing-rule counts are printed from the module rather than written down, because
 any written number goes stale:
 
@@ -168,32 +231,27 @@ it. `tests/test_intent_graph_autowire.py` checks the first two.
 The diagram follows *"What was the average CO2 on floor 3 yesterday?"* asked in Open WebUI.
 
 ```mermaid
+%% caption: "What was the average CO2 on floor 3 yesterday?" from Open WebUI to the streamed reply.
 sequenceDiagram
     autonumber
     participant U as Open WebUI
     participant M as main.py
-    participant D as dialogue node
-    participant S as sparql node
-    participant G as GraphDB
-    participant Q as sql node
-    participant A as adapter registry
-    participant DB as MySQL
-    participant R as response node
-    U->>M: POST /v1/chat/completions with pipeline key and user e-mail header
-    M->>M: resolve user and role, load conversation from Redis, wait for the pipeline gate
-    M->>D: ConversationState
-    D->>D: rewrite follow-up, resolve concepts, classify intent, apply routing rules, check referents
-    D->>S: data intent routed to sparql
-    S->>G: SPARQL for CO2 sensors on floor 3 with ref:hasTimeseriesId and ref:storedAt
-    G-->>S: sensor IRIs, UUIDs and storage keys
+    participant D as dialogue
+    participant S as sparql
+    participant Q as sql
+    participant R as response
+    U->>M: POST /v1/chat/<br/>completions
+    Note over M: user and role,<br/>conversation,<br/>pipeline gate
+    M->>D: state
+    Note over D: rewrite, intent,<br/>routing rules,<br/>referent check
+    D->>S: data intent
+    Note over S: GraphDB: CO2<br/>sensors on floor 3,<br/>their UUIDs
     S->>Q: sparql_result
-    Q->>A: adapter for each storedAt key
-    A->>DB: one GROUP BY over yesterday, bounds in UTC
-    DB-->>Q: per-sensor aggregates
-    Q->>R: sql_result and aggregate_result
-    R->>R: compose answer, bind figures to rows, relevance check, sources
-    R-->>M: assistant_message
-    M->>M: save state to Redis and turn summary to PostgreSQL
+    Note over Q: adapter: one<br/>GROUP BY over<br/>yesterday (UTC)
+    Q->>R: sql_result
+    Note over R: compose, bind<br/>figures, check,<br/>cite sources
+    R-->>M: answer
+    Note over M: save turn<br/>(Redis, Postgres)
     M-->>U: streamed reply
 ```
 

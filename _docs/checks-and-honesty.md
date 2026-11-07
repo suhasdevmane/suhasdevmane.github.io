@@ -1,12 +1,11 @@
 ---
 title: Checks and Honest Answers
+description: "The checks every answer passes, and why OntoSage declines rather than guess."
 layout: post
 category: docs
 permalink: /docs/checks-and-honesty/
 date: 2026-07-06
 ---
-
-# Checks and honest answers
 
 OntoSage will always be asked about things a building does not have, for periods it holds no readings
 for, and by people who may not see everything. This page describes the checks that stop it answering
@@ -47,6 +46,29 @@ setting, the setting and its code default are given.
 | Units and aggregation | `services/units.py`, `services/aggregate_lane.py`, `services/sensor_binder.py` | always on | Refuses the aggregate when units are unknown |
 | Time | `services/requested_interval.py`, `shared/db_clock.py` | always on | Keeps the range compiled upstream for a disputed phrase |
 
+```mermaid
+%% caption: Where the checks run in one turn. Each check has a stated failure direction; only the disclosure gate fails closed.
+flowchart TD
+    Q(["Question"]):::user --> RE["Referent existence<br/>end of the dialogue node"]:::check
+    RE -- "not_found" --> DEC(["One-sentence decline"]):::stop
+    RE --> L["The lane retrieves and computes<br/>units, aggregation and time rules apply here"]
+    L --> RN
+    subgraph RN["Response node, in this order"]
+        direction TB
+        R1["Answer relevance<br/>fails open"]:::check --> R2["Grounding and absence wording<br/>fails open"]:::check
+        R2 --> R3["Absence guard<br/>fails open"]:::check
+        R3 --> R4["Disclosure gate, fails closed<br/>Publication gate, fails open"]:::stop
+        R4 --> R6["Wording pass"]:::check
+        R6 --> R7["Claim binding<br/>records by default"]:::check
+    end
+    RN --> A(["Answer + How I know this"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 ## The referent existence check
 
 A question that names something specific is checked against the active building's graph before any
@@ -74,6 +96,25 @@ The outcomes:
 | `no_referent` | Nothing specific was named, or the word only looked like a place ("this room *feels* stuffy") | The turn continues unchanged |
 | `stepped_aside` | The building holds this kind of thing and the modifier only describes it | The lanes answer. If the building has exactly one space of that kind, the data lane binds the phrase to it for the rest of the turn and the answer says which space it used |
 | `skipped` | The check could not run (GraphDB unreachable or timed out) | See below |
+
+```mermaid
+%% caption: The outcomes of the referent check. Only a named thing the graph does not hold is declined; a check that could not run lets the turn proceed, but lanes will not assert anything about a named place they could not check.
+flowchart TD
+    Q(["Question"]):::user --> N{"Names something<br/>specific?"}
+    N -- no --> NR(["no_referent: continue"]):::answer
+    N -- yes --> RUN{"Could GraphDB<br/>be asked?"}
+    RUN -- no --> SK["skipped: the turn proceeds;<br/>data and capability lanes<br/>refuse to assert about it"]:::check
+    RUN -- yes --> F{"What does the<br/>graph hold?"}
+    F -- "exactly that" --> RS(["resolved: continue"]):::answer
+    F -- "several matching ids" --> AM(["ambiguous: ask which"]):::user
+    F -- "the kind, described<br/>by the modifier" --> SA(["stepped_aside: lanes answer"]):::answer
+    F -- "nothing" --> NF(["not_found: decline"]):::stop
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 **When the check cannot complete.** At turn level `apply_referent_gate` fails open: refusing a
 legitimate question because GraphDB blinked would be the worse trade, and the lanes' own guards still
@@ -105,6 +146,36 @@ for the user. `{subject}` is the only thing substituted into it.
 | `backend_unavailable` | 3 | "I could not reach the store that holds {subject}'s readings just now. This is a temporary retrieval problem on my side, not a statement about the building." Next step: ask again shortly. |
 | `insufficient_quality` | (2) | Readings exist but are too stale, invalid or incomplete for the claim. |
 | `access_restricted` | 4 | "I cannot share {subject} at that level of detail." |
+
+```mermaid
+%% caption: Seven states, four kinds of nothing. Only the green states may be narrated as absence of data, and only not_declared may suggest installing a sensor.
+flowchart LR
+    subgraph k1["1 · Not held"]
+        direction LR
+        s1["not_declared"]:::store
+    end
+    subgraph k2["2 · Not in that period"]
+        direction LR
+        s2["no_observations"]:::store
+        s7["insufficient_quality"]:::check
+    end
+    subgraph k3["3 · Not retrievable just now"]
+        direction LR
+        s3["reference_missing"]:::check
+        s4["series_unresolved"]:::check
+        s5["backend_unavailable"]:::check
+    end
+    subgraph k4["4 · Not permitted"]
+        direction LR
+        s6["access_restricted"]:::stop
+    end
+    k1 ~~~ k2 ~~~ k3 ~~~ k4
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+```
+<p class="os-legend"><span class="k-store"><i></i>absence of data</span><span class="k-check"><i></i>retrieval or quality problem</span><span class="k-stop"><i></i>policy</span></p>
 
 Two properties of a classified outcome matter for every lane. `is_absence_of_data` is true only for
 `not_declared` and `no_observations`: the other states are failures of retrieval and must never be
@@ -189,6 +260,21 @@ It classifies three families:
 
 Each claim is marked bound, derived (a sum, mean or percentage within a stated tolerance), unbound or
 skipped, and the report is stored on the turn and on its evidence record.
+
+```mermaid
+%% caption: Claim binding. Every figure, universal and inference in the final answer is matched against the rows the turn retrieved; the mode decides what happens to an unbound one.
+flowchart LR
+    A(["Final answer"]) --> X["Find claims<br/>numeric, universal,<br/>inference"]
+    X --> M{"Supported by<br/>a retrieved row?"}:::check
+    M -- "yes, or derived<br/>within tolerance" --> B(["bound / derived"]):::answer
+    M -- no --> U["unbound"]:::stop
+    U --> REC["record (default):<br/>logged, answer unchanged"]
+    U --> ENF["enforce: sentence removed<br/>or a caveat added"]:::stop
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 The mode is set by `CLAIM_BINDING_MODE` = `off`, `record` or `enforce` (or `CLAIM_BINDING_ENABLED`
 truthy for `enforce`). **The default is `record`**: the binder counts and logs and the answer is

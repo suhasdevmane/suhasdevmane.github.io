@@ -1,5 +1,6 @@
 ---
 title: Ontology Browser
+description: "Every class, property and vocabulary OntoSage adds on top of Brick."
 layout: post
 category: docs
 permalink: /docs/ontology-browser/
@@ -25,6 +26,8 @@ To browse the same schema as a class tree, in the style of the
 Brick class it specialises, and its search also accepts everyday words: *stuffy* leads to
 `hbco:stuffiness`, *bathroom* to `ontosage:ToiletFacility`. Concepts, roles, intents and other
 individuals link back to their entries on the pages below.
+
+<p class="os-button-row"><a class="os-button" href="{{ '/explorer/' | relative_url }}"><i class="fa fa-sitemap" aria-hidden="true"></i> Open the Ontology Explorer</a></p>
 
 ## At a glance
 
@@ -640,6 +643,21 @@ Classes that specialise a Brick class:
 <!-- END GENERATED: vocabularies -->
 
 ## Regenerating these pages
+
+```mermaid
+%% caption: Two outputs from one published graph. The reference pages and the explorer read the same schema-only, sanitised graph, so they cannot disagree about a term.
+flowchart TB
+    SRC[("OntoSage repository<br/>ontology/*.ttl, record_documents/")]:::store --> M["gen_ontology_reference.Model<br/>schema-level only,<br/>development notes removed"]:::check
+    M --> R1["gen_ontology_reference.py"]
+    M --> R2["gen_ontology_explorer.py<br/>+ Brick 1.4 excerpt"]
+    R1 --> P1(["_ontology/ pages and the<br/>generated blocks of three docs pages"]):::answer
+    R2 --> TK["rdf-toolkit in Docker<br/>pinned fork"]
+    TK --> P2(["explorer/<br/>class tree and search"]):::answer
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 From the root of this site's repository, with the OntoSage repository checked out beside it and
 Python with `rdflib` (7.x) and `PyYAML` installed:

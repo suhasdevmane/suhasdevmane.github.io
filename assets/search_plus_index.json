@@ -76,11 +76,16 @@ layout: null
   {%- assign tags = document.tags | uniq -%}
   {%- assign categories = document.categories | uniq -%}
   {%- assign taxonomies = tags | concat: categories | uniq -%}
+{%- comment -%} Diagram source is markup, not prose: leave Mermaid blocks out of the index. {%- endcomment -%}
+  {%- assign parts = document.content | split: '<div class="language-mermaid highlighter-rouge">' -%}
+  {%- capture body -%}{%- for part in parts -%}{%- if forloop.first -%}{{ part }}{%- else -%}{%- assign rest = part | split: '</code></pre></div></div>' -%}{%- for r in rest offset: 1 -%}{{ r }}{%- endfor -%}{%- endif -%}{%- endfor -%}{%- endcapture -%}
+  {%- assign parts = body | split: '<code class="language-mermaid">' -%}
+  {%- capture body -%}{%- for part in parts -%}{%- if forloop.first -%}{{ part }}{%- else -%}{%- assign rest = part | split: '</code>' -%}{%- for r in rest offset: 1 -%}{{ r }}{%- endfor -%}{%- endif -%}{%- endfor -%}{%- endcapture -%}
   {{ document.url | relative_url | jsonify }}: {
     "title": {{ document.title | smartify | strip_html | normalize_whitespace | jsonify }},
     "keywords": {{ taxonomies | join: " " | normalize_whitespace | jsonify }},
     "url": {{ document.url | relative_url | jsonify }},
-    "body": {{ document.content | strip_html | normalize_whitespace | jsonify }}
+    "body": {{ body | strip_html | normalize_whitespace | jsonify }}
   }{%- unless forloop.last -%},{%- endunless -%}
 {%- endfor -%}
 }

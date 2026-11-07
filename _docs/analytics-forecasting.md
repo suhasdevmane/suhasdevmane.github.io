@@ -1,12 +1,11 @@
 ---
 title: Analytics, Forecasting and Charts
+description: "Where totals, averages, forecasts, charts and exports are computed."
 layout: post
 category: docs
 permalink: /docs/analytics-forecasting/
 date: 2026-07-10
 ---
-
-# Analytics, forecasting and charts
 
 This page covers what happens after readings are fetched: totals and averages computed in the
 database, statistics computed by model-written Python in a sandbox, forecasts with uncertainty
@@ -26,6 +25,22 @@ first place is on [Data sources and adapters]({{ '/docs/data-sources/' | relativ
 | A prediction ("tomorrow", "next week", "will it ... this afternoon") | the forecasting models | analytics node, `agents/forecast_agent.py` + `services/forecasting/` |
 | A chart | a fixed plotting template or model-written plotting code, in the code-executor | `agents/visualization_agent.py` |
 | A file | the export agent | `agents/data_export_agent.py` |
+
+```mermaid
+%% caption: The question's shape decides where its figures are computed. Store-side aggregation answers without moving the rows; the sandbox runs model-written Python only over rows it is handed.
+flowchart LR
+    Q(["Readings question"]):::user --> S{"What is asked?"}
+    S -- "max, min, mean, total,<br/>count, right now" --> AG[("Aggregate lane<br/>GROUP BY in the store")]:::store
+    S -- "per day, per hour" --> BD[("Breakdown<br/>time buckets in the store")]:::store
+    S -- "statistics, correlation,<br/>patterns, recipes" --> SB["Analytics node<br/>Python in the code-executor"]:::check
+    S -- "tomorrow, next week,<br/>will it ...?" --> FC["Forecasting<br/>linear, seasonal, ETS, ARIMA"]
+    S -- "plot, chart, graph" --> VZ["Visualization<br/>template or sandboxed code"]:::check
+    S -- "as CSV, PDF, Word" --> EX["Export agent<br/>file in outputs/exports"]
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+```
 
 When the aggregate lane answers, the sql node stores `aggregate_result` and routes straight to
 the response node: no later lane recomputes or rewords those figures.
@@ -79,6 +94,22 @@ The analytics node hands fetched rows to `AnalyticsAgent.analyze`:
 4. The output is formatted into the answer; a total is computed in code, never left to the
    narration.
 
+```mermaid
+%% caption: The analytics loop. Generated code sees one JSON file of this turn's rows; a failed run goes back to the model with its error, three attempts in all.
+flowchart TD
+    R[("Rows and sensor metadata<br/>written to outputs/ as JSON")]:::store --> T{"A template<br/>fits?"}
+    T -- yes --> RUN
+    T -- no --> LLM["Model writes Python<br/>guided by recipe hints"]:::llm
+    LLM --> RUN["code-executor<br/>POST /execute"]:::check
+    RUN -- "error, attempt < 3" --> LLM
+    RUN -- ok --> OUT(["Result formatted into the answer<br/>totals computed in code"]):::answer
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 The code-executor runs on an internal-only Docker network with no route to the databases or the
 internet, holds no credentials, has a read-only filesystem, no Linux capabilities, 2 GB of memory
 and 2 CPUs, and kills a run after `CODE_EXECUTOR_TIMEOUT` seconds (default 30). Imports are limited
@@ -119,6 +150,23 @@ something "will" happen later today. The pipeline in `services/forecasting/`:
 | Models | `model_selector.py`, `models/` | Linear trend always; seasonal naive from 24 points; Holt-Winters exponential smoothing from 10 points; ARIMA from 30 points. Each is fitted on the first 80% and scored on the last 20%; the lowest mean absolute error wins, and every candidate's metrics are reported. |
 | Bands | `calibration.py` | 80% and 95% intervals. If `scripts/grade_forecasts.py` has graded past forecasts for this building, the bands are widened to the coverage actually observed, per quantity and horizon (stored in `volumes/<building>/artifacts/forecast_skill.json`). With no grading, the raw bands are used. |
 
+```mermaid
+%% caption: The forecasting pipeline. Every candidate model is scored on held-out history; where past forecasts have been graded, the bands are widened to the coverage they actually achieved.
+flowchart TD
+    H["Horizon<br/>tomorrow: 24 h in 1 h steps"] --> HI[("History<br/>about 8 x the forecast span")]:::store
+    HI --> SC["Scope<br/>fold a floor's sensors into one series;<br/>mean or total from the quantity"]
+    SC --> PR["Preparation<br/>UTC, resample, fill short gaps,<br/>clip at 3 sigma"]
+    PR --> MO{"Models<br/>fit on 80%, score on 20%"}:::check
+    MO --> L1["Linear"] & L2["Seasonal naive<br/>24+ points"] & L3["Holt-Winters<br/>10+ points"] & L4["ARIMA<br/>30+ points"]
+    L1 & L2 & L3 & L4 --> W["Lowest MAE wins"]
+    W --> B["Bands: 80% and 95%,<br/>widened if graded skill exists"]:::check
+    B --> A(["Forecast with its band<br/>and every candidate's metrics"]):::answer
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 Two refinements sit on top:
 
 - **Comparing two places** ("will floor 3 be warmer than floor 4 tomorrow?") forecasts each place
@@ -147,6 +195,21 @@ The code-executor prints the image as base64. The orchestrator writes it to `/ap
 (the repository's `outputs/` folder) and links it in the reply as
 `<STATIC_BASE_URL>/static/<file>.png`. The `file-server` service (nginx, port 8080) serves
 `outputs/` at `/static/`, with cross-origin access allowed so Open WebUI can show the image.
+
+```mermaid
+%% caption: How a chart reaches the reader. The image is written to outputs/ and linked by address, so STATIC_BASE_URL must be reachable from the reader's browser.
+flowchart TB
+    CE["code-executor<br/>prints the PNG as base64"]:::check --> OR["Orchestrator<br/>writes outputs/&lt;file&gt;.png"]
+    OR --> AN(["Answer links<br/>STATIC_BASE_URL/static/&lt;file&gt;.png"]):::answer
+    AN --> BR(["Reader's browser"]):::user
+    BR -- "GET /static/..." --> FS["file-server :8080<br/>nginx, CORS allowed"]
+    FS --> OUT[("outputs/")]:::store
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 `STATIC_BASE_URL` must be an address the **reader's browser** can reach. The compose file sets it
 to `http://localhost:8080`, which works only on the machine running the stack. For anyone else,
@@ -182,6 +245,25 @@ by the registered tariff (`services/utility_cost.py`):
    cubic metres, Wh or MWh to kWh). A unit that cannot be converted gets no figure.
 5. Cost = consumption x `ontosage:unitRate` + `ontosage:standingCharge` x days covered. The
    sentence names the tariff, its rate and its provider, and says rates exclude VAT.
+
+```mermaid
+%% caption: Utility cost is metered consumption times the one tariff that covers the whole period. With no such tariff, or two, no cost is stated.
+flowchart TD
+    Q(["How much did the water<br/>cost last week?"]):::user --> M[("Metered total<br/>for the period")]:::store
+    M --> U["Map to a utility<br/>water, gas, electricity"]
+    U --> T{"Exactly one ontosage:Tariff<br/>covers the whole period?"}:::check
+    T -- "none, or two" --> NO(["No cost stated;<br/>the missing source is named"]):::stop
+    T -- yes --> C{"Units convert to<br/>the rate unit?"}:::check
+    C -- no --> NO
+    C -- yes --> F["consumption x unitRate<br/>+ standingCharge x days"]
+    F --> A(["Cost, naming the tariff,<br/>rate and provider, ex VAT"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 Tariffs are graph records. In the shipped building they come from a record document in
 `documents/` with `record_type: tariff` in its front matter and a table mapped to `tariffs`, which

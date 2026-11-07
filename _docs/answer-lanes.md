@@ -1,12 +1,11 @@
 ---
 title: Answer Lanes
+description: "The kinds of question OntoSage handles and the lane that answers each."
 layout: post
 category: docs
 permalink: /docs/answer-lanes/
 date: 2026-07-05
 ---
-
-# Answer lanes
 
 OntoSage sends each question to one **lane**: a node in the LangGraph workflow that knows how to
 answer one kind of question. This page describes every lane: what it serves, what it reads, what it
@@ -42,6 +41,43 @@ taken from that file's `examples` and from the project's user guide.
 | [Control and automation](#control-automation-alerts-and-preferences) | `control`, `automation_capability`, `alert`, `preference_management` | one node each | Actuation config, rules, preferences | A decline or a queued approval; alert and preference confirmations |
 | [Conversation](#conversation-lanes) | `session_recall`, `self_description`, `greeting`, `clarification` | one node each, or `response` | The session record, live configuration | The user's own earlier questions; what OntoSage can do; a question back |
 | [Boundaries](#boundaries-privacy-scope-and-general-knowledge) | `privacy_refusal`, `scope_boundary`, `general_guidance`, `general` | one node each | Policy, model knowledge | A refusal with an aggregate alternative, or labelled general guidance |
+
+```mermaid
+%% caption: The lanes, grouped. Data intents run the graph-then-readings pipeline; every other lane is a single node. All of them hand their result to the response node.
+flowchart LR
+    Q(["Question"]):::user --> R{"Router<br/>pipeline_group"}
+    R -- data --> data
+    R -- standalone --> know
+    R -- standalone --> spaces
+    R -- standalone --> acts
+    subgraph data["Data pipeline"]
+        direction TB
+        sp["sparql<br/>sensors and their series"] --> sq[("sql or aggregate lane<br/>rows from the stores")]:::store
+        sq --> an["analytics<br/>statistics, trends, forecasts"]
+        an --> vz["visualization<br/>chart"]
+    end
+    subgraph know["Records and knowledge"]
+        direction LR
+        reg["Records and registers"]
+        cap["Capability<br/>amenities, topics, documents"]
+        obs["Observability<br/>what can be measured"]
+    end
+    subgraph spaces["Spaces"]
+        direction LR
+        del["Deliberation<br/>choosing a space"]
+        fp["Floor plans and spatial"]
+    end
+    subgraph acts["Actions and conversation"]
+        direction LR
+        ri["Report intake"]
+        ctl["Control, alerts,<br/>preferences"]
+        exp["Export and reports"]
+        conv["Conversation and<br/>boundaries"]
+    end
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+```
 
 Some intents are marked *internal* in the YAML (`comfort_history`, `fact_conflict`,
 `privacy_refusal`, `scope_boundary`, `general_guidance`, `session_recall`). The classifier is never
@@ -250,6 +286,25 @@ profile (`capability`).
    minimum relevance score that depends on the embedding model;
 4. an honest statement that the building holds no information on it.
 
+```mermaid
+%% caption: The capability lane's chain. Each source is optional; the first that holds the answer wins, and the last step is an honest statement that the building holds nothing on it.
+flowchart TD
+    Q(["Where is the prayer room?"]):::user --> M{"Needs a live<br/>building metric?"}
+    M -- yes --> LM["Live metrics"]:::store
+    M -- no --> TR{"Amenity, topic or policy<br/>triple matches by lay term,<br/>and is the subject?"}:::check
+    TR -- yes --> AT(["Answer from the graph,<br/>quoting the matching sentences"]):::answer
+    TR -- no --> DOC{"Uploaded document above<br/>the relevance floor?"}:::check
+    DOC -- yes --> AD(["Answer from the document"]):::answer
+    DOC -- no --> NO(["The building holds no<br/>information on this"]):::stop
+    LM --> AL(["Answer with the live figure"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 Topic answers quote the matching sentences, not a whole document chunk. A topic counts only when it is
 the subject of the question, so a word like "hours" inside "the next 12 hours" does not pull in a
 working-hours topic.
@@ -280,6 +335,22 @@ procedures?"*, *"What happens during a power outage?"*
 4. per-space readings (or forecasts, for future-tense questions) are fetched and a deterministic
    scorer ranks the candidates;
 5. the answer is rendered with a collapsible proof-of-analysis dossier.
+
+```mermaid
+%% caption: The deliberation lane (ARBITER). The model only compiles the request; admission, scoring and the dossier are deterministic.
+flowchart LR
+    C["1 · Compile<br/>constraints into<br/>a typed plan"]:::llm --> A["2 · Admit<br/>coverage audit,<br/>facet catalogue"]:::check
+    A --> K{"3 · Clear?"}
+    K -- no --> ASK(["Ask one question,<br/>wait for the reply"]):::user
+    K -- yes --> E["4 · Execute<br/>fetch readings or<br/>forecasts, score"]:::store
+    E --> D(["5 · Shortlist<br/>with a dossier"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 **Answer.** A shortlist with the reason for each place, what was not measured, and the dossier. When a
 plan made only of record criteria finds no space that meets any of them, the answer says so instead of
@@ -321,6 +392,21 @@ suggestion. All five intents share `_report_intake_node` and `services/report_in
 **Does.** Files a row in the Postgres `user_reports` table with a category, a priority (safety and
 urgency words escalate it), the location if given, and the reporter. A question is never filed as a
 report: "is the lift broken?" is answered, "the lift is broken" is filed.
+
+```mermaid
+%% caption: A statement is filed, a question is answered. A filed report gets a tracking id the reporter can ask about later.
+flowchart LR
+    S(["the lift is broken"]):::user --> F["File in user_reports<br/>category, priority,<br/>location, reporter"]:::store
+    F --> ACK(["REP-XXXXXX<br/>acknowledged"]):::answer
+    Q(["is the lift broken?"]):::user --> ANS["Answered by a lane<br/>(asset state)"]
+    ST(["status of REP-XXXXXX?"]):::user --> LOOK["Status lookup,<br/>own reports only"]:::check
+    LOOK --> F
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 **Answer.** An acknowledgement with a tracking id of the form `REP-XXXXXX`, the category, priority and
 status, and how to check progress. If no location was given, the reply asks for one. An urgent report

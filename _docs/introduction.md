@@ -1,12 +1,11 @@
 ---
 title: Introduction
+description: "What OntoSage is, where its answers come from, and the principles it follows."
 layout: post
 category: docs
 permalink: /docs/introduction/
 date: 2026-07-01
 ---
-
-# What is OntoSage?
 
 OntoSage answers plain-English questions about one building from that building's own data. You
 connect the building's Brick/RDF model and the databases that hold its sensor readings, and
@@ -39,9 +38,49 @@ A typical exchange:
 | **Documents** | Policies, manuals and contact sheets | Markdown and plain-text files indexed in Qdrant; a policy triple can name the document that sets it out |
 | **Floor plans** | Room polygons, areas and adjacency | PDF and DWG files, turned into per-floor manifests |
 
+```mermaid
+%% caption: The five kinds of source behind an answer. The graph says what exists and where its data is; the other stores hold the readings, text and geometry.
+flowchart TB
+    Q(["A question"]):::user --> O["OntoSage routes it to a lane"]
+    O -- "reads" --> src
+    subgraph src["The building's own data"]
+        direction TB
+        G[("Building graph<br/>GraphDB")]:::store
+        R[("Records<br/>registers in the graph")]:::store
+        T[("Time-series stores<br/>MySQL, PostgreSQL, ...")]:::store
+        D[("Documents<br/>indexed in Qdrant")]:::store
+        F[("Floor plans<br/>PDF/DWG manifests")]:::store
+    end
+    src -- "answers from" --> A(["Answer + How I know this"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 A sensor reading is answerable when two halves exist: the sensor is a triple in the graph with a
 time-series reference (`ref:hasTimeseriesId` and `ref:storedAt`), and its readings are rows in a
 registered database. See [Data sources]({{ '/docs/data-sources/' | relative_url }}).
+
+```mermaid
+%% caption: The two halves of an answerable reading. The graph names the series and the store it is in; the registry turns the store's name into a connection; the rows hold the values.
+flowchart TB
+    subgraph graph["Half 1: the graph"]
+        direction TB
+        S["bldg:CO2_Sensor_5_01<br/>a brick:CO2_Sensor"]
+        REF["timeseries reference<br/>ref:hasTimeseriesId 'a1b2…'<br/>ref:storedAt 'database1'"]
+        S -- "ref:hasExternalReference" --> REF
+    end
+    REG["database_registry.yaml<br/>database1 → a MySQL connection"]:::check
+    subgraph rows["Half 2: the rows"]
+        direction TB
+        DB[("uuid, datetime, value<br/>a1b2…, 10:00, 812 ppm")]:::store
+    end
+    REF --> REG --> DB
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+```
 
 ## Main properties
 

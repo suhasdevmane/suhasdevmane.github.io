@@ -1,12 +1,11 @@
 ---
 title: Security & RBAC
+description: "Sessions, roles, permissions and per-role data access."
 layout: post
 category: docs
 permalink: /docs/security-rbac/
 date: 2026-07-21
 ---
-
-# Security & RBAC
 
 OntoSage controls access in three layers:
 
@@ -14,6 +13,19 @@ OntoSage controls access in three layers:
 2. **Role permissions (RBAC)**: every data and admin endpoint names the permission it needs.
 3. **Inside the answer pipeline**: per-lane checks, an optional data-source allow-list per role,
    and an optional access-policy decision point at every data fetch.
+
+```mermaid
+%% caption: The three layers a request passes. A persona is not one of them: it changes framing, never access.
+flowchart LR
+    R(["Request"]):::user --> L1["1 · Authentication<br/>session token for people,<br/>pipeline key for Open WebUI"]:::check
+    L1 --> L2["2 · Role permission<br/>require_permission(perm)<br/>401 no session, 403 wrong role"]:::check
+    L2 --> L3["3 · Inside the pipeline<br/>per-lane checks, data-source<br/>allow-list, policy at each fetch"]:::check
+    L3 --> A(["Answer"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 Personas are a separate thing: they change how an answer is framed, never what a person may see.
 
@@ -28,6 +40,25 @@ Passwords must be at least 12 characters, user names at least 3.
 expiry is renewed on each use. Send it as `Authorization: Bearer <token>`, or rely on the
 `session_token` cookie (HttpOnly, SameSite=Lax, Secure unless `COOKIE_SECURE=false`). The role is
 stored in the session at login.
+
+```mermaid
+%% caption: A session, from login to a permission check. The role is fixed in the session at login.
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant O as Orchestrator
+    participant P as PostgreSQL
+    participant R as Redis
+    C->>O: POST /auth/login
+    O->>P: user, Argon2id hash
+    Note over O: lockout after<br/>5 failures
+    O->>R: random token, role,<br/>7 days, renewed on use
+    O-->>C: session token
+    C->>O: request + Bearer token
+    O->>R: resolve the session
+    Note over O: require_permission:<br/>401 or 403 or allowed
+    O-->>C: response
+```
 
 **Lockout and rate limiting.** After `LOGIN_MAX_ATTEMPTS` failed logins (default 5) for one user
 name, that account is locked for `LOGIN_LOCKOUT_SECONDS` (default 900). This is separate from the
@@ -140,11 +171,24 @@ matches it to an account by user name, then by registered email, then by the par
 `@`, and applies that account's role. A person with no OntoSage account is served at `readonly`,
 and a `readonly` account is created for them so an admin can see it and change its role.
 
-```
-"Set the temperature setpoint in zone 5.28 to 21 degrees"
+```mermaid
+%% caption: Who is asking in Open WebUI. With the flag on, the forwarded e-mail picks the account and its role decides the answer; with it off, every chat is one shared readonly identity.
+flowchart TD
+    OW(["Open WebUI<br/>pipeline key + X-OpenWebUI-User-Email"]):::user --> F{"TRUST_FORWARDED_USER?"}:::check
+    F -- false --> RO["shared readonly identity"]
+    F -- true --> M{"Matches an account?<br/>user name, then e-mail,<br/>then the part before @"}:::check
+    M -- yes --> ROLE["that account's role"]
+    M -- no --> NEW["readonly, and a readonly<br/>account is created"]
+    ROLE --> Q(["Set the setpoint in<br/>zone 5.28 to 21 degrees"]):::user
+    RO --> Q
+    NEW --> Q
+    Q --> FM["facility_manager: queued for approval<br/>in the simulated actuation gateway"]:::answer
+    Q --> RD["readonly: refused, the role cannot<br/>control building systems"]:::stop
 
-  readonly          -> refused: the role cannot control building systems
-  facility_manager  -> queued for approval in the (simulated) actuation gateway
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
 
 > **Trust boundary.** A forwarded header is only as trustworthy as whoever holds the pipeline
@@ -193,6 +237,23 @@ from the authenticated session, never from a persona. `PROTECT_ENFORCE` sets the
 | `off` | The policies are never consulted. |
 | `shadow` (code default) | Each verdict is logged as `[protect] ...`; nothing is enforced. |
 | `on` | A denial returns a refusal without touching the database; a restriction (for example a coarser time resolution) is applied and stated in the answer. |
+
+```mermaid
+%% caption: The three stages of PROTECT_ENFORCE. The role always comes from the session; the privacy lane refuses questions about a named person in every stage.
+flowchart LR
+    F(["A lane fetches readings"]):::user --> S{"PROTECT_ENFORCE"}:::check
+    S -- off --> N["Policies not consulted"]
+    S -- "shadow (default)" --> L["Verdict logged as [protect],<br/>nothing enforced"]
+    S -- on --> E{"Verdict"}
+    E -- deny --> D(["Refused, the database<br/>is never touched"]):::stop
+    E -- restrict --> RS(["Restriction applied and stated,<br/>group-size floor for presence data"]):::answer
+    E -- allow --> OK(["Fetched"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 When enforcing, presence-related readings (occupancy, door and window contacts, access events)
 are also held to a minimum group size, so a count cannot reveal where one person is.

@@ -1,13 +1,12 @@
 ---
 title: Onboard a Building
+description: "The two halves a building needs, how buildings are activated and swapped, and the browser-only path."
 layout: post
 category: docs
 permalink: /docs/onboarding-building/
 date: 2026-07-12
 mermaid: true
 ---
-
-# Onboard a building
 
 This page describes how a building is brought up in OntoSage and kept in good order: how the
 active building is chosen, how buildings are parked and swapped, how a building is onboarded
@@ -23,11 +22,14 @@ OntoSage serves **one building at a time**. Onboarding never changes code: it is
 
 ## Both halves, or no answer
 
-```
-A question about a reading is answerable when
-  (a) the point is a triple in the graph          "there is a CO2 sensor in Room 1.01"
-  AND
-  (b) its readings are rows in a registered store  linked by ref:hasTimeseriesId + ref:storedAt
+```mermaid
+%% caption: A reading is answerable only when the point is in the graph AND its rows are in a registered store, joined by the timeseries reference.
+flowchart LR
+    A["(a) the point is a triple in the graph<br/>there is a CO2 sensor in Room 1.01"] -- "ref:hasTimeseriesId<br/>+ ref:storedAt" --> B[("(b) its readings are rows<br/>in a registered store")]:::store
+    B --> OK(["Answerable"]):::answer
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
 
 Rows without triples are invisible, because nothing says what they measure. Triples without rows
@@ -35,11 +37,21 @@ answer structural questions (*"how many CO2 sensors are there?"*) but not *"what
 When a half is missing OntoSage says so rather than offering another sensor's value.
 
 ```mermaid
+%% caption: The five onboarding steps. The first two are required for any answer; each of the others widens what can be answered.
 flowchart LR
-    I["1 Identity<br/>building.yaml"] --> O["2 Ontology<br/>TTL in input/"]
-    O --> D["3 Sensor data<br/>database registered,<br/>points linked"]
-    D --> DOC["4 Documents<br/>input/documents/"]
-    DOC --> FP["5 Floor plans<br/>PDF / DWG per floor"]
+    subgraph req["Required"]
+        direction LR
+        I["1 · Identity<br/>building.yaml"]:::check --> O["2 · Ontology<br/>TTL in input/"]:::check
+    end
+    subgraph opt["Each widens the answers"]
+        direction LR
+        D[("3 · Sensor data<br/>database registered,<br/>points linked")]:::store --> DOC["4 · Documents<br/>input/documents/"]
+        DOC --> FP["5 · Floor plans<br/>PDF / DWG per floor"]
+    end
+    O --> D
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
 ```
 
 Identity and ontology are required: without them nothing can be answered. Sensor data,
@@ -130,6 +142,19 @@ mv docker-compose.bldg2.yml docker-compose.yml
 
 On Windows PowerShell, use `Move-Item` with the same arguments.
 
+```mermaid
+%% caption: Swapping buildings, in the order above. Stop first: renaming while the stack runs leaves the containers with an empty input folder.
+flowchart TB
+    R1(["bldg1 running"]):::answer --> S["1-2 · Find it,<br/>docker compose down"]:::check
+    S --> P["3 · Park bldg1<br/>input/ → bldg1/<br/>.env → .env1<br/>docker-compose.yml →<br/>docker-compose.bldg1.yml"]
+    P --> A["4 · Activate bldg2<br/>bldg2/ → input/<br/>.env2 → .env<br/>docker-compose.bldg2.yml →<br/>docker-compose.yml"]
+    A --> U["docker compose up -d"]
+    U --> R2(["bldg2 running"]):::answer
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 **5. Check that the three identities agree** before you start anything: `BUILDING_ID` in `.env`,
 `building_id` in `input/building.yaml` and `BUILDING_ID` in `input/env.building` must be the same
 id, and `COMPOSE_PROJECT_NAME` in `.env` must be `ontosage_<id>`.
@@ -194,6 +219,24 @@ The log says which file and why:
 
 ```bash
 docker compose logs --tail=50 orchestrator | grep ttl_validator
+```
+
+```mermaid
+%% caption: The start-up check. Any failure stops the start, and the container keeps restarting until the file is fixed; warnings are logged and the start continues.
+flowchart TD
+    B(["Orchestrator starts"]) --> F["Each building TTL file in input/"]
+    F --> P{"Parses?"}:::check
+    P -- no --> X["Start-up stops<br/>log names the file"]:::stop
+    P -- yes --> PX{"Declares<br/>@prefix bldg: ?"}:::check
+    PX -- no --> X
+    PX -- yes --> NS{"Same namespace as<br/>building.yaml?"}:::check
+    NS -- no --> X
+    NS -- yes --> L(["Loaded into its named graph"]):::answer
+    X -. "restarts automatically" .-> B
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
 
 Because the orchestrator restarts automatically, a failed check shows as a container that keeps

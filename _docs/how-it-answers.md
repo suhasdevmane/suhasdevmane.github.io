@@ -1,13 +1,12 @@
 ---
 title: How OntoSage Answers a Question
+description: "One question followed from the chat box to the reply, with the code behind each step."
 layout: post
 category: docs
 permalink: /docs/how-it-answers/
 date: 2026-07-04
 mermaid: true
 ---
-
-# How OntoSage answers a question
 
 This page follows one question from the chat box to the reply, in the order the code runs it, and
 names the file and function behind each step. It is written for developers who want to change or
@@ -41,26 +40,36 @@ Paths below are relative to the `orchestrator/` package unless they start with `
 ## The path in one diagram
 
 ```mermaid
+%% caption: The path of one question. Purple steps call a language model; amber steps are checks; the red branch is the honest decline when a named place is not in the graph.
 flowchart TD
-    A["Client: Open WebUI, admin console Ask tab, or API"] --> B["Entry point in main.py<br/>/v1/chat/completions, /chat, /chat/stream, websocket /stream"]
+    A(["Client: Open WebUI, admin console Ask tab, or API"]):::user --> B["Entry point in main.py<br/>/v1/chat/completions, /chat, /chat/stream, websocket /stream"]
     B --> C["Load conversation state (Redis)<br/>refill history from Postgres<br/>prune results about a place the user has left<br/>inject session summary"]
     C --> D{"Response cache hit?<br/>_serve_from_cache"}
-    D -- yes --> Z["Cached answer and its evidence record"]
-    D -- no --> E["Dialogue node: normalise text<br/>deterministic follow-up resolvers<br/>model rewrite with safety checks"]
-    E --> F["detect_intent: early checks, intent cache,<br/>LLM classification"]
-    F --> G["Routing contract: parse stage, post stage"]
-    G --> H["HBCO concept resolver<br/>then routing contract: concept stage"]
-    H --> I{"Named referent exists<br/>in the graph?"}
-    I -- no --> R["Response node with the honest decline"]
+    D -- yes --> Z(["Cached answer and its evidence record"]):::answer
+    D -- no --> E["Dialogue node: normalise text<br/>deterministic follow-up resolvers<br/>model rewrite with safety checks"]:::llm
+    E --> F["detect_intent: early checks, intent cache,<br/>LLM classification"]:::llm
+    F --> G["Routing contract: parse stage, post stage"]:::check
+    G --> H["HBCO concept resolver<br/>then routing contract: concept stage"]:::check
+    H --> I{"Named referent exists<br/>in the graph?"}:::check
+    I -- no --> X["Honest decline:<br/>it does not exist in this building"]:::stop
     I -- yes --> J["_route_from_dialogue"]
     J --> K["Data pipeline: sparql, sql,<br/>aggregate or analytics, visualization"]
     J --> L["Standalone lanes: capability, deliberate, events,<br/>register, floor_plan, spatial_query, report intake, ..."]
-    K --> R
+    K --> R["Response node"]
     L --> R
-    R --> S["Checks: relevance, publication, disclosure,<br/>wording, claim binding"]
+    X --> R
+    R --> S["Checks: relevance, publication, disclosure,<br/>wording, claim binding"]:::check
     S --> T["Evidence panel and optional Sources footer"]
-    T --> U["Store answer: Redis state, Postgres turn memory,<br/>response cache"]
+    T --> U[("Store answer: Redis state, Postgres turn memory,<br/>response cache")]:::store
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
+<p class="os-legend"><span class="k-user"><i></i>client</span><span class="k-node"><i></i>step</span><span class="k-llm"><i></i>language model</span><span class="k-check"><i></i>check or rule</span><span class="k-stop"><i></i>decline</span><span class="k-store"><i></i>store</span></p>
 
 ## 1. Entry points
 
@@ -142,6 +151,27 @@ normalises typography (a subscript in "CO₂", a narrow no-break space in a room
 The rewritten text replaces the message for every later stage. The original is kept in the message
 metadata and in `intermediate_results["coref_rewrite"]`.
 
+```mermaid
+%% caption: How a follow-up becomes a self-contained question. Code handles the shapes it can recognise; the model rewrite runs last and is rejected if it changes or invents a place.
+flowchart TD
+    M(["Follow-up message"]):::user --> P{"About the previous<br/>answer itself?<br/><i>how do you know that?</i>"}
+    P -- yes --> KEEP(["Left untouched<br/>for the provenance check"]):::answer
+    P -- no --> DR{"A deterministic resolver<br/>matches? ordinal, <i>that report</i>,<br/>sole room, <i>the day before</i>, ..."}:::check
+    DR -- yes --> OK(["Rewritten in code"]):::answer
+    DR -- no --> AMB{"Previous reply named several<br/>places and this says<br/><i>there</i> or <i>it</i>?"}
+    AMB -- yes --> ASK(["Ask which one"]):::user
+    AMB -- no --> LLM["Model rewrite"]:::llm
+    LLM --> SAFE{"rewrite_is_safe and<br/>no invented place?"}:::check
+    SAFE -- no --> ORIG(["Keep the user's wording"])
+    SAFE -- yes --> YEAR["strip_invented_years"]:::check
+    YEAR --> NEW(["Self-contained question"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 ## 5. Intent classification and the routing contract
 
 `DialogueAgent.detect_intent` decides which kind of question this is.
@@ -171,6 +201,21 @@ rule is placed after the rule it corrects. Applied rules are logged and recorded
 | `parse` | `DialogueAgent._parse_llm_response`, before the intent taxonomy is derived | The question text and the classifier's result |
 | `post` | `detect_intent`, after parsing, including the fallback path | The same, after the parse stage |
 | `concept` | `_dialogue_node`, after concept resolution | The resolved HBCO concepts, entities and amenity matches |
+
+```mermaid
+%% caption: The three stages of the routing contract. Each stage is an ordered list; a later rule sees the intent as the rules before it left it.
+flowchart LR
+    CL["Classifier<br/>intent, entities"]:::llm
+    CL --> PS["parse stage<br/>text + result"]:::check
+    PS --> PO["post stage<br/>also on fallback"]:::check
+    PO --> CR["HBCO concept<br/>resolver"]
+    CR --> CS["concept stage<br/>concepts, amenities"]:::check
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 At the time of writing the contract holds **68 parse-stage, 4 post-stage and 8 concept-stage rules**.
 Print the current numbers from the repository root rather than trusting this page:
@@ -338,6 +383,27 @@ re-testing, or an answer produced by the old code may be served.
 | SPARQL | `cache:sparql_gen:*`, `cache:sparql_exec:*`, `cache:sparql:*` | Generated queries and their results | 3600 s | |
 | Compile | `cqir_compile:*` | The deliberation lane's compiled plans | 86,400 s | Survives a restart. Switch off with `CQIR_COMPILE_CACHE=false`. |
 
+```mermaid
+%% caption: Where each cache family is read. A stale entry in any of the four can replay an answer or a routing decision made by older code.
+flowchart TB
+    IN(["Question"]):::user --> RC[("resp_cache: whole answers<br/>read before any lane runs")]:::store
+    RC -- hit --> OUT(["Reply"]):::answer
+    RC -- miss --> DI["Dialogue: classification"]:::llm
+    DI <--> IC[("cache:intent<br/>routing decisions")]:::store
+    DI --> SP["sparql node"]
+    DI --> DL["deliberation lane"]
+    SP <--> SC[("cache:sparql*<br/>queries and rows")]:::store
+    DL <--> CC[("cqir_compile<br/>compiled plans")]:::store
+    SP & DL --> RN["response node"]
+    RN --> OUT
+    RN -. "writes the answer" .-> RC
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 Two longer-lived caches hold reference data rather than answers: `cache:concept:hbco_all` (the HBCO
 concept map, 24 h) and `cache:embed:*` (embeddings, `EMBEDDING_CACHE_TTL_SECONDS`, default 24 h).
 A graph change made through the admin console (a TTL upload or graph drop, a capability added or
@@ -390,6 +456,23 @@ temperature in zone 5.28?"*, asked as the first message of a new chat in Open We
 ## Walkthrough 2: an honest decline
 
 Take the same question on a building whose graph has no zone 5.28.
+
+```mermaid
+%% caption: The two walkthroughs share steps 1 to 5 and part at the existence check. When zone 5.28 is missing, no store is read at all.
+flowchart TB
+    S(["Steps 1-5: entry, cache, dialogue,<br/>classification, concepts"]) --> E{"Is '5.28' in<br/>the graph?"}:::check
+    E -- yes --> SQ["sparql<br/>bind the zone's<br/>temperature sensors"]
+    SQ --> SL["sql<br/>read rows via<br/>ref:storedAt"]:::store
+    SL --> AN["analytics<br/>summarise"]
+    AN --> R1(["Reply with figures<br/>and the evidence panel"]):::answer
+    E -- no --> DC["referent_not_found<br/>no query runs,<br/>no store is read"]:::stop
+    DC --> R2(["'5.28' does not exist<br/>in this building"]):::stop
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 Steps 1 to 5 are identical. At step 6, `detect_referent` picks out the identifier "5.28" (a
 location word followed by an id), `ReferentResolver._exists` finds no subject or label holding it in

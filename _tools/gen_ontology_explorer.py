@@ -295,7 +295,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 # Post-processing of rdf-toolkit's output
 # ─────────────────────────────────────────────────────────────────────────────
 
-DOCS_HOME = "/"
+DOCS_HOME = "/docs/"
 REFERENCE_HOME = "/docs/ontology-browser/"
 SOURCE_URL = "https://github.com/suhasdevmane/OntoSage/tree/main/ontology"
 ISSUES_URL = "https://github.com/suhasdevmane/OntoSage/issues"

@@ -1,3 +1,39 @@
+{%- comment -%}
+  Page body for every layout: post page. The title block, the page itself, then previous/next
+  links taken from _data/docs_nav.yml (reading order), falling back to the collection order for
+  pages that are not in the navigation (the generated ontology reference).
+{%- endcomment -%}
+{%- assign nav_urls = "" | split: "" -%}
+{%- assign nav_sections = "" | split: "" -%}
+{%- assign page_section = page.section -%}
+{%- for section in site.data.docs_nav -%}
+    {%- for item in section.items -%}
+        {%- unless item.external -%}
+            {%- assign nav_urls = nav_urls | push: item.url -%}
+            {%- if item.url == page.url -%}{%- assign page_section = section.title -%}{%- endif -%}
+        {%- endunless -%}
+    {%- endfor -%}
+{%- endfor -%}
+{%- if page.collection == "ontology" and page_section == nil -%}{%- assign page_section = "Ontology reference" -%}{%- endif -%}
+{%- assign prev_url = nil -%}{%- assign next_url = nil -%}{%- assign in_nav = false -%}
+{%- for u in nav_urls -%}
+    {%- if u == page.url -%}
+        {%- assign in_nav = true -%}
+        {%- assign i_prev = forloop.index0 | minus: 1 -%}
+        {%- assign i_next = forloop.index0 | plus: 1 -%}
+        {%- if i_prev >= 0 -%}{%- assign prev_url = nav_urls[i_prev] -%}{%- endif -%}
+        {%- assign next_url = nav_urls[i_next] -%}
+    {%- endif -%}
+{%- endfor -%}
+{%- if in_nav -%}
+    {%- assign prev_doc = site.docs | where: "url", prev_url | first -%}
+    {%- assign next_doc = site.docs | where: "url", next_url | first -%}
+{%- else -%}
+    {%- assign prev_doc = page.previous -%}
+    {%- assign next_doc = page.next -%}
+{%- endif -%}
+{%- assign words = content | strip_html | number_of_words -%}
+{%- assign minutes = words | divided_by: 220 | plus: 1 -%}
 <div class="page-wrapper" tabindex="-1" role="main">
     {% if page.cover %}
         <img src="{{ page.cover }}"
@@ -12,13 +48,56 @@
         <div id="book-search-results">
             <div class="search-noresults">
                 <section class="normal markdown-section">
-                    {% if page.title %}
-                        <h1 id="{{ page.id }}">{{ page.title | escape }}</h1>
-                    {% else %}
-                        <h1 id="{{ page.id }}">{{ site.title | escape }}</h1>
-                    {% endif %}
+                    <header class="os-hero">
+                        <nav class="os-crumbs" aria-label="Breadcrumb">
+                            <a href="{{ site.baseurl }}/docs/">Docs</a>
+                            {%- if page_section and page.url != "/docs/" %}
+                            <span class="os-crumb-sep" aria-hidden="true">/</span>
+                            <span>{{ page_section | escape }}</span>
+                            {%- endif %}
+                        </nav>
+                        <h1 id="{{ page.id }}">{{ page.title | default: site.title | escape }}</h1>
+                        {%- if page.description %}
+                        <p class="os-lead">{{ page.description | escape }}</p>
+                        {%- endif %}
+                        {%- unless page.hide_meta %}
+                        <div class="os-meta">
+                            <span><i class="fa fa-clock-o" aria-hidden="true"></i> {{ minutes }} min read</span>
+                            {%- if page.path %}
+                            <a href="https://github.com/suhasdevmane/suhasdevmane.github.io/blob/main/{{ page.path }}" rel="noopener"><i class="fa fa-pencil" aria-hidden="true"></i> Edit this page</a>
+                            {%- endif %}
+                        </div>
+                        {%- endunless %}
+                    </header>
 
                     {{ content }}
+
+                    {%- if prev_doc or next_doc %}
+                    <nav class="os-pager" aria-label="Previous and next pages">
+                        {%- if prev_doc %}
+                        <a class="os-pager-link os-prev" href="{{ site.baseurl }}{{ prev_doc.url }}">
+                            <span class="os-pager-dir"><i class="fa fa-arrow-left" aria-hidden="true"></i> Previous</span>
+                            <span class="os-pager-title">{{ prev_doc.title | escape }}</span>
+                        </a>
+                        {%- else %}<span></span>{%- endif %}
+                        {%- if next_doc %}
+                        <a class="os-pager-link os-next" href="{{ site.baseurl }}{{ next_doc.url }}">
+                            <span class="os-pager-dir">Next <i class="fa fa-arrow-right" aria-hidden="true"></i></span>
+                            <span class="os-pager-title">{{ next_doc.title | escape }}</span>
+                        </a>
+                        {%- endif %}
+                    </nav>
+                    {%- endif %}
+
+                    <footer class="os-page-footer">
+                        <span>© {{ site.time | date: "%Y" }} OntoSage · Agentic AI for Smart Buildings</span>
+                        <span class="os-footer-links">
+                            <a href="{{ site.baseurl }}/">Home</a>
+                            <a href="{{ site.baseurl }}/docs/">Docs</a>
+                            <a href="{{ site.baseurl }}/explorer/">Ontology Explorer</a>
+                            <a href="https://github.com/suhasdevmane/OntoSage" rel="noopener">GitHub</a>
+                        </span>
+                    </footer>
 
                     {%- if jekyll.environment != 'dev' and site.disqushandler -%}
                         {%- include disqus.html -%}
@@ -31,13 +110,8 @@
     </div>
 </div>
 
-<!-- introduce mathjax support -->
-{% include mathjax.html %}
+{%- comment -%} MathJax only where a page asks for it: its "$" delimiter would otherwise read
+prices and shell variables in prose as maths. {%- endcomment -%}
+{% if page.mathjax %}{% include mathjax.html %}{% endif %}
 
-<!-- introduce per-page mermaid support -->
-{% if page.mermaid %}
-    {% include mermaid.html %}
-{% endif %}
-
-<!-- introduce mathjax support -->
 {% include fixes-chrome-anchors.html %}

@@ -1,12 +1,11 @@
 ---
 title: API Reference
+description: "Every route, what it does and the permission it needs."
 layout: post
 category: docs
 permalink: /docs/api-reference/
 date: 2026-07-22
 ---
-
-# API reference
 
 The orchestrator serves a REST, Server-Sent Events and WebSocket API on port **8000** (bound to
 `127.0.0.1` in the shipped compose files). This page lists every route in
@@ -22,6 +21,17 @@ The orchestrator serves a REST, Server-Sent Events and WebSocket API on port **8
 | Session token | `Authorization: Bearer <token>` (a bare token is also accepted) or the `session_token` cookie set by `/auth/login` | All `require_permission(...)` routes, `/auth/*`, `/history/*` |
 | Pipeline key (`PIPELINE_API_KEY`) | `Authorization: Bearer <key>` | `/v1/chat/completions`, `/api/v1/me/memory`, proxy mode of the `/stream` WebSocket |
 | None | | Health, liveness, building identity, model list, a few read-only floor-plan and data-source views (see [What is not protected](#what-is-not-protected)) |
+
+```mermaid
+%% caption: Which credential opens which routes.
+flowchart LR
+    S(["Session token<br/>from /auth/login"]):::user --> R1["require_permission routes,<br/>/auth/*, /history/*"]
+    K(["Pipeline key<br/>PIPELINE_API_KEY"]):::user --> R2["/v1/chat/completions,<br/>/api/v1/me/memory,<br/>/stream proxy mode"]
+    N(["No credential"]):::ext --> R3["health, liveness, identity,<br/>model list, a few read-only views"]
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef ext fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 4
+```
 
 A permission route returns **401** without a valid session and **403** when the role lacks the
 permission. Roles and permissions are listed on [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}).
@@ -46,6 +56,26 @@ are exempt. Behind a proxy, set `TRUSTED_PROXY_CIDRS`.
 **Audit.** Every `POST`, `PUT`, `DELETE` or `PATCH` under `/api/v1/admin/` or
 `/api/v1/datasources` is recorded with user, role, method, path, status and trace id, and can be
 read back with `GET /api/v1/admin/audit`.
+
+```mermaid
+%% caption: What every request meets on its way in and out. Admin writes are also written to the audit log.
+flowchart TB
+    Q(["Request"]):::user --> RL{"Within the per-IP<br/>rate limit?"}:::check
+    RL -- no --> E429(["429"]):::stop
+    RL -- yes --> TR["X-Trace-Id<br/>assigned or reused"]
+    TR --> AU{"Credential valid,<br/>permission held?"}:::check
+    AU -- "no session" --> E401(["401"]):::stop
+    AU -- "wrong role" --> E403(["403"]):::stop
+    AU -- yes --> H["Route handler"]
+    H --> ENV(["success, data,<br/>error, meta"]):::answer
+    H -. "admin POST, PUT,<br/>DELETE, PATCH" .-> AL[("admin_audit_log")]:::store
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 ## Authentication
 

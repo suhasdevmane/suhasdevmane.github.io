@@ -1,13 +1,12 @@
 ---
 title: Edit TTL in a Running System
+description: "Change the graph of a running deployment without breaking it."
 layout: post
 category: docs
 permalink: /docs/edit-ttl/
 date: 2026-07-14
 mermaid: true
 ---
-
-# Edit TTL in a running system
 
 This page is for an administrator who changes a building's graph while OntoSage is running:
 adding or correcting triples, removing a file's triples, adding a capability, and proving that the
@@ -29,14 +28,20 @@ one named graph per file. Every edit path on this page ends in one of three plac
 | Any other name (for example `urn:ontosage:custom:notes`) | An upload through the console or API into a graph that is not a file graph | Yes, while GraphDB's volume lasts; lost if that volume is reset | **No**: a new deployment will not have it |
 
 ```mermaid
+%% caption: Every edit path should end in a file under input/. GraphDB holds a copy of each file in its own named graph; a restart reloads only the files whose SHA changed.
 flowchart LR
-    U["Console or API upload<br/>into urn:ontosage:ttl:file"] --> F["input/file.ttl<br/>(previous copy kept in input/.trash/)"]
-    C["Capabilities API"] --> CF["input/id_capabilities.ttl"]
-    E["You edit a file<br/>in input/"] --> R["Restart"]
-    F --> G["GraphDB named graph<br/>urn:ontosage:ttl:file"]
+    U(["Console or API upload<br/>into urn:ontosage:ttl:file"]):::user --> F["input/file.ttl<br/>previous copy kept in input/.trash/"]:::answer
+    C(["Capabilities API"]):::user --> CF["input/&lt;id&gt;_capabilities.ttl"]:::answer
+    E(["You edit a file<br/>in input/"]):::user --> R["Restart"]
+    F --> G[("GraphDB named graph<br/>urn:ontosage:ttl:file")]:::store
     CF --> G
     R -->|"SHA changed: re-upload<br/>SHA unchanged: skip"| G
-    G --> Q["Flush caches, then ask"]
+    G --> Q["Flush caches, then ask"]:::check
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
 
 Prefer edits that land in a file. A triple that exists only in GraphDB works today and is missing
@@ -332,6 +337,23 @@ At start-up, in this order:
 4. **Caches tied to the graph.** If any file was loaded, the cached lay-term map
    (`cache:concept:hbco_all`) is dropped and the sensor map is rebuilt.
 5. **Audits** log instances whose class nothing declares and files held in two graphs.
+
+```mermaid
+%% caption: What a restart does with the graph, in order. A file whose SHA-256 matches its record in artifacts/.ttl_uploads.json is skipped, so a graph changed behind the console's back needs that record removed.
+flowchart TD
+    S(["docker compose restart orchestrator"]) --> V["1 · TTL check on every<br/>building file in input/"]:::check
+    V -- "hard failure" --> X["Start stops; the log<br/>names the file"]:::stop
+    V --> RP["2 · Create the repository<br/>if GraphDB has none"]
+    RP --> SHA{"3 · SHA-256<br/>unchanged?"}:::check
+    SHA -- yes --> SK["Skipped"]
+    SHA -- no --> LD[("Loaded into its named graph,<br/>replacing the old copy")]:::store
+    LD --> CA["4 · Drop the lay-term cache,<br/>rebuild the sensor map"]
+    SK & CA --> AU["5 · Audits: undeclared classes,<br/>files held in two graphs"]
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef store fill:#ecfdf5,stroke:#059669
+```
 
 To see what was loaded:
 

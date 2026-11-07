@@ -1,17 +1,30 @@
 ---
 title: Admin Console
+description: "Onboard and run a building from the browser, tab by tab."
 layout: post
 category: docs
 permalink: /docs/admin-console/
 date: 2026-07-19
 ---
 
-# Admin console
-
 The admin console is served by the `config-panel` service at **`http://127.0.0.1:3001`**. It is
 a static page (HTML and plain JavaScript, source in `config-panel/html/`) behind nginx, which
 forwards `/api`, `/auth`, `/health` and `/chat` to the orchestrator on the same origin. There is
 no build step.
+
+```mermaid
+%% caption: The console is a static page. nginx serves it and forwards API calls to the orchestrator on the same origin, where every call meets the same permission check as any other client.
+flowchart LR
+    B(["Browser<br/>127.0.0.1:3001"]):::user --> N["config-panel<br/>nginx + static HTML/JS"]
+    N -- "/api, /auth,<br/>/health, /chat" --> O["Orchestrator :8000<br/>require_permission()"]:::check
+    O --> G[("GraphDB, Redis,<br/>PostgreSQL, Qdrant")]:::store
+    O --> F["input/ files<br/>and .env"]:::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 Every action calls the same permission-checked endpoints listed in the
 [API reference]({{ '/docs/api-reference/' | relative_url }}). The page itself loads without signing
@@ -25,6 +38,30 @@ The console has **13 tabs**, in this order: Overview, Data Sources, Ask (test), 
 Services, Integrations, Settings (.env), Databases, Ontology, Users & Access, Health, Audit, Guide.
 The page header has a light/dark theme switch, a Help button and a pill showing whether the
 data-source feature is on.
+
+```mermaid
+%% caption: The 13 tabs, grouped by what you come to do.
+mindmap
+  root((Admin console))
+    Onboard a building
+      Ontology
+      Databases
+      Data Sources
+    Try it
+      Ask test
+    Run it
+      Overview
+      Health
+      Services
+      Audit
+    Configure
+      AI and Models
+      Settings env
+      Integrations
+      Users and Access
+    Learn
+      Guide
+```
 
 > **About the screenshots.** Images in `admin-portal-screenshots/` were taken in July 2026 on the
 > same 13-tab layout; button labels and badge wording have changed slightly since. The Overview
@@ -47,6 +84,18 @@ list, Health and the Guide. Ask (test) needs any signed-in account.
 identity), a notice appears with the command `docker compose up -d orchestrator` and a copy
 button. The **Restart service** button restarts the orchestrator process, which reloads code but
 does **not** re-read `.env`; for `.env` changes use the recreate command.
+
+```mermaid
+%% caption: Which restart a change needs. Restart service reloads the process but keeps the environment the container was created with.
+flowchart LR
+    C(["A change"]):::user --> Q{"Read from .env or the<br/>building identity at boot?"}:::check
+    Q -- yes --> R1["docker compose up -d orchestrator<br/>recreates the container"]:::answer
+    Q -- no --> R2["Restart service<br/>reloads the process"]
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 ## Overview
 

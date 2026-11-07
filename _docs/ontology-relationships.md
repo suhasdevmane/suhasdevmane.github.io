@@ -1,5 +1,6 @@
 ---
 title: Ontology Relationships
+description: "How spaces, equipment, points, readings and records connect in the graph."
 layout: post
 category: docs
 permalink: /docs/ontology-relationships/
@@ -27,18 +28,24 @@ sensor through a concept that maps to the sensor's class. An amenity reaches the
 floor through `ontosage:locatedIn` or `ontosage:servesFloor`.
 
 ```mermaid
-flowchart LR
-  F["bldg:Floor4 (brick:Floor)"] -->|"brick:hasPart"| R["bldg:Room4.66 (brick:Room)"]
-  S["bldg:Room4.66_sat_co2 (brick:CO2_Level_Sensor)"] -->|"brick:hasLocation"| R
-  S -->|"ref:hasExternalReference"| T["blank node (ref:TimeseriesReference)"]
+%% caption: From "stuffy in room 4.66" to a row. Solid arrows are triples in GraphDB; dotted arrows are configuration and the query the adapter runs.
+flowchart TB
+  C["hbco:co2_level<br/>hbco:CompositeConcept"]:::llm -->|"hbco:mapsToBrickClass"| K["brick:CO2_Level_Sensor<br/>(class)"]
+  S["bldg:Room4.66_sat_co2<br/>brick:CO2_Level_Sensor"] -->|"rdf:type"| K
+  F["bldg:Floor4<br/>brick:Floor"] -->|"brick:hasPart"| R["bldg:Room4.66<br/>brick:Room"]
+  S -->|"brick:hasLocation"| R
+  L["bldg:Lift_1<br/>ontosage:Lift"]:::llm -->|"ontosage:servesFloor"| F
+  S -->|"ref:hasExternalReference"| T["blank node<br/>ref:TimeseriesReference"]:::check
   T -->|"ref:hasTimeseriesId"| U["UUID string"]
   T -->|"ref:storedAt"| D["bldg:co2_data"]
-  D -.->|"key in database_registry.yaml"| A["storage adapter (mysql_narrow)"]
-  A -.->|"SELECT by uuid"| W[("co2_data row: uuid, datetime, value")]
-  C["hbco:co2_level (hbco:CompositeConcept)"] -->|"hbco:mapsToBrickClass"| K["brick:CO2_Level_Sensor (class)"]
-  S -->|"rdf:type"| K
-  L["bldg:Lift_1 (ontosage:Lift)"] -->|"ontosage:servesFloor"| F
+  D -.->|"key in database_registry.yaml"| A["storage adapter<br/>mysql_narrow"]
+  A -.->|"SELECT by uuid"| W[("co2_data rows<br/>uuid, datetime, value")]:::store
+
+  classDef llm fill:#f5f3ff,stroke:#7c3aed
+  classDef check fill:#fffbeb,stroke:#d97706
+  classDef store fill:#ecfdf5,stroke:#059669
 ```
+<p class="os-legend"><span class="k-node"><i></i>Brick</span><span class="k-llm"><i></i>OntoSage and HBCO terms</span><span class="k-check"><i></i>timeseries link</span><span class="k-store"><i></i>rows</span></p>
 
 Solid arrows are triples in GraphDB. Dotted arrows are not RDF: `ref:storedAt` names a key in
 the building's `database_registry.yaml`, and the adapter registered under that key fetches the
@@ -171,6 +178,19 @@ How OntoSage queries these relationships:
 Because some queries read only one direction (the floor count above reads `brick:isPartOf`),
 the safe choice when writing TTL is to assert containment both ways, as the zone links above
 do, or at least to assert `brick:isPartOf` from the room to its floor.
+
+```mermaid
+%% caption: The Brick composition and location pattern OntoSage's queries expect. Each relationship has an inverse that Brick declares with owl:inverseOf; a file may use either direction.
+flowchart TB
+    B["bldg:Abacws<br/>brick:Building"] -->|"brick:hasPart"| F["bldg:Floor0<br/>brick:Floor"]
+    F -->|"brick:hasPart"| R1["bldg:Room0.01<br/>brick:Room"]
+    F -->|"brick:hasPart"| R2["bldg:Room0.04<br/>brick:Room"]
+    P["bldg:Air_Temperature_Sensor_0.01<br/>brick:Air_Temperature_Sensor"] -->|"brick:hasLocation"| R1
+    AHU["bldg:AHU_F0<br/>brick:Air_Handling_Unit"] -->|"brick:feeds"| Z["bldg:HVAC_Zone_F0<br/>brick:HVAC_Zone"]
+    AHU -->|"brick:isPartOf"| F
+    LS["bldg:LightingSystem_Floor0<br/>brick:Lighting_System"] -->|"brick:hasPoint"| LC["bldg:LightingCommand_Floor0"]
+    LS -->|"brick:isPartOf"| F
+```
 
 ## Points and equipment
 
@@ -334,6 +354,24 @@ subclasses of [`ontosage:Capability`]({{ '/ontology/class/Capability/' | relativ
 Instances are typed with the specific class and, in the reference building's files, also with
 `ontosage:Amenity` or `ontosage:KnowledgeTopic` directly.
 
+```mermaid
+%% caption: How a capability attaches to the Brick model. Amenity and KnowledgeTopic are the two kinds of Capability; lay terms are how a question finds one.
+flowchart LR
+    subgraph kinds["ontosage:Capability"]
+        direction TB
+        AM["ontosage:Amenity<br/>20 classes: Lift, Cafe,<br/>PrayerRoom, ToiletFacility, ..."]:::llm
+        KT["ontosage:KnowledgeTopic<br/>Policy, Procedure,<br/>MaintenanceIssue, ..."]:::llm
+    end
+    AM -->|"ontosage:locatedIn"| LOC["brick:Location<br/>room, zone or floor"]
+    AM -->|"ontosage:servesFloor"| FL["brick:Floor"]
+    KT -->|"ontosage:aboutEquipment"| EQ["brick:Equipment"]
+    KT -->|"ontosage:relatedTopic"| AM
+    AM & KT -->|"ontosage:layTerms"| LT(["'toilet', 'loo',<br/>'washroom' ..."]):::user
+
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef user fill:#f1f5f9,stroke:#475569
+```
+
 | Relationship | Domain → range | Meaning |
 |---|---|---|
 | [`ontosage:locatedIn`]({{ '/ontology/property/locatedIn/' | relative_url }}) | Capability → `brick:Location` | The room, zone or floor the capability is in. The main link from a capability to the Brick model. |
@@ -383,6 +421,22 @@ booking, a contract, an alarm. Record classes sit under two roots:
 true over a period, and [`ontosage:Record`]({{ '/ontology/class/Record/' | relative_url }}) for
 standing records such as a register row with an owner and a version. Both are abstract: a record
 is always an instance of one of their subclasses.
+
+```mermaid
+%% caption: The two record roots and a sample of their subclasses: IntervalRecord (23 subclasses) for things true over a period, Record (22) for standing records. OntoSage finds record classes by walking rdfs:subClassOf from these roots, so a class a building adds is found without code.
+flowchart TB
+    subgraph IR["ontosage:IntervalRecord"]
+        direction TB
+        i1["Booking"] ~~~ i2["WorkOrder"] ~~~ i3["Permit"] ~~~ i4["Contract"]
+        i5["AlarmEvent"] ~~~ i6["ComplianceCheck"] ~~~ i7["Tariff"] ~~~ i8["TimetabledSession"]
+    end
+    subgraph RC["ontosage:Record"]
+        direction TB
+        r1["WorkspaceProfile"] ~~~ r2["CleaningTask"] ~~~ r3["FireSafetyAsset"] ~~~ r4["Department"]
+        r5["EvacuationProvision"] ~~~ r6["StockItem"] ~~~ r7["AccessibleRoute"] ~~~ r8["OperatingRegime"]
+    end
+    IR ~~~ RC
+```
 
 OntoSage finds the record classes by walking the hierarchy rather than from a list in code
 (`orchestrator/services/record_registry.py`, `_DISCOVER_QUERY`), so a subclass a building adds
@@ -494,6 +548,18 @@ the indoor environment to Brick sensor classes.
 | [`hbco:mapsToBrickClass`]({{ '/ontology/property/mapsToBrickClass/' | relative_url }}) | Concept → `owl:Class` | A sensor or point class whose readings answer the concept. |
 | [`hbco:componentOf`]({{ '/ontology/property/componentOf/' | relative_url }}) | Concept → CompositeConcept | An atomic concept that contributes to a composite one. |
 | [`hbco:requiresRecipe`]({{ '/ontology/property/requiresRecipe/' | relative_url }}) | Concept → string | How to evaluate the readings (`threshold`, `range`, `aggregate`, `trend`, `correlate`). |
+
+```mermaid
+%% caption: An HBCO concept carries the words people use and the Brick classes that answer them; atomic concepts can be components of a composite one.
+flowchart LR
+    W(["'stuffy', 'stale air',<br/>'airless'"]):::user -->|"hbco:layTerm"| C["hbco:stuffiness<br/>hbco:Concept"]:::llm
+    C -->|"hbco:mapsToBrickClass"| B["brick:CO2_Level_Sensor<br/>brick:CO2_Sensor"]
+    C -->|"hbco:requiresRecipe"| RC["'threshold'"]
+    C -->|"hbco:componentOf"| CC["hbco:iaq_composite<br/>hbco:CompositeConcept"]:::llm
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+```
 
 From `ontology/hbco_mappings.ttl`:
 

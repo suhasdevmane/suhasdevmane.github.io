@@ -1,13 +1,12 @@
 ---
 title: Write TTL for Your Building
+description: "Model a building in Turtle that OntoSage can answer about, step by step."
 layout: post
 category: docs
 permalink: /docs/write-ttl/
 date: 2026-07-13
 mermaid: true
 ---
-
-# Write TTL for your building
 
 This page shows how to describe a building in Turtle (TTL) so that OntoSage can answer questions
 about it. It is written for the person who models the building. You need to know what the building
@@ -28,15 +27,21 @@ explained in [Ontology Relationships]({{ '/docs/ontology-relationships/' | relat
 ## What you are building
 
 ```mermaid
-flowchart LR
+%% caption: Riverside House, the example this page builds. Blue nodes are Brick structure, the amber node is the timeseries link, green is where readings live, and the violet node is an OntoSage amenity.
+flowchart TB
     B["bldg:RiversideHouse<br/>brick:Building"] -->|"brick:hasPart"| F["bldg:Floor1<br/>brick:Floor"]
     F -->|"brick:hasPart"| R["bldg:Room1.01<br/>brick:Office"]
+    F -->|"brick:hasPart"| R2["bldg:Room1.05<br/>brick:Room"]
     S["bldg:CO2_Level_Sensor_1.01<br/>brick:CO2_Level_Sensor"] -->|"brick:hasLocation"| R
-    S -->|"ref:hasExternalReference"| T["ref:TimeseriesReference<br/>hasTimeseriesId + storedAt"]
-    T -->|"ref:storedAt"| K["bldg:riverside_iaq<br/>key in database_registry.yaml"]
+    S -->|"ref:hasExternalReference"| T["ref:TimeseriesReference<br/>hasTimeseriesId + storedAt"]:::check
+    T -->|"ref:storedAt"| K[("bldg:riverside_iaq<br/>key in database_registry.yaml")]:::store
     A["bldg:AHU_F1<br/>brick:Air_Handling_Unit"] -->|"brick:feeds"| Z["bldg:HVAC_Zone_F1<br/>brick:HVAC_Zone"]
     Z -->|"brick:hasPart"| R
-    P["bldg:PrayerRoom_1_05<br/>ontosage:Amenity"] -->|"ontosage:locatedIn"| R2["bldg:Room1.05<br/>brick:Room"]
+    P["bldg:PrayerRoom_1_05<br/>ontosage:Amenity"]:::llm -->|"ontosage:locatedIn"| R2
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
 ```
 
 A question about a reading needs both halves: the point must be a triple in the graph, and its
@@ -266,6 +271,21 @@ bldg:CO2_Level_Sensor_1.01 a brick:CO2_Level_Sensor , brick:Point , brick:Sensor
 _:ref_CO2_Level_Sensor_1_01 a ref:TimeseriesReference ;
     ref:hasTimeseriesId "6f1c2b8e-3a4d-4e5f-9a7b-1c2d3e4f5a01" ;
     ref:storedAt bldg:riverside_iaq .
+```
+
+```mermaid
+%% caption: One point, one reference node, both predicates pointing at it. The reference carries the series id and the store key; the key leads to a connection and the rows.
+flowchart TB
+    P["bldg:CO2_Level_Sensor_1.01"] -- "ref:hasExternalReference" --> N["_:ref_CO2_Level_Sensor_1_01<br/>a ref:TimeseriesReference"]:::check
+    P -- "ashrae:hasExternalReference" --> N
+    N -- "ref:hasTimeseriesId" --> U["'6f1c2b8e-…-1c2d3e4f5a01'"]
+    N -- "ref:storedAt" --> K["bldg:riverside_iaq"]
+    K -. "key under databases:" .-> Y["database_registry.yaml<br/>riverside_iaq: mysql_narrow,<br/>table iaq_readings"]:::check
+    Y --> TB[("iaq_readings<br/>rows where uuid =<br/>'6f1c2b8e-…-1c2d3e4f5a01'")]:::store
+    U -. "matches" .-> TB
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
 ```
 
 - **`ref:hasTimeseriesId`** is the identifier your database uses for this series: the `uuid`

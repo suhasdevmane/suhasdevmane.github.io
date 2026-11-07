@@ -1,16 +1,29 @@
 ---
 title: Quick Start
+description: "From a fresh clone to a first answer: activate a building, fill in .env, start the stack and ask."
 layout: post
 category: docs
 permalink: /docs/quickstart/
 date: 2026-07-02
 ---
 
-# Quick start
-
 This page takes a fresh clone to a first answer using the bundled test building `bldg1`. Running
 your own building follows the same steps; see
 [Use your own building]({{ '/docs/your-own-building/' | relative_url }}).
+
+```mermaid
+%% caption: The steps on this page. Steps 1 to 3 are one-off; after them, docker compose up -d starts everything.
+flowchart LR
+    P0["0 · Prerequisites<br/>Docker, MySQL,<br/>a model"] --> P1["1 · Activate<br/>bldg1 → input/"]
+    P1 --> P2["2 · Fill in<br/>.env"]:::check
+    P2 --> P3[("3 · Prepare<br/>MySQL")]:::store
+    P3 --> P4["4 · docker compose<br/>up -d"]
+    P4 --> P5(["5 · Ask<br/>:3000 chat"]):::answer
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 ## 0. Prerequisites
 
@@ -46,6 +59,31 @@ Copy-Item .env1.example .env
 
 `.env2.example` and `.env3.example` do the same for `bldg2` and `bldg3`. Your `.env` is ignored
 by git; only the templates are in the repository.
+
+```mermaid
+%% caption: Activating is renaming. A fresh clone has every building parked; the active one is whatever sits in input/, with docker-compose.yml and .env beside it.
+flowchart LR
+    subgraph parked["As cloned: all parked"]
+        direction TB
+        b1["bldg1/"]
+        c1["docker-compose.bldg1.yml"]
+        e1[".env1.example"]
+        b2["bldg2/, bldg3/ ...<br/>stay parked"]:::ext
+    end
+    subgraph active["Active"]
+        direction TB
+        in["input/"]:::answer
+        dc["docker-compose.yml"]:::answer
+        env[".env<br/>secrets filled in"]:::check
+    end
+    b1 -- "mv" --> in
+    c1 -- "mv" --> dc
+    e1 -- "cp, then edit" --> env
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+    classDef ext fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 4
+```
 
 ## 2. Fill in `.env`
 

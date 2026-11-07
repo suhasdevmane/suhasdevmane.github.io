@@ -24,91 +24,54 @@
     </script>
 
     <nav role="navigation">
+        <a class="os-side-brand" href="{{ site.baseurl }}/" title="OntoSage home">
+            <span class="os-logo" aria-hidden="true">◆</span>
+            <span class="os-side-brand-text">OntoSage<small>Documentation</small></span>
+        </a>
+
         <div id="book-search-input" role="search">
-            <input type="text" placeholder="Type to search" />
+            <input type="text" placeholder="Search the docs…" aria-label="Search the docs" />
         </div>
         <div id="book-search-input-link" role="search">
-            <a href="{{site.baseurl}}/assets/search.html">Click to Search</a>
+            <a href="{{site.baseurl}}/assets/search.html"><i class="fa fa-search"></i> Search the docs</a>
         </div>
+
         <ul class="summary">
-            {% if page.url == "/index.html" or page.url == "/" %}
-            <li class="chapter active" data-level="1.1" data-path="{{site.baseurl}}">
-            {% else %}
-            <li class="chapter" data-level="1.1" data-path="{{site.baseurl}}">
-            {% endif %}
-                <a href="{{site.baseurl}}/" onclick="pageScrollToTop(this)">
-                    {{ site.title | escape }}
+            <li class="chapter os-home{% if page.url == '/docs/' %} active{% endif %}" data-level="1.0" data-path="{{site.baseurl}}/docs/">
+                <a href="{{site.baseurl}}/docs/" onclick="pageScrollToTop(this)">
+                    <i class="fa fa-th-large" aria-hidden="true"></i> Docs home
                 </a>
             </li>
 
+            {%- for section in site.data.docs_nav %}
+            <li class="header os-section-header"><i class="fa {{ section.icon }}" aria-hidden="true"></i> {{ section.title }}</li>
+                {%- for item in section.items %}
+                    {%- if item.external %}
+            <li class="chapter os-external" data-level="1.1">
+                <a href="{{ site.baseurl }}{{ item.url }}" title="{{ item.description | escape }}">
+                    {{ item.title | escape }} <i class="fa fa-external-link" aria-hidden="true"></i>
+                </a>
+            </li>
+                    {%- else %}
+                        {%- assign doc = site.docs | where: "url", item.url | first %}
+                        {%- if doc %}
+            <li class="chapter{% if page.url == doc.url %} active{% endif %}" data-level="1.1" data-path="{{site.baseurl}}{{doc.url}}">
+                <a href="{{site.baseurl}}{{doc.url}}" onclick="pageScrollToTop(this)">
+                    {{ doc.title | escape }}
+                </a>
+                {%- if site.toc.enabled and page.url == doc.url %}
+                    {% include toc.html html=content h_min=site.toc.h_min h_max=site.toc.h_max %}
+                {%- endif %}
+            </li>
+                        {%- endif %}
+                    {%- endif %}
+                {%- endfor %}
+            {%- endfor %}
+
             <li class="divider"></li>
-
-            {% if site.ordered_collections %}
-                {% for label in site.ordered_collections %}
-                    {% assign collection = site.collections | where: "label", label | first %}
-                    <!-- <p>{{ collection.label }}</p> -->
-                    {% if collection.output %}
-                        {% if collection.label == "posts" %}
-                            {% assign reversed_posts = site[collection.label] | reverse %}
-                        {% else %}
-                            {% assign reversed_posts = site[collection.label] %}
-                        {% endif %}
-
-                        {% for post in reversed_posts %}
-                            {% if page.url == post.url %}
-                            <li class="chapter active" data-level="1.2" data-path="{{site.baseurl}}{{post.url}}">
-                            {% else %}
-                            <li class="chapter" data-level="1.1" data-path="{{site.baseurl}}{{post.url}}">
-                            {% endif %}
-                                <a href="{{site.baseurl}}{{post.url}}" onclick="pageScrollToTop(this)">
-                                    {{ post.title | escape }}
-                                </a>
-                                {% if site.toc.enabled %}
-                                    {% if page.url == post.url %}
-                                        {% include toc.html html=content h_min=site.toc.h_min h_max=site.toc.h_max %}
-                                    {% endif %}
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-
-                        {% if reversed_posts.size > 0 %}
-                            <li class="divider"></li>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            {% else %}
-                {% for collection in site.collections %}
-                    <!-- <p>{{ collection.label }}</p> -->
-                    {% if collection.output %}
-                        {% if collection.label == "posts" %}
-                            {% assign reversed_posts = site[collection.label] | reverse %}
-                        {% else %}
-                            {% assign reversed_posts = site[collection.label] %}
-                        {% endif %}
-
-                        {% for post in reversed_posts %}
-                            {% if page.url == post.url %}
-                            <li class="chapter active" data-level="1.2" data-path="{{site.baseurl}}{{post.url}}">
-                            {% else %}
-                            <li class="chapter" data-level="1.1" data-path="{{site.baseurl}}{{post.url}}">
-                            {% endif %}
-                                <a href="{{site.baseurl}}{{post.url}}" onclick="pageScrollToTop(this)">
-                                    {{ post.title | escape }}
-                                </a>
-                                {% if site.toc.enabled %}
-                                    {% if page.url == post.url %}
-                                        {% include toc.html html=content h_min=site.toc.h_min h_max=site.toc.h_max %}
-                                    {% endif %}
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-
-                        {% if reversed_posts.size > 0 %}
-                            <li class="divider"></li>
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+            <li class="chapter os-aside"><a href="{{ site.baseurl }}/pages/about/"><i class="fa fa-info-circle" aria-hidden="true"></i> About OntoSage</a></li>
+            <li class="chapter os-aside"><a href="https://github.com/suhasdevmane/OntoSage" rel="noopener"><i class="fa fa-github" aria-hidden="true"></i> Source on GitHub</a></li>
+            <li class="chapter os-aside"><a href="/OntoBot/" title="OntoBot 1.0, the archived first-generation (Rasa) version"><i class="fa fa-archive" aria-hidden="true"></i> OntoBot 1.0 (archived)</a></li>
         </ul>
     </nav>
 </div>

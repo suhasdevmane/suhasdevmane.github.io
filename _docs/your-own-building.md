@@ -1,12 +1,11 @@
 ---
 title: Use Your Own Building
+description: "Replace the test buildings with your own, from an identity to a verified first answer."
 layout: post
 category: docs
 permalink: /docs/your-own-building/
 date: 2026-07-11
 ---
-
-# Use OntoSage with your own building
 
 This page takes you from a fresh clone to your own building answering questions. It is for
 someone with a building model (or the knowledge to write one) and a database of readings. It
@@ -19,16 +18,44 @@ tested on more than one model. Nothing in the core code knows them. Your buildin
 slots, and onboarding it means adding data and configuration, never code. If you find yourself
 editing Python to make your building work, report it as a defect.
 
+```mermaid
+%% caption: The six steps on this page. Steps 1 to 4 are files you write; step 5 is a rename and one command; step 6 asks one question per half.
+flowchart TB
+    S1["1 · Identity<br/>id, namespace,<br/>project name"] --> S2["2 · Create the set<br/>folder, .env,<br/>compose file"]
+    S2 --> S3["3 · Write the graph<br/>TTL, checked offline"]:::check
+    S3 --> S4[("4 · Connect readings<br/>database_registry.yaml")]:::store
+    S4 --> S5["5 · Activate<br/>rename, compose up"]
+    S5 --> S6(["6 · Verify<br/>both halves"]):::answer
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 ---
 
 ## The two halves
 
 A question about a reading is answerable when both halves exist:
 
-```
-(a) the thing is a triple in the graph          "there IS a CO2 sensor in Room 1.01"
-        AND
-(b) its readings are rows in a registered store  linked by ref:hasTimeseriesId + ref:storedAt
+```mermaid
+%% caption: Both halves are needed. The graph says what a series measures and where it is; the store holds its values. Either half alone answers less, and OntoSage says which half is missing.
+flowchart LR
+    subgraph a["(a) the graph"]
+        A1["there IS a CO2 sensor<br/>in Room 1.01"]
+    end
+    subgraph b["(b) a registered store"]
+        B1[("its readings,<br/>rows keyed by its uuid")]:::store
+    end
+    A1 -- "ref:hasTimeseriesId<br/>+ ref:storedAt" --> B1
+    B1 --> OK(["Answerable: what is the<br/>CO2 in Room 1.01 now?"]):::answer
+    A1 -. "graph alone" .-> G(["Structural answers only:<br/>how many CO2 sensors?"]):::check
+    B1 -. "rows alone" .-> R(["Invisible: nothing says<br/>what the series measure"]):::stop
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
 
 A database full of readings with no graph is invisible: OntoSage cannot know what the series

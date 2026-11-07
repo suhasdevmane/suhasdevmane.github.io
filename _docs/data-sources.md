@@ -1,13 +1,12 @@
 ---
 title: Data Sources and Adapters
+description: "How sensor databases are registered, linked from the graph, and read through adapters."
 layout: post
 category: docs
 permalink: /docs/data-sources/
 date: 2026-07-09
 mermaid: true
 ---
-
-# Data sources and adapters
 
 This page explains how sensor readings get from a database into an answer: how the graph points
 at a store, how a store is registered, which database types are supported and how well, how time
@@ -51,19 +50,22 @@ general is covered in [Writing TTL]({{ '/docs/write-ttl/' | relative_url }}).
 ## From question to rows
 
 ```mermaid
-flowchart LR
-    q["Question"] --> sp["sparql node<br/>finds sensors"]
-    sp -->|"UUID + storedAt key"| sq["sql node"]
-    sq --> reg["adapter registry<br/>key to adapter"]
-    reg --> a1["MySQL wide"]
-    reg --> a2["MySQL narrow"]
-    reg --> a3["PostgreSQL / TimescaleDB"]
-    reg --> a4["Cassandra"]
-    a1 --> rows["rows or store-side aggregates<br/>timestamp, uuid, value"]
-    a2 --> rows
-    a3 --> rows
-    a4 --> rows
-    rows --> ans["analytics, charts, response"]
+%% caption: From a question to rows. The sql node groups the series ids by storage key and the registry hands each group to its adapter; every adapter returns the same shape.
+flowchart TB
+    q(["Question"]):::user --> sp["sparql node<br/>finds sensors"]
+    sp -->|"UUID + storedAt key"| sq["sql node<br/>groups by key"]
+    sq --> reg{"adapter registry<br/>key → adapter"}:::check
+    reg --> a1[("MySQL wide")]:::store
+    reg --> a2[("MySQL narrow")]:::store
+    reg --> a3[("PostgreSQL /<br/>TimescaleDB")]:::store
+    reg --> a4[("Cassandra")]:::store
+    a1 & a2 & a3 & a4 --> rows["rows or store-side aggregates<br/>(timestamp, uuid, value)"]
+    rows --> ans(["analytics, charts, response"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
 ```
 
 The sql node groups the UUIDs from the SPARQL result by storage key and asks
@@ -179,9 +181,37 @@ Readings are stored in naive UTC, and every reader compares in UTC.
 - When you query MySQL by hand, run `SET time_zone='+00:00'` first. A client in a different
   session zone shows `TIMESTAMP` values shifted and makes correct data look wrong.
 
+```mermaid
+%% caption: One period, two clocks. The phrase picks a local day; its bounds go to the store in UTC; results come back in UTC and are shown in local time.
+flowchart TB
+    Q(["yesterday"]):::user --> L["Local day in the<br/>building's timezone<br/>00:00 to 24:00"]
+    L -- "to_store(...)<br/>DST via zoneinfo" --> U["UTC bounds"]:::check
+    U --> DB[("Store, UTC<br/>sessions pinned +00:00")]:::store
+    DB --> R["Rows in UTC"]
+    R -- "to_local(...)<br/>display only" --> A(["Times shown<br/>in local time"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 When you load data yourself, write UTC.
 
 ## Registering a new database
+
+```mermaid
+%% caption: Registering a database. The console can do steps 2 to 4 for you; step 6 checks the graph half and the rows half separately.
+flowchart TB
+    S1[("1 · Load rows<br/>UTC timestamps")]:::store --> S2["2 · Register the store<br/>database_registry.yaml<br/>or the Databases tab"]
+    S2 --> S3["3 · Activate the key<br/>storage.databases"]
+    S3 --> S4["4 · Point the sensors<br/>hasTimeseriesId +<br/>storedAt bldg:&lt;key&gt;"]
+    S4 --> S5["5 · Restart<br/>and flush caches"]
+    S5 --> S6(["6 · Check<br/>both halves"]):::answer
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 1. **Load the rows** into a layout an adapter supports, timestamps in UTC. For MySQL the narrow
    DDL is in `data/mysql-init/create_narrow_timeseries_tables.sql`:
@@ -263,6 +293,43 @@ class DatabaseAdapter(ABC):
         start_date: Optional[str], end_date: Optional[str], limit: int = 1000,
     ) -> Optional[str]:
         return None
+```
+
+```mermaid
+%% caption: The adapter contract. A new backend subclasses DatabaseAdapter, is registered as a type, and returns rows in the shared shape; no agent changes.
+classDiagram
+    direction TB
+    class DatabaseAdapter {
+        <<abstract>>
+        +adapter_type AdapterType
+        +connect()
+        +close()
+        +get_schema() SchemaInfo
+        +get_columns() set
+        +execute_query(sql) QueryResult
+        +validate_query(sql) bool
+        +get_dialect_hints() str
+        +build_timeseries_query(uuids, ts_col, start, end, limit) str
+    }
+    class MySQLAdapter
+    class MySQLNarrowAdapter
+    class PostgreSQLAdapter
+    class TimescaleDBAdapter
+    class CassandraAdapter
+    class YourAdapter {
+        a new backend
+    }
+    DatabaseAdapter <|-- MySQLAdapter
+    MySQLAdapter <|-- MySQLNarrowAdapter
+    DatabaseAdapter <|-- PostgreSQLAdapter
+    PostgreSQLAdapter <|-- TimescaleDBAdapter
+    DatabaseAdapter <|-- CassandraAdapter
+    DatabaseAdapter <|-- YourAdapter
+    class AdapterRegistry {
+        +get(storage_uri) DatabaseAdapter
+        -_build_adapter(db_type, cfg)
+    }
+    AdapterRegistry --> DatabaseAdapter : builds one per key
 ```
 
 - `execute_query` returns a `QueryResult(success, data, row_count, query, error, schema)`, with

@@ -1,12 +1,11 @@
 ---
 title: Configuration
+description: "Every setting, its default, and the feature flags."
 layout: post
 category: docs
 permalink: /docs/configuration/
 date: 2026-07-20
 ---
-
-# Configuration
 
 OntoSage reads its configuration from four places. Nothing about a particular building is
 written into the code.
@@ -17,6 +16,27 @@ written into the code.
 | `docker-compose.yml` | Service definitions, ports, volumes, and an `environment:` block per service | Docker Compose |
 | `input/` | The active building: `building.yaml`, Turtle files, database registry, documents, floor plans, optional overlays | The orchestrator, GraphDB (read-only import) and the data publisher |
 | `config/` | Building-independent operational config: alert thresholds, recipes, goals, access tiers, evidence policy | The orchestrator (mounted read-only) |
+
+```mermaid
+%% caption: The four places configuration comes from, and who reads each. A building is only ever described in input/.
+flowchart LR
+    subgraph places["Where it is written"]
+        direction LR
+        ENV[".env<br/>secrets, providers,<br/>flags, addresses"]:::check
+        YML["docker-compose.yml<br/>services, ports,<br/>environment:"]
+        IN["input/<br/>the active building"]:::answer
+        CFG["config/<br/>thresholds, recipes,<br/>access tiers"]
+    end
+    ORC["Orchestrator<br/>Settings in shared/config.py"]
+    ENV -- "env_file and<br/>${...} interpolation" --> ORC
+    YML -- "environment: block" --> ORC
+    IN -- "read at start-up; its TTL<br/>is also imported into GraphDB" --> ORC
+    CFG -- "mounted read-only" --> ORC
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 `shared/config.py` defines every typed setting (146 of them) with its default. A smaller set of
 behaviour switches is read straight from the process environment by the module that uses it;
@@ -35,6 +55,22 @@ those are listed below with the module defaults.
 3. **Then the default in `shared/config.py`** (or in the reading module, for environment-only
    switches).
 
+```mermaid
+%% caption: How one setting gets its value, highest precedence first.
+flowchart TD
+    S(["A setting"]) --> A{"Set explicitly in the compose<br/>file's environment: block?"}:::check
+    A -- yes --> V1(["That value wins"]):::answer
+    A -- "written as ${NAME:-default}" --> B{"NAME in .env?"}:::check
+    B -- yes --> V2(["The .env value"]):::answer
+    B -- no --> V3(["The compose default"]):::answer
+    A -- "not in the block" --> C{"In .env<br/>(env_file, /app/.env)?"}:::check
+    C -- yes --> V2
+    C -- no --> V4(["The default in shared/config.py<br/>or the reading module"]):::answer
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 > **`SECRET_KEY`.** The compose files pass `SECRET_KEY` from `.env` to the orchestrator; if
 > `ONTOSAGE_SECRET_KEY` is set it wins. With neither set, the placeholder is passed and
 > `STRICT_SECRETS=true` refuses to start. Sessions are random tokens held in Redis, so nothing
@@ -50,6 +86,18 @@ docker compose up -d orchestrator     # recreate: re-reads .env
 `docker compose restart` keeps the old environment and is not enough. Orchestrator source code is
 bind-mounted, so a code change needs only a restart; a dependency change or a different local
 embedding model needs an image rebuild (`docker compose build orchestrator`).
+
+```mermaid
+%% caption: What a change needs before it takes effect.
+flowchart LR
+    C(["You changed ..."]):::user --> E[".env"] --> R1["docker compose up -d orchestrator<br/>recreate"]:::answer
+    C --> K["orchestrator source<br/>(bind-mounted)"] --> R2["docker compose restart orchestrator"]
+    C --> D["a dependency or the<br/>local embedding model"] --> R3["docker compose build orchestrator,<br/>then up -d"]:::check
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 The admin console's **Settings (.env)** tab edits the same file with secrets masked, and shows
 the recreate command after a save. See [Admin console]({{ '/docs/admin-console/' | relative_url }}).

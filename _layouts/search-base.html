@@ -11,8 +11,7 @@
             <link rel="next" href="{{site.baseurl}}{{reversed_posts.first.url}}" />
         {% endif %}
     </head>
-    <body>
-    {% include version-switch.html %}
+    <body class="os-docs">
         <div class="book">
 
             {%- include toc-date.html -%}
@@ -22,12 +21,17 @@
                     <!-- Title -->
                     <h1>
                         <i class="fa fa-circle-o-notch fa-spin"></i>
-                        {% if page.title %}
-                            <a href="." >{{ page.title | escape }}</a>
-                        {% else %}
-                            <a href="." >{{ site.title | escape }}</a>
-                        {% endif %}
+                        <a href="{{ site.baseurl }}{{ page.url }}">{{ page.title | default: site.title | escape }}</a>
                     </h1>
+                    <div class="os-topbar">
+                        <a class="os-topbar-brand" href="{{ site.baseurl }}/"><span class="os-logo" aria-hidden="true">◆</span>OntoSage</a>
+                        <nav class="os-topbar-links" aria-label="Site">
+                            <a href="{{ site.baseurl }}/docs/">Docs</a>
+                            <a href="{{ site.baseurl }}/docs/quickstart/">Quick start</a>
+                            <a href="{{ site.baseurl }}/explorer/">Ontology Explorer</a>
+                            <a class="os-topbar-gh" href="https://github.com/suhasdevmane/OntoSage" rel="noopener" aria-label="OntoSage on GitHub"><i class="fa fa-github" aria-hidden="true"></i><span>GitHub</span></a>
+                        </nav>
+                    </div>
                 </div>
 
                 <div class="body-inner">

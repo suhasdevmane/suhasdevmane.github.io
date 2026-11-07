@@ -1,5 +1,6 @@
 ---
 title: How OntoSage Extends Brick
+description: "What the OntoSage vocabulary adds to Brick, and how it aligns with REC, BOT, SOSA and QUDT."
 layout: post
 category: docs
 permalink: /docs/ontology-extensions/
@@ -12,6 +13,33 @@ which files a building can add, how all of them reach GraphDB, and how to add te
 It is for people who need to say something Brick cannot, and for developers maintaining the
 schema. Every term mentioned has a page in the
 [Ontology Browser]({{ '/docs/ontology-browser/' | relative_url }}).
+
+```mermaid
+%% caption: The layers of a building's graph. OntoSage reads Brick unedited, declares only ontosage: and hbco: terms on top of it, and a building adds its own instances and words.
+flowchart TB
+    subgraph std["Standards, read as they are"]
+        direction TB
+        BR["Brick 1.4<br/>brick:, ref:"]
+        AL["REC, BOT, SOSA, QUDT<br/>aligned through SKOS mappings"]:::ext
+    end
+    subgraph os["OntoSage, shared by every building (ontology/)"]
+        direction TB
+        OC["OCBV schema<br/>ontosage: classes, properties,<br/>vocabularies, shapes"]:::llm
+        HB["HBCO<br/>hbco: lay-term concepts"]:::llm
+        MK["Measurand kinds<br/>ranges and units"]:::llm
+    end
+    subgraph bl["One building (input/)"]
+        direction TB
+        IN["bldg: instances<br/>floors, rooms, points,<br/>equipment, records"]:::answer
+        CP["&lt;id&gt;_capabilities.ttl<br/>amenities, topics"]:::answer
+        CO["concepts.ttl<br/>its own words"]:::answer
+    end
+    std --> os --> bl
+
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+    classDef ext fill:#ffffff,stroke:#94a3b8,stroke-dasharray:5 4
+```
 
 ## Namespaces
 
@@ -183,6 +211,20 @@ At startup `ttl_uploader.run_idempotent_uploads` uploads:
 1. every TTL in `ontology/` (mounted read-only at `/app/ontology` in the orchestrator
    container) and the shared schema files in the building's folder, then
 2. every other TTL in the building's folder.
+
+```mermaid
+%% caption: How the schema and a building's files reach GraphDB. Each file is PUT into its own named graph, so a reload replaces it; an unchanged file is skipped by its SHA-256.
+flowchart TB
+    O["ontology/*.ttl<br/>and shared schema files<br/>in the building folder"] --> U{"SHA-256 changed since<br/>.ttl_uploads.json?"}:::check
+    B["Every other TTL<br/>in the building folder"] --> U
+    U -- no --> S["Skipped"]
+    U -- yes --> P[("HTTP PUT to<br/>urn:ontosage:ttl:&lt;file name&gt;")]:::store
+    P --> C["Cached HBCO concept<br/>map dropped"]
+    D["documents/*.md<br/>record documents"] --> I["Document indexer"] --> DG[("&lt;namespace&gt;documents/&lt;name&gt;")]:::store
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+```
 
 Each file goes into its own named graph, `urn:ontosage:ttl:<file name>` (spaces become
 underscores), for example `urn:ontosage:ttl:ontosage_schema.ttl`. The upload is an HTTP `PUT`

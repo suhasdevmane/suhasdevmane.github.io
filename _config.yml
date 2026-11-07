@@ -23,7 +23,7 @@ remote_theme: sighingnow/jekyll-gitbook
 
 toc:
   enabled: true
-  h_min: 1
+  h_min: 2
   h_max: 3
 
 # Customize the link favicon in header, will be {{site.baseurl}}/{{site.favicon_path}}
@@ -48,8 +48,19 @@ markdown_ext: markdown,mkdown,mkdn,mkd,md
 # Permalinks
 permalink: /:categories/:year-:month-:day-:title:output_ext
 
+# Jekyll's own default exclude list is REPLACED by this one, not merged with it, so the files it
+# used to keep out are named again here. PAT and the overview file exist only in a local clone.
 exclude:
   - _drafts
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - PAT
+  - ONTOSAGE_ARCHITECTURE_OVERVIEW.md
+  - vendor
+  - node_modules
+  - .sass-cache
+  - .jekyll-cache
 
 collections:
   docs:

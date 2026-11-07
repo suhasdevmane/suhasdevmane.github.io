@@ -1,5 +1,6 @@
 ---
 title: OCBV — Conversational Building Vocabulary
+description: "The OntoSage Conversational Building Vocabulary: its modules and how it drives answers."
 layout: post
 category: docs
 permalink: /docs/ocbv-schema/
@@ -93,6 +94,21 @@ Capabilities (amenities and knowledge topics) are added in one of two ways:
 The console's Add capability dialog (Ontology tab) is a third route: it calls the same API and
 draws the form from the schema rules below.
 
+```mermaid
+%% caption: Three routes to a new capability. All of them end in the building's capabilities file and its named graph; the schema in GraphDB decides which types and fields are accepted.
+flowchart TB
+    E(["Edit &lt;id&gt;_capabilities.ttl"]):::user --> RS["Restart"] --> G
+    A(["POST /api/v1/admin/capabilities"]):::user --> CA["capability_admin.py<br/>build Turtle, validate"]:::check
+    D(["Console: Add capability dialog"]):::user --> A
+    SC[("Schema in GraphDB<br/>Amenity / KnowledgeTopic subclasses,<br/>rdfs:domain of each field")]:::store -. "types and form fields" .-> CA
+    CA --> F["append to<br/>&lt;id&gt;_capabilities.ttl"]
+    F --> G[("Named graph re-synced,<br/>no restart")]:::store
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+```
+
 The API takes its rules from the schema in GraphDB (`orchestrator/services/capability_admin.py`):
 
 - **`type`** must be a subclass of `ontosage:Amenity` or `ontosage:KnowledgeTopic` in the
@@ -121,6 +137,20 @@ name, local name, `rdfs:comment`, `skos:definition`, `skos:example`, `ontosage:l
 I tell"* can therefore match `ontosage:MaintenanceIssue`. The retrieval step then fetches the
 triples within two hops of the matched terms for the language model that writes SPARQL, and for
 a schema class those include its `ontosage:exampleSparql`, a query of the right shape to adapt.
+
+
+```mermaid
+%% caption: How the schema helps a model write SPARQL. A plain question matches schema terms through the similarity index; the triples around them, including example queries, become the model's context.
+flowchart TB
+    Q(["the toilet is leaking,<br/>who do I tell?"]):::user --> IX[("Similarity index<br/>labels, comments, definitions,<br/>lay terms, competency questions")]:::store
+    IX --> M["ontosage:MaintenanceIssue"]:::llm
+    M --> H["Triples within two hops<br/>incl. ontosage:exampleSparql"]
+    H --> L["Model writes SPARQL<br/>from a query of the right shape"]:::llm
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+```
 
 ## Authoring instances
 

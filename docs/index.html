@@ -1,0 +1,65 @@
+---
+title: Documentation
+layout: post
+permalink: /docs/
+section: Docs
+description: Run OntoSage, connect your own building, and see how each answer is found and checked.
+hide_meta: true
+---
+
+<p>OntoSage answers plain-English questions about one building from that building's own data: its
+Brick model in a graph database, the databases that hold its sensor readings, and its documents
+and floor plans. Every figure in an answer comes from those stores, and when the data is not there
+the answer says so. These pages cover running it, connecting a building of your own, and what
+happens between a question and its answer.</p>
+
+<pre><code class="language-mermaid">%% caption: A question in, an answer out. OntoSage reads the building's graph, readings, records and documents; the checks run before anything is shown.
+flowchart TD
+    Q(["Someone asks: &lt;i&gt;Is it stuffy on floor 5?&lt;/i&gt;"]):::user
+    U["Understand the question&lt;br/&gt;intent, places and everyday words:&lt;br/&gt;&lt;i&gt;stuffy&lt;/i&gt; is read as CO2"]:::llm
+    L["A lane looks it up&lt;br/&gt;readings, records, documents or floor plans"]
+    C["Checks&lt;br/&gt;does the place exist? is the answer on topic?&lt;br/&gt;is every figure bound to a row?"]:::check
+    A(["Answer, with its sources"]):::answer
+    G[("Brick graph&lt;br/&gt;GraphDB")]:::store
+    D[("Sensor readings&lt;br/&gt;MySQL, Postgres, ...")]:::store
+    K[("Documents and&lt;br/&gt;floor plans")]:::store
+    Q --&gt; U --&gt; L --&gt; C --&gt; A
+    G &amp; D &amp; K -.-&gt; L
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef llm fill:#f5f3ff,stroke:#7c3aed
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+</code></pre>
+<p class="os-legend"><span class="k-user"><i></i>person</span><span class="k-llm"><i></i>language model</span><span class="k-node"><i></i>OntoSage step</span><span class="k-check"><i></i>check</span><span class="k-store"><i></i>store</span><span class="k-answer"><i></i>answer</span></p>
+
+<p>New here? Read the <a href="{{ '/docs/introduction/' | relative_url }}">Introduction</a>, then follow the
+<a href="{{ '/docs/quickstart/' | relative_url }}">Quick Start</a> to a first answer. To browse the vocabulary
+OntoSage adds to Brick, open the <a href="{{ '/explorer/' | relative_url }}">Ontology Explorer</a>.</p>
+
+{% for section in site.data.docs_nav %}
+<div class="os-cards-section">
+    <div class="os-cards-head">
+        <h2 id="{{ section.key }}"><i class="fa {{ section.icon }}" aria-hidden="true"></i>{{ section.title }}</h2>
+        <p>{{ section.blurb }}</p>
+    </div>
+    <div class="os-cards">
+    {%- for item in section.items %}
+        {%- if item.external %}
+        <a class="os-card" href="{{ item.url | relative_url }}">
+            <b>{{ item.title }}<i class="fa fa-external-link" aria-hidden="true"></i></b>
+            <span>{{ item.description }}</span>
+        </a>
+        {%- else %}
+            {%- assign doc = site.docs | where: "url", item.url | first %}
+            {%- if doc %}
+        <a class="os-card" href="{{ doc.url | relative_url }}">
+            <b>{{ doc.title }}</b>
+            <span>{{ doc.description }}</span>
+        </a>
+            {%- endif %}
+        {%- endif %}
+    {%- endfor %}
+    </div>
+</div>
+{% endfor %}

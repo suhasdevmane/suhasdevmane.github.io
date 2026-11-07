@@ -1,0 +1,591 @@
+/* OntoSage documentation theme.
+ *
+ * Sits on top of the jekyll-gitbook remote theme and is loaded after its styles. Colours follow
+ * the landing page (index.html): the same blue-to-cyan brand, the same inks and lines, and a dark
+ * palette chosen by the reader's system setting. Every colour is a custom property, so the dark
+ * palette is one block at the end of the tokens.
+ */
+
+/* ───────────────────────── tokens ───────────────────────── */
+:root {
+    --os-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --os-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    --os-bg: #ffffff;
+    --os-bg-soft: #f6f8fc;
+    --os-bg-side: #f8fafd;
+    --os-card: #ffffff;
+    --os-ink: #0f1b2d;
+    --os-ink-body: #26354d;
+    --os-ink-soft: #495a72;
+    --os-ink-faint: #7a8aa3;
+    --os-line: #e4e9f2;
+    --os-line-strong: #d1dae8;
+    --os-brand: #2563eb;
+    --os-brand-2: #0ea5e9;
+    --os-brand-ink: #1d4ed8;
+    --os-brand-soft: #eef4ff;
+    --os-brand-softer: #f5f8ff;
+    --os-grad: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    --os-shadow: 0 1px 2px rgba(15, 27, 45, .04), 0 8px 24px rgba(15, 27, 45, .06);
+    --os-shadow-lg: 0 2px 6px rgba(15, 27, 45, .06), 0 24px 60px rgba(15, 27, 45, .16);
+    --os-radius: 14px;
+
+    --os-code-bg: #0f172a;
+    --os-code-line: #1e293b;
+    --os-code-ink: #e2e8f0;
+    --os-inline-bg: #eef2f9;
+    --os-inline-ink: #1e3a8a;
+
+    --os-callout-bg: #f3f7ff;
+    --os-callout-line: #2563eb;
+    --os-dot: rgba(37, 99, 235, .10);
+
+    /* diagram node kinds (see "diagrams" below) */
+    --d-node-fill: #eef4ff;   --d-node-stroke: #2563eb;  --d-node-ink: #0f1b2d;
+    --d-store-fill: #ecfdf5;  --d-store-stroke: #059669; --d-store-ink: #064e3b;
+    --d-llm-fill: #f5f3ff;    --d-llm-stroke: #7c3aed;   --d-llm-ink: #3b0764;
+    --d-check-fill: #fffbeb;  --d-check-stroke: #d97706; --d-check-ink: #78350f;
+    --d-stop-fill: #fef2f2;   --d-stop-stroke: #dc2626;  --d-stop-ink: #7f1d1d;
+    --d-user-fill: #f1f5f9;   --d-user-stroke: #475569;  --d-user-ink: #0f172a;
+    --d-ext-fill: #ffffff;    --d-ext-stroke: #94a3b8;   --d-ext-ink: #334155;
+    --d-answer-fill: #e0f2fe; --d-answer-stroke: #0284c7; --d-answer-ink: #0c4a6e;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --os-bg: #0b1220;
+        --os-bg-soft: #0f1830;
+        --os-bg-side: #0d1527;
+        --os-card: #111c31;
+        --os-ink: #eaf0fb;
+        --os-ink-body: #d3ddef;
+        --os-ink-soft: #a6b6d1;
+        --os-ink-faint: #7d8db0;
+        --os-line: #20304d;
+        --os-line-strong: #2c4066;
+        --os-brand: #5a8bff;
+        --os-brand-2: #3fc6f0;
+        --os-brand-ink: #8fb4ff;
+        --os-brand-soft: rgba(90, 139, 255, .14);
+        --os-brand-softer: rgba(90, 139, 255, .07);
+        --os-grad: linear-gradient(135deg, #3b6cf0 0%, #18a5d8 100%);
+        --os-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+        --os-shadow-lg: 0 2px 6px rgba(0, 0, 0, .4), 0 24px 60px rgba(0, 0, 0, .55);
+
+        --os-code-bg: #070c18;
+        --os-code-line: #1a2540;
+        --os-inline-bg: #16233d;
+        --os-inline-ink: #c3d4ff;
+
+        --os-callout-bg: rgba(90, 139, 255, .09);
+        --os-callout-line: #5a8bff;
+        --os-dot: rgba(143, 180, 255, .10);
+
+        --d-node-fill: #15264a;   --d-node-stroke: #5a8bff;  --d-node-ink: #e6eeff;
+        --d-store-fill: #0d2e26;  --d-store-stroke: #34d399; --d-store-ink: #d1fae5;
+        --d-llm-fill: #251a46;    --d-llm-stroke: #a78bfa;   --d-llm-ink: #ede9fe;
+        --d-check-fill: #33240b;  --d-check-stroke: #fbbf24; --d-check-ink: #fef3c7;
+        --d-stop-fill: #3a1515;   --d-stop-stroke: #f87171;  --d-stop-ink: #fee2e2;
+        --d-user-fill: #1c2638;   --d-user-stroke: #94a3b8;  --d-user-ink: #e2e8f0;
+        --d-ext-fill: #111c31;    --d-ext-stroke: #64748b;   --d-ext-ink: #cbd5e1;
+        --d-answer-fill: #0c2a3f; --d-answer-stroke: #38bdf8; --d-answer-ink: #e0f2fe;
+    }
+}
+
+/* ───────────────────────── base ───────────────────────── */
+html, body { background: var(--os-bg); }
+body.os-docs, .book, .book-summary, .book-header, .markdown-section {
+    font-family: var(--os-font);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+::selection { background: rgba(37, 99, 235, .18); }
+
+/* ───────────────────────── sidebar ───────────────────────── */
+.book .book-summary {
+    background: var(--os-bg-side);
+    border-right: 1px solid var(--os-line);
+    color: var(--os-ink-soft);
+    padding-bottom: 24px;
+}
+.book .book-summary nav { padding-bottom: 32px; }
+
+.os-side-brand {
+    display: flex; align-items: center; gap: 11px;
+    padding: 18px 20px 14px;
+    color: var(--os-ink) !important; text-decoration: none !important;
+}
+.os-logo {
+    width: 32px; height: 32px; flex: 0 0 32px;
+    display: inline-grid; place-items: center;
+    border-radius: 9px; background: var(--os-grad); color: #fff;
+    font-size: 15px; box-shadow: 0 4px 12px rgba(37, 99, 235, .28);
+}
+.os-side-brand-text { display: flex; flex-direction: column; font-weight: 800; font-size: 17px; letter-spacing: -.02em; line-height: 1.15; }
+.os-side-brand-text small { font-weight: 600; font-size: 12px; letter-spacing: .02em; color: var(--os-ink-faint); }
+
+.book .book-summary #book-search-input,
+.book .book-summary #book-search-input-link {
+    position: relative; background: transparent; border: 0;
+    padding: 0 14px; margin: 2px 0 8px;
+}
+.book .book-summary #book-search-input::before {
+    content: "\f002"; font-family: FontAwesome; position: absolute; left: 27px; top: 50%;
+    transform: translateY(-50%); color: var(--os-ink-faint); font-size: 13px; pointer-events: none;
+}
+.book .book-summary #book-search-input input {
+    width: 100%; padding: 9px 12px 9px 34px; line-height: 20px;
+    border: 1px solid var(--os-line-strong) !important; border-radius: 10px;
+    background: var(--os-card) !important; color: var(--os-ink);
+    font: 500 14px var(--os-font); transition: border-color .15s, box-shadow .15s;
+}
+.book .book-summary #book-search-input input:focus {
+    border-color: var(--os-brand) !important; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15) !important;
+}
+.book .book-summary #book-search-input-link a {
+    display: block; padding: 9px 12px; border: 1px solid var(--os-line-strong); border-radius: 10px;
+    background: var(--os-card); color: var(--os-ink-faint); line-height: 20px; font-size: 14px;
+}
+
+.book .book-summary ul.summary li.header.os-section-header {
+    padding: 18px 22px 6px; font-size: 11.5px; font-weight: 800; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--os-ink-faint);
+}
+.book .book-summary ul.summary li.header.os-section-header .fa { color: var(--os-brand); width: 16px; margin-right: 4px; }
+
+.book .book-summary ul.summary li a,
+.book .book-summary ul.summary li span {
+    margin: 1px 10px; padding: 7px 12px; border-radius: 8px;
+    color: var(--os-ink-soft); font-size: 14.5px; font-weight: 500; line-height: 1.4;
+    white-space: normal; text-overflow: clip;
+    transition: background-color .12s, color .12s;
+}
+.book .book-summary ul.summary li a:hover { background: var(--os-brand-softer); color: var(--os-ink); text-decoration: none; }
+.book .book-summary ul.summary li.active > a {
+    background: var(--os-brand-soft); color: var(--os-brand-ink); font-weight: 650;
+    box-shadow: inset 3px 0 0 var(--os-brand);
+}
+.book .book-summary ul.summary li.os-home > a .fa,
+.book .book-summary ul.summary li.os-aside > a .fa { width: 16px; color: var(--os-ink-faint); margin-right: 4px; }
+.book .book-summary ul.summary li.os-external > a .fa { font-size: 11px; color: var(--os-ink-faint); margin-left: 3px; }
+.book .book-summary ul.summary li.os-aside > a { font-size: 13.5px; color: var(--os-ink-faint); }
+.book .book-summary ul.summary li.divider { background: var(--os-line); margin: 14px 18px; }
+
+/* the open page's own headings, nested under it */
+.book .book-summary ul.summary li ul {
+    margin: 2px 0 8px 28px; padding-left: 0; border-left: 1px solid var(--os-line);
+}
+.book .book-summary ul.summary li ul li a {
+    margin: 0 8px 0 0; padding: 4px 12px; border-radius: 0 6px 6px 0;
+    font-size: 13px; font-weight: 500; color: var(--os-ink-faint);
+}
+.book .book-summary ul.summary li ul li a:hover { color: var(--os-ink); background: var(--os-brand-softer); }
+.book .book-summary ul.summary li ul li.active > a { color: var(--os-brand-ink); background: transparent; box-shadow: inset 2px 0 0 var(--os-brand); font-weight: 600; }
+.book .book-summary ul.summary li ul li ul { margin-left: 12px; }
+.book .book-summary ul.summary li .exc-trigger { display: none; } /* expandable-chapters chevrons */
+
+/* ───────────────────────── top bar ───────────────────────── */
+.book .book-body { background: var(--os-bg); color: var(--os-ink-body); }
+.book .book-body .book-header {
+    display: flex; align-items: center; height: 56px; padding: 0 14px 0 6px;
+    background: color-mix(in srgb, var(--os-bg) 86%, transparent) !important;
+    -webkit-backdrop-filter: saturate(160%) blur(10px); backdrop-filter: saturate(160%) blur(10px);
+    border-bottom: 1px solid var(--os-line); color: var(--os-ink-soft); font-size: 14px; z-index: 5;
+}
+.book .book-body .book-header h1 { display: none !important; }
+.book .book-body .book-header .btn {
+    height: 56px; line-height: 56px; padding: 0 12px; color: var(--os-ink-faint); font-size: 15px;
+}
+.book .book-body .book-header .btn:hover { color: var(--os-ink); }
+.os-topbar { flex: 1; display: flex; align-items: center; justify-content: space-between; min-width: 0; }
+.os-topbar-brand {
+    display: none; align-items: center; gap: 9px; color: var(--os-ink) !important;
+    font-weight: 800; font-size: 16.5px; letter-spacing: -.02em; text-decoration: none !important;
+}
+.os-topbar-brand .os-logo { width: 26px; height: 26px; flex-basis: 26px; font-size: 12px; border-radius: 7px; }
+.book:not(.with-summary) .os-topbar-brand { display: inline-flex; }
+.os-topbar-links { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.os-topbar-links a {
+    color: var(--os-ink-soft) !important; font-weight: 600; font-size: 14px;
+    padding: 7px 11px; border-radius: 8px; text-decoration: none !important; white-space: nowrap;
+}
+.os-topbar-links a:hover, .os-topbar-links a[aria-current="page"] { color: var(--os-brand-ink) !important; background: var(--os-brand-softer); }
+.os-topbar-links a.os-topbar-gh {
+    margin-left: 6px; border: 1px solid var(--os-line-strong); color: var(--os-ink) !important;
+    display: inline-flex; align-items: center; gap: 7px;
+}
+.os-topbar-links a.os-topbar-gh .fa { font-size: 16px; }
+
+.book .book-body .body-inner { margin-top: 56px; min-height: calc(100% - 56px); }
+@media (max-width: 1240px) {
+    .book .book-body .body-inner { margin-top: 56px; min-height: calc(100% - 56px); }
+}
+@media (max-width: 760px) {
+    .os-topbar-links a:not(.os-topbar-gh):not([href$="/docs/"]) { display: none; }
+    .os-topbar-links a.os-topbar-gh span { display: none; }
+}
+
+/* ───────────────────────── page ───────────────────────── */
+.book .book-body .page-wrapper .page-inner {
+    max-width: 880px; padding: 40px 36px 40px;
+}
+@media (max-width: 600px) {
+    .book .book-body .page-wrapper .page-inner { padding: 26px 18px 30px; }
+}
+.book .book-body .page-wrapper .page-inner section.normal { color: var(--os-ink-body); }
+
+.markdown-section { font-size: 16.25px; line-height: 1.75; color: var(--os-ink-body); overflow: visible; }
+
+/* title block */
+.markdown-section .os-hero { margin: 0 0 34px; padding-bottom: 26px; border-bottom: 1px solid var(--os-line); }
+.markdown-section .os-crumbs {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--os-brand-ink);
+}
+.markdown-section .os-crumbs a { color: var(--os-brand-ink); }
+.markdown-section .os-crumbs .os-crumb-sep { color: var(--os-ink-faint); font-weight: 600; }
+.markdown-section .os-hero h1 {
+    margin: 12px 0 12px; padding: 0; border: 0;
+    font-size: clamp(30px, 4.2vw, 42px); line-height: 1.12; font-weight: 800; letter-spacing: -.03em;
+    color: var(--os-ink);
+}
+.markdown-section .os-lead { margin: 0 0 16px; max-width: 62ch; font-size: 18.5px; line-height: 1.6; color: var(--os-ink-soft); }
+.markdown-section .os-meta { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13.5px; color: var(--os-ink-faint); }
+.markdown-section .os-meta a { color: var(--os-ink-faint); }
+.markdown-section .os-meta a:hover { color: var(--os-brand-ink); }
+.markdown-section .os-meta .fa { margin-right: 4px; }
+
+/* headings */
+.markdown-section h1, .markdown-section h2, .markdown-section h3,
+.markdown-section h4, .markdown-section h5, .markdown-section h6 {
+    color: var(--os-ink); font-weight: 750; letter-spacing: -.02em; line-height: 1.3; position: relative;
+    scroll-margin-top: 72px;
+}
+.markdown-section h1 { font-size: 1.9em; margin: 1.8em 0 .7em; }
+.markdown-section h2 {
+    font-size: 1.55em; margin: 2.1em 0 .75em; padding-top: 1.1em; border-top: 1px solid var(--os-line);
+}
+.markdown-section .os-hero + h2, .markdown-section .os-hero + p + h2 { border-top: 0; padding-top: 0; margin-top: 1.2em; }
+.markdown-section h3 { font-size: 1.22em; margin: 1.8em 0 .6em; }
+.markdown-section h4 { font-size: 1.04em; margin: 1.6em 0 .5em; }
+.markdown-section h5, .markdown-section h6 { font-size: .95em; margin: 1.4em 0 .4em; color: var(--os-ink-soft); }
+.markdown-section .os-anchor {
+    position: absolute; left: -1.1em; padding-right: .3em; opacity: 0; color: var(--os-ink-faint);
+    font-weight: 500; text-decoration: none !important; transition: opacity .12s;
+}
+.markdown-section h2 .os-anchor { top: 1.1em; }
+.markdown-section h2:hover .os-anchor, .markdown-section h3:hover .os-anchor,
+.markdown-section h4:hover .os-anchor, .markdown-section .os-anchor:focus { opacity: 1; }
+.markdown-section .os-anchor:hover { color: var(--os-brand); }
+
+/* text */
+.markdown-section p, .markdown-section li, .markdown-section dd { color: var(--os-ink-body); }
+.markdown-section strong, .markdown-section b { color: var(--os-ink); font-weight: 680; }
+.markdown-section a {
+    color: var(--os-brand-ink); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--os-brand) 30%, transparent);
+    text-underline-offset: 3px; text-decoration-thickness: 1px; transition: text-decoration-color .12s, color .12s;
+}
+.markdown-section a:hover { color: var(--os-brand); text-decoration-color: currentColor; }
+.markdown-section .os-hero a, .markdown-section .os-pager a, .markdown-section .os-page-footer a,
+.markdown-section .os-cards a, .markdown-section .os-anchor { text-decoration: none; }
+.markdown-section ul, .markdown-section ol { padding-left: 1.55em; }
+.markdown-section li { margin: .28em 0; }
+.markdown-section li::marker { color: var(--os-ink-faint); }
+.markdown-section ol > li::marker { font-weight: 650; color: var(--os-brand-ink); }
+.markdown-section hr { height: 1px; background: var(--os-line); margin: 2.4em 0; }
+.markdown-section dt { font-weight: 700; color: var(--os-ink); }
+
+/* inline code */
+.markdown-section code {
+    font-family: var(--os-mono); font-size: .845em; padding: .15em .42em; border-radius: 6px;
+    background: var(--os-inline-bg); color: var(--os-inline-ink); border: 1px solid color-mix(in srgb, var(--os-inline-ink) 10%, transparent);
+    overflow-wrap: break-word;
+}
+.markdown-section code.os-soft, .markdown-section table code { overflow-wrap: normal; word-break: normal; }
+.markdown-section code::before, .markdown-section code::after { content: none !important; }
+.markdown-section a code { color: inherit; }
+
+/* code blocks */
+.markdown-section div.highlighter-rouge, .markdown-section figure.highlight { position: relative; margin: 1.3em 0 1.6em; }
+.markdown-section pre, .markdown-section pre.highlight {
+    position: relative; margin: 0 0 1.4em; padding: 18px 20px; border-radius: 12px;
+    background: var(--os-code-bg) !important; color: var(--os-code-ink);
+    border: 1px solid var(--os-code-line); box-shadow: var(--os-shadow);
+    font-family: var(--os-mono); font-size: 13.4px; line-height: 1.65; overflow: auto;
+}
+.markdown-section div.highlighter-rouge pre.highlight { margin: 0; }
+.markdown-section pre > code, .markdown-section pre code {
+    background: transparent !important; border: 0; padding: 0; color: inherit; font-size: 1em; white-space: pre; word-break: normal;
+}
+.markdown-section div.highlighter-rouge[data-lang]::before {
+    content: attr(data-lang); position: absolute; top: 0; left: 16px; transform: translateY(-50%); z-index: 1;
+    padding: 1px 9px; border-radius: 999px; background: var(--os-card); border: 1px solid var(--os-line-strong);
+    color: var(--os-ink-soft); font: 700 10.5px/18px var(--os-font); letter-spacing: .06em; text-transform: uppercase;
+}
+.markdown-section .copy-code-button {
+    top: 9px !important; right: 9px !important; padding: 3px 10px !important;
+    background: rgba(148, 163, 184, .14) !important; color: #cbd5e1 !important;
+    border: 1px solid rgba(148, 163, 184, .28) !important; border-radius: 7px !important;
+    font: 600 11.5px/18px var(--os-font) !important; cursor: pointer; opacity: 0; transition: opacity .15s;
+}
+.markdown-section pre:hover .copy-code-button, .markdown-section .copy-code-button:focus { opacity: 1; }
+.markdown-section .copy-code-button:hover { background: rgba(148, 163, 184, .28) !important; color: #fff !important; }
+
+/* syntax colours on the dark code background (rouge token classes) */
+.markdown-section .highlight .c, .markdown-section .highlight .c1, .markdown-section .highlight .cm,
+.markdown-section .highlight .cs, .markdown-section .highlight .cp, .markdown-section .highlight .ch,
+.markdown-section .highlight .cd { color: #7d8aa5; font-style: italic; }
+.markdown-section .highlight .k, .markdown-section .highlight .kd, .markdown-section .highlight .kn,
+.markdown-section .highlight .kp, .markdown-section .highlight .kr, .markdown-section .highlight .kc,
+.markdown-section .highlight .kt, .markdown-section .highlight .ow { color: #c792ea; font-weight: 400; }
+.markdown-section .highlight .s, .markdown-section .highlight .s1, .markdown-section .highlight .s2,
+.markdown-section .highlight .sb, .markdown-section .highlight .sc, .markdown-section .highlight .sd,
+.markdown-section .highlight .sh, .markdown-section .highlight .sx, .markdown-section .highlight .sr,
+.markdown-section .highlight .ss, .markdown-section .highlight .dl, .markdown-section .highlight .sa { color: #a5e3a1; }
+.markdown-section .highlight .se, .markdown-section .highlight .si { color: #f2c27b; }
+.markdown-section .highlight .m, .markdown-section .highlight .mi, .markdown-section .highlight .mf,
+.markdown-section .highlight .mh, .markdown-section .highlight .mo, .markdown-section .highlight .il { color: #f7a26b; }
+.markdown-section .highlight .nb, .markdown-section .highlight .bp { color: #7dd3fc; }
+.markdown-section .highlight .nf, .markdown-section .highlight .fm { color: #82aaff; }
+.markdown-section .highlight .nc, .markdown-section .highlight .nn, .markdown-section .highlight .ne { color: #ffcb6b; }
+.markdown-section .highlight .nt { color: #f07178; }
+.markdown-section .highlight .na, .markdown-section .highlight .py { color: #ffcb6b; }
+.markdown-section .highlight .nv, .markdown-section .highlight .vi, .markdown-section .highlight .vg,
+.markdown-section .highlight .vc { color: #f78c6c; }
+.markdown-section .highlight .no, .markdown-section .highlight .nl { color: #89ddff; }
+.markdown-section .highlight .o, .markdown-section .highlight .p { color: #b6c2d9; }
+.markdown-section .highlight .n, .markdown-section .highlight .nx, .markdown-section .highlight .w { color: var(--os-code-ink); }
+.markdown-section .highlight .gp { color: #7dd3fc; user-select: none; }
+.markdown-section .highlight .gh, .markdown-section .highlight .gu { color: #82aaff; font-weight: 700; }
+.markdown-section .highlight .gd { color: #fca5a5; background: rgba(239, 68, 68, .12); }
+.markdown-section .highlight .gi { color: #86efac; background: rgba(34, 197, 94, .12); }
+.markdown-section .highlight .err { color: #fca5a5; background: transparent; }
+
+/* tables */
+.markdown-section .os-table {
+    margin: 1.3em 0 1.7em; border: 1px solid var(--os-line); border-radius: 12px; overflow-x: auto;
+    background: var(--os-card); box-shadow: 0 1px 2px rgba(15, 27, 45, .03);
+}
+.markdown-section table { display: table; width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; font-size: 14.5px; line-height: 1.55; }
+.markdown-section .os-table > table { margin: 0; }
+.markdown-section table tr { background: transparent !important; border: 0; }
+.markdown-section table th, .markdown-section table td {
+    padding: 10px 14px; border: 0; border-bottom: 1px solid var(--os-line); text-align: left; vertical-align: top;
+}
+.markdown-section table th {
+    background: var(--os-bg-soft); color: var(--os-ink); font-weight: 700; font-size: 13.5px; white-space: nowrap;
+}
+.markdown-section table tr:last-child td { border-bottom: 0; }
+.markdown-section table tbody tr:hover td { background: var(--os-brand-softer); }
+.markdown-section table td code { font-size: .82em; }
+
+/* callouts */
+.markdown-section blockquote {
+    margin: 1.4em 0; padding: 14px 18px 14px 20px; border: 1px solid var(--os-line); border-left: 4px solid var(--os-callout-line);
+    border-radius: 4px 12px 12px 4px; background: var(--os-callout-bg); color: var(--os-ink-body);
+}
+.markdown-section blockquote > :last-child { margin-bottom: 0; }
+.markdown-section blockquote p { color: var(--os-ink-body); }
+
+/* images and screenshots */
+.markdown-section img {
+    display: block; margin: 1.4em auto; max-width: 100%; height: auto;
+    border-radius: 12px; border: 1px solid var(--os-line); box-shadow: var(--os-shadow); background: var(--os-card);
+}
+.markdown-section p > img:only-child { margin: 1.4em auto .5em; }
+.markdown-section p > img + em, .markdown-section .os-img-caption {
+    display: block; text-align: center; font-size: 13.5px; color: var(--os-ink-faint); font-style: normal;
+}
+
+/* details/summary */
+.markdown-section details {
+    margin: 1.2em 0; padding: 10px 16px; border: 1px solid var(--os-line); border-radius: 12px; background: var(--os-bg-soft);
+}
+.markdown-section details summary { cursor: pointer; font-weight: 650; color: var(--os-ink); }
+
+/* ───────────────────────── diagrams ───────────────────────── */
+.markdown-section figure.os-diagram {
+    position: relative; margin: 1.8em 0 2em; padding: 26px 20px 16px;
+    border: 1px solid var(--os-line); border-radius: var(--os-radius);
+    background-color: var(--os-card);
+    background-image: radial-gradient(var(--os-dot) 1px, transparent 1.2px);
+    background-size: 18px 18px;
+    box-shadow: var(--os-shadow);
+}
+/* On a wide screen a diagram may use the margins beside the text column, so wide ones keep a
+   readable size. The sidebar takes 300px; the column is at most 880px. */
+@media (min-width: 1380px) {
+    .book.with-summary .markdown-section figure.os-diagram { margin-left: -70px; margin-right: -70px; }
+}
+@media (min-width: 1560px) {
+    .book.with-summary .markdown-section figure.os-diagram { margin-left: -120px; margin-right: -120px; }
+}
+@media (min-width: 1240px) {
+    .book:not(.with-summary) .markdown-section figure.os-diagram { margin-left: -90px; margin-right: -90px; }
+}
+.markdown-section figure.os-diagram .os-diagram-canvas { overflow-x: auto; text-align: center; min-height: 80px; }
+.markdown-section figure.os-diagram .os-diagram-canvas svg { max-width: 100%; height: auto; display: inline-block; }
+.markdown-section figure.os-diagram.is-loading .os-diagram-canvas::after {
+    content: "Drawing diagram…"; display: block; padding: 28px 0; color: var(--os-ink-faint); font-size: 14px;
+}
+.markdown-section figure.os-diagram figcaption {
+    margin: 14px auto 0; max-width: 64ch; text-align: center; font-size: 13.75px; line-height: 1.55; color: var(--os-ink-soft);
+}
+.markdown-section figure.os-diagram figcaption b { color: var(--os-ink); font-weight: 700; }
+.markdown-section figure.os-diagram .os-diagram-expand {
+    position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 8px; border: 1px solid var(--os-line-strong);
+    background: var(--os-card); color: var(--os-ink-soft); font: 600 12px/18px var(--os-font); cursor: pointer;
+    opacity: 0; transition: opacity .15s;
+}
+.markdown-section figure.os-diagram:hover .os-diagram-expand, .markdown-section figure.os-diagram .os-diagram-expand:focus { opacity: 1; }
+.markdown-section figure.os-diagram .os-diagram-expand:hover { color: var(--os-brand-ink); border-color: var(--os-brand); }
+.markdown-section figure.os-diagram .os-diagram-error pre { text-align: left; }
+.markdown-section figure.os-diagram .os-diagram-error p { color: var(--os-ink-faint); font-size: 13px; }
+
+.os-lightbox {
+    position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
+    padding: 3vh 3vw; background: rgba(8, 14, 28, .72);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); cursor: zoom-out;
+}
+.os-lightbox-inner {
+    position: relative; max-width: 96vw; max-height: 94vh; overflow: auto; padding: 34px 28px 24px;
+    border-radius: 16px; background-color: var(--os-card); box-shadow: var(--os-shadow-lg); cursor: default;
+    background-image: radial-gradient(var(--os-dot) 1px, transparent 1.2px); background-size: 18px 18px;
+}
+.os-lightbox-inner svg { display: block; margin: 0 auto; }
+.os-lightbox-close {
+    position: absolute; top: 10px; right: 12px; border: 0; background: transparent; color: var(--os-ink-soft);
+    font-size: 22px; line-height: 1; cursor: pointer;
+}
+.os-lightbox-caption { margin-top: 12px; text-align: center; font: 500 14px/1.5 var(--os-font); color: var(--os-ink-soft); }
+
+/* Mermaid draws with the theme variables set in ontosage-docs.js. These rules restyle the node
+   KINDS a diagram marks with a class (classDef store, llm, check, stop, user, ext, answer), so a
+   kind keeps its meaning in light and dark. !important beats the inline style classDef writes. */
+.os-diagram svg .node rect, .os-diagram svg .node polygon, .os-diagram svg .node circle,
+.os-diagram svg .node ellipse, .os-diagram svg .node path.basic, .os-diagram svg .node .label-container { stroke-width: 1.4px; }
+.os-diagram svg .node.store rect, .os-diagram svg .node.store polygon, .os-diagram svg .node.store circle,
+.os-diagram svg .node.store ellipse, .os-diagram svg .node.store path { fill: var(--d-store-fill) !important; stroke: var(--d-store-stroke) !important; }
+.os-diagram svg .node.store .nodeLabel, .os-diagram svg .node.store .nodeLabel p, .os-diagram svg .node.store text { color: var(--d-store-ink) !important; fill: var(--d-store-ink) !important; }
+.os-diagram svg .node.llm rect, .os-diagram svg .node.llm polygon, .os-diagram svg .node.llm circle,
+.os-diagram svg .node.llm ellipse, .os-diagram svg .node.llm path { fill: var(--d-llm-fill) !important; stroke: var(--d-llm-stroke) !important; }
+.os-diagram svg .node.llm .nodeLabel, .os-diagram svg .node.llm .nodeLabel p, .os-diagram svg .node.llm text { color: var(--d-llm-ink) !important; fill: var(--d-llm-ink) !important; }
+.os-diagram svg .node.check rect, .os-diagram svg .node.check polygon, .os-diagram svg .node.check circle,
+.os-diagram svg .node.check ellipse, .os-diagram svg .node.check path { fill: var(--d-check-fill) !important; stroke: var(--d-check-stroke) !important; }
+.os-diagram svg .node.check .nodeLabel, .os-diagram svg .node.check .nodeLabel p, .os-diagram svg .node.check text { color: var(--d-check-ink) !important; fill: var(--d-check-ink) !important; }
+.os-diagram svg .node.stop rect, .os-diagram svg .node.stop polygon, .os-diagram svg .node.stop circle,
+.os-diagram svg .node.stop ellipse, .os-diagram svg .node.stop path { fill: var(--d-stop-fill) !important; stroke: var(--d-stop-stroke) !important; }
+.os-diagram svg .node.stop .nodeLabel, .os-diagram svg .node.stop .nodeLabel p, .os-diagram svg .node.stop text { color: var(--d-stop-ink) !important; fill: var(--d-stop-ink) !important; }
+.os-diagram svg .node.user rect, .os-diagram svg .node.user polygon, .os-diagram svg .node.user circle,
+.os-diagram svg .node.user ellipse, .os-diagram svg .node.user path { fill: var(--d-user-fill) !important; stroke: var(--d-user-stroke) !important; }
+.os-diagram svg .node.user .nodeLabel, .os-diagram svg .node.user .nodeLabel p, .os-diagram svg .node.user text { color: var(--d-user-ink) !important; fill: var(--d-user-ink) !important; }
+.os-diagram svg .node.ext rect, .os-diagram svg .node.ext polygon, .os-diagram svg .node.ext circle,
+.os-diagram svg .node.ext ellipse, .os-diagram svg .node.ext path { fill: var(--d-ext-fill) !important; stroke: var(--d-ext-stroke) !important; stroke-dasharray: 5 4; }
+.os-diagram svg .node.ext .nodeLabel, .os-diagram svg .node.ext .nodeLabel p, .os-diagram svg .node.ext text { color: var(--d-ext-ink) !important; fill: var(--d-ext-ink) !important; }
+.os-diagram svg .node.answer rect, .os-diagram svg .node.answer polygon, .os-diagram svg .node.answer circle,
+.os-diagram svg .node.answer ellipse, .os-diagram svg .node.answer path { fill: var(--d-answer-fill) !important; stroke: var(--d-answer-stroke) !important; }
+.os-diagram svg .node.answer .nodeLabel, .os-diagram svg .node.answer .nodeLabel p, .os-diagram svg .node.answer text { color: var(--d-answer-ink) !important; fill: var(--d-answer-ink) !important; }
+.os-diagram svg .nodeLabel p { margin: 0; line-height: 1.35; }
+.os-diagram svg .edgeLabel, .os-diagram svg .edgeLabel p { font-size: 13px; }
+
+/* the key under a diagram that uses node kinds */
+.markdown-section .os-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 10px 0 0; font-size: 12.5px; color: var(--os-ink-soft); }
+.markdown-section .os-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.markdown-section .os-legend i { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; display: inline-block; }
+.os-legend .k-node i { background: var(--d-node-fill); border-color: var(--d-node-stroke); }
+.os-legend .k-store i { background: var(--d-store-fill); border-color: var(--d-store-stroke); }
+.os-legend .k-llm i { background: var(--d-llm-fill); border-color: var(--d-llm-stroke); }
+.os-legend .k-check i { background: var(--d-check-fill); border-color: var(--d-check-stroke); }
+.os-legend .k-stop i { background: var(--d-stop-fill); border-color: var(--d-stop-stroke); }
+.os-legend .k-user i { background: var(--d-user-fill); border-color: var(--d-user-stroke); }
+.os-legend .k-ext i { background: var(--d-ext-fill); border-color: var(--d-ext-stroke); border-style: dashed; }
+.os-legend .k-answer i { background: var(--d-answer-fill); border-color: var(--d-answer-stroke); }
+
+/* ───────────────────────── docs home cards ───────────────────────── */
+.markdown-section .os-cards-section { margin: 2.2em 0 0; }
+.markdown-section .os-cards-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.markdown-section .os-cards-head h2 { margin: 0; padding: 0; border: 0; font-size: 1.3em; }
+.markdown-section .os-cards-head h2 .fa { color: var(--os-brand); margin-right: 6px; font-size: .9em; }
+.markdown-section .os-cards-head p { margin: 0; color: var(--os-ink-faint); font-size: 14.5px; }
+.markdown-section .os-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.markdown-section .os-card {
+    display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 12px;
+    border: 1px solid var(--os-line); background: var(--os-card); box-shadow: 0 1px 2px rgba(15, 27, 45, .03);
+    transition: border-color .15s, box-shadow .15s, transform .15s; color: inherit;
+}
+.markdown-section .os-card:hover { border-color: var(--os-brand); box-shadow: var(--os-shadow); transform: translateY(-1px); }
+.markdown-section .os-card b { color: var(--os-ink); font-size: 15.5px; font-weight: 700; letter-spacing: -.01em; }
+.markdown-section .os-card b .fa { font-size: 11px; color: var(--os-ink-faint); margin-left: 4px; }
+.markdown-section .os-card span { color: var(--os-ink-soft); font-size: 14px; line-height: 1.5; }
+
+/* ───────────────────────── pager and footer ───────────────────────── */
+.markdown-section .os-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 64px 0 0; }
+.markdown-section .os-pager-link {
+    display: flex; flex-direction: column; gap: 4px; padding: 15px 18px; border-radius: 12px;
+    border: 1px solid var(--os-line); background: var(--os-card); transition: border-color .15s, box-shadow .15s;
+}
+.markdown-section .os-pager-link:hover { border-color: var(--os-brand); box-shadow: var(--os-shadow); }
+.markdown-section .os-pager-dir { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--os-ink-faint); }
+.markdown-section .os-pager-title { font-size: 16px; font-weight: 700; color: var(--os-ink); }
+.markdown-section .os-next { grid-column: 2; text-align: right; }
+@media (max-width: 600px) {
+    .markdown-section .os-pager { grid-template-columns: 1fr; }
+    .markdown-section .os-next { grid-column: 1; }
+}
+.markdown-section .os-page-footer {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px;
+    margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--os-line); font-size: 13px; color: var(--os-ink-faint);
+}
+.markdown-section .os-page-footer .os-footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.markdown-section .os-page-footer a { color: var(--os-ink-faint); }
+.markdown-section .os-page-footer a:hover { color: var(--os-brand-ink); }
+
+/* GitBook's own side arrows are replaced by the pager */
+.book .book-body .navigation { display: none !important; }
+
+/* back to top */
+.back-to-top {
+    width: 44px !important; height: 44px !important; border-radius: 50% !important; background: var(--os-grad) !important;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, .35); opacity: .92;
+}
+.back-to-top i { left: 14px !important; top: 11px !important; font-size: 19px !important; }
+
+/* search results */
+#book-search-results .search-results .search-results-title { color: var(--os-ink-soft); }
+#book-search-results .search-results .search-results-item h3 a { color: var(--os-brand-ink); }
+#book-search-results .search-results .has-results .search-results-item { border-bottom: 1px solid var(--os-line); }
+.markdown-section mark, #book-search-results mark { background: rgba(250, 204, 21, .35); color: inherit; border-radius: 3px; padding: 0 2px; }
+
+/* scrollbars */
+.book ::-webkit-scrollbar { width: 9px; height: 9px; }
+.book ::-webkit-scrollbar-thumb:vertical, .book ::-webkit-scrollbar-thumb:horizontal {
+    background-color: color-mix(in srgb, var(--os-ink-faint) 45%, transparent); border-radius: 8px;
+    border: 2px solid transparent; background-clip: padding-box;
+}
+
+/* dark: elements GitBook paints itself */
+@media (prefers-color-scheme: dark) {
+    .book .book-summary #book-search-input, #book-search-input-inside { background: transparent; }
+    .book-body .page-wrapper .page-inner section.normal { color: var(--os-ink-body); }
+    .markdown-section img { background: #fff; }
+}
+
+/* print */
+@media print {
+    .book .book-summary, .book .book-header, .markdown-section .os-pager, .markdown-section .os-page-footer,
+    .os-diagram-expand, .back-to-top { display: none !important; }
+    .book .book-body { left: 0 !important; transform: none !important; }
+    .markdown-section pre { box-shadow: none; }
+}
+
+/* ───────────────────────── buttons ───────────────────────── */
+.markdown-section .os-button-row { margin: 1.2em 0 1.6em; }
+.markdown-section a.os-button {
+    display: inline-flex; align-items: center; gap: 9px; padding: 11px 18px; border-radius: 10px;
+    background: var(--os-grad); color: #fff !important; font-weight: 700; font-size: 15px;
+    text-decoration: none !important; box-shadow: 0 6px 16px rgba(37, 99, 235, .25);
+    transition: transform .08s ease, box-shadow .15s;
+}
+.markdown-section a.os-button:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(37, 99, 235, .32); }

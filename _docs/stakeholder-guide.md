@@ -1,12 +1,11 @@
 ---
 title: Stakeholder Guide
+description: "What facility managers, occupants, researchers and others can ask, and how to phrase it."
 layout: post
 category: docs
 permalink: /docs/stakeholder-guide/
 date: 2026-07-03
 ---
-
-# Stakeholder guide: what can I ask?
 
 One chat interface serves everyone who uses or runs the building. You ask in plain English; you do
 not need sensor names, ids, SQL or SPARQL. This page shows the kinds of questions people bring,
@@ -24,6 +23,20 @@ Two rules apply throughout:
   changes emphasis and wording. What you may see is set by your account's role; see
   [Security & RBAC]({{ '/docs/security-rbac/' | relative_url }}).
 
+```mermaid
+%% caption: Two separate things shape an answer. The persona changes how it is framed; the account's role decides what it may contain.
+flowchart LR
+    P(["Person asking"]):::user
+    P --> PE["Persona<br/>student, researcher, facility manager,<br/>safety officer, executive, ..."]
+    P --> RO["Role of the account<br/>admin, facility_manager, analyst,<br/>operator, occupant, readonly"]:::check
+    PE -- "emphasis and wording" --> A(["Answer"]):::answer
+    RO -- "what may be seen and done" --> A
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 ## How to ask
 
 - **Name the place and the time** when they matter: "floor 3", "room 5.01", "last week",
@@ -40,6 +53,35 @@ Two rules apply throughout:
   the active building.
 
 ## Kinds of question
+
+```mermaid
+%% caption: The kinds of question in the table below, grouped by what answers them.
+mindmap
+  root((Ask the building))
+    Readings
+      Current values
+      History, trends, forecasts
+      Statistics
+      Comparisons
+      Charts and exports
+      Unusual readings
+    Spaces
+      Choosing a space
+      What exists
+      Floor plans and areas
+      Room readiness
+    Records and knowledge
+      Amenities and policies
+      Registers and records
+      Equipment and services
+      Compliance with standards
+    Actions
+      Report a problem
+      Alerts and preferences
+    The conversation
+      Earlier questions
+      OntoSage itself
+```
 
 | Kind | Examples | What the building needs |
 |---|---|---|

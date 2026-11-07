@@ -1,12 +1,11 @@
 ---
 title: Conversations and Follow-ups
+description: "How follow-ups, memory and questions about earlier answers work across a conversation."
 layout: post
 category: docs
 permalink: /docs/conversation/
 date: 2026-07-07
 ---
-
-# Conversations and follow-ups
 
 People rarely ask one self-contained question. They ask about a room, then say "and the humidity
 there?", "plot that", "the second one" or "how do you know that?". This page explains how OntoSage
@@ -26,6 +25,21 @@ Paths are relative to `orchestrator/` unless they start with `shared/`. The full
 | Postgres `messages` | The full transcript, kept until the user deletes the conversation | Not pruned |
 | Postgres `turn_memory` | One row per completed turn: the user's question, intent, entities, a one-line summary, carried-forward results and a bounded projection of the evidence record (`services/turn_memory.py`) | The newest 500 turns per conversation |
 | Qdrant `user_memory` | Cross-session memories for a signed-in user (`services/agent_memory.py`) | `CROSS_SESSION_MEMORY_ENABLED` (default `true`); never used for the shared anonymous identity |
+
+```mermaid
+%% caption: What a new turn starts from. The Redis copy is refilled from Postgres when it is shorter; older turns reach the model only as the figure-free session summary.
+flowchart LR
+    PM[("Postgres messages<br/>full transcript")]:::store -- "_fill_history_gap" --> W[("Redis conversation:&lt;id&gt;<br/>working copy, up to 400 messages")]:::store
+    TM[("Postgres turn_memory<br/>one row per turn")]:::store -- "session_summary.py<br/>subjects, no figures" --> SS["Session summary<br/>up to 2,200 characters"]
+    TM -- "get_carry_forward" --> CF["Carried results<br/>forecast, analytics,<br/>remembered location"]
+    QD[("Qdrant user_memory<br/>signed-in users only")]:::store -.-> ST
+    W --> ST(["This turn's state"]):::answer
+    SS --> ST
+    CF --> ST
+
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 Trimming the Redis copy loses nothing: `_fill_history_gap` in `main.py` refills it from Postgres on
 every chat route when the stored transcript is longer. Open WebUI also keeps its own copy of each chat
@@ -47,6 +61,16 @@ under two rules:
 - **The user's own questions are kept**, with anything that looks like a measurement redacted. Room
   and floor identifiers survive; "1,200 ppm" does not.
 
+```mermaid
+%% caption: How far back each part of the conversation reaches the model. The newest turns arrive as raw messages; older ones only as subjects.
+flowchart LR
+    O["Older turns<br/>one line naming their subjects,<br/>in first-seen order"] --> M["The ten turns before those<br/>one short line each:<br/>subject and outcome"] --> R["The last three turns<br/>the raw messages,<br/>not summarised"]:::answer
+    O ~~~ N["No answer text and no measured values<br/>in any summary line"]:::check
+
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 The three most recent turns are left out because the raw messages already cover them; the next ten
 appear as short lines; anything older is compressed into one line naming the subjects in the order
 they first appeared. The block is capped at 2,200 characters. The same rows, kept structured, are what
@@ -63,6 +87,23 @@ the Redis copy). The other chat routes restore the whole state bus from Redis, w
   chart code from nothing.
 - `remembered_location`, set whenever a message says where the user is ("I am in room ..."). It lasts
   for the session, and nearest-facility answers measure from it, saying so in their first line.
+
+```mermaid
+%% caption: "Now plot that" draws the result the user just saw, carried from the previous turn, instead of asking the model to write chart code from nothing.
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant O as OntoSage
+    participant T as turn_memory
+    U->>O: Forecast energy for next week
+    O->>T: save forecast_result with the turn
+    O-->>U: forecast with an uncertainty band
+    U->>O: now plot that
+    O->>T: get_carry_forward
+    T-->>O: forecast_result
+    Note over O: visualization node plots<br/>the stored forecast
+    O-->>U: chart of that forecast
+```
 
 If the previous answer offered a chart and the user replies "yes please" or "go ahead",
 `_affirmation_to_chart` turns the reply into the chart request the earlier question implied.
@@ -194,6 +235,22 @@ the lift broken?") is answered and never filed.
 5. **Follow up.** "What is the status of REP-..." looks the report up, limited to the asker's own
    reports. "What is the status of that report?" works too: `resolve_report_reference` puts the id from
    the previous reply into the question. A message asking for "my reports" lists them.
+
+```mermaid
+%% caption: A report's life. Filing and acknowledging happen in one turn; the status is read back later, only by the person who filed it.
+flowchart TB
+    S(["the fire exit on floor 3<br/>is blocked by boxes"]):::user --> C{"Statement or<br/>question?"}:::check
+    C -- question --> L["Answered by a lane,<br/>never filed"]
+    C -- statement --> F[("user_reports row<br/>category, priority,<br/>location, reporter")]:::store
+    F --> A(["REP-XXXXXX acknowledged<br/>urgent: call the emergency line"]):::answer
+    A -. "no location given" .-> W(["Which room, floor or<br/>equipment? (asked once)"]):::user
+    Q(["status of that report?"]):::user --> RR["resolve_report_reference<br/>puts in the REP id"] --> F
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 Examples from the intent file: *"the light in room 3.01 is broken"*, *"the fire exit on floor 3 is
 blocked by boxes"*, *"what is the status of REP-A1B2C3"*.

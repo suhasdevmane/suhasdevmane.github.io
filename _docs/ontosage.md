@@ -1,12 +1,11 @@
 ---
 layout: post
 title: Technical Reference
+description: "The repository layout, agents, services, per-building inputs and developer scripts."
 date: 2026-07-23
 category: docs
 permalink: /docs/ontosage/
 ---
-
-# Technical reference
 
 This page is the reference for contributors and operators: where the code lives, what each agent
 and service does, which files a building supplies and how they are checked, and the supporting
@@ -254,6 +253,25 @@ is quiet for 30 minutes (`rules:fired:...`). Alerts are stored in `user_reports`
 `[RULE ALERT]` title and dispatched by `services/notification_service.py` to the channels in
 `channels.yaml`:
 
+```mermaid
+%% caption: One standing rule, every 60 seconds. A breach must last duration_min before it fires; a fired rule stays quiet for 30 minutes.
+flowchart TD
+    T(["Every 60 s"]):::user --> W["Rule trigger<br/>a sensor UUID, or a concept<br/>narrowed to a floor or space"]
+    W --> C{"Reading breaches<br/>op threshold?"}:::check
+    C -- no --> CL["Breach start cleared"]
+    C -- yes --> D{"Breached for<br/>duration_min?<br/>rules:breach_start"}:::check
+    D -- no --> WAIT["Keep watching"]
+    D -- yes --> Q{"Fired in the<br/>last 30 min?<br/>rules:fired"}:::check
+    Q -- yes --> WAIT
+    Q -- no --> F[("Alert stored in user_reports<br/>[RULE ALERT]")]:::store
+    F --> N["notification_service"]
+    N --> L1["log"] & L2["webhook"] & L3["smtp"]
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef store fill:#ecfdf5,stroke:#059669
+```
+
 | Channel type | Behaviour |
 |---|---|
 | `log` | Always present; writes to the application log. |
@@ -284,6 +302,24 @@ refusal that says why. With both, the lane creates a pending request and replies
 "approve <id>" from an `admin` or `facility_manager` then executes it through the driver. Every
 step is logged.
 
+```mermaid
+%% caption: A set-point command never reaches real equipment. Without a driver or the control:write permission it is refused; with both, it waits for an approval and the simulation driver only records it.
+flowchart TD
+    C(["set room 5.01 to 21 degrees"]):::user --> CL["Control lane"]
+    CL --> G{"actuation driver configured<br/>and role holds control:write?"}:::check
+    G -- no --> R(["Refused, with the reason"]):::stop
+    G -- yes --> P(["Pending request, reply gives its id"]):::answer
+    P --> A{"approve &lt;id&gt; from admin<br/>or facility_manager"}:::check
+    A --> S["SimDriver"]
+    S --> L[("actuation_log<br/>nothing else is touched")]:::store
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef check fill:#fffbeb,stroke:#d97706
+    classDef stop fill:#fef2f2,stroke:#dc2626
+    classDef store fill:#ecfdf5,stroke:#059669
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
+
 ## Goal planner (not wired)
 
 `services/goal_planner.py` breaks an open goal ("make the building more eco-friendly") into KPI
@@ -309,6 +345,18 @@ the chat interface:
 
 It also exposes the resources `building://info` and `building://sensor-catalog`, and keeps one
 conversation per server process, so a follow-up has the earlier question as context.
+
+```mermaid
+%% caption: The MCP server is a proxy. Each tool asks the same pipeline as the chat interface, signed in either as an OntoSage account or with the pipeline key.
+flowchart TB
+    MC(["MCP client<br/>desktop app or agent"]):::user -- "stdio or<br/>streamable-http :8003" --> MS["mcp-server<br/>FastMCP tools and resources"]
+    MS -- "MCP_USERNAME + MCP_PASSWORD<br/>→ /auth/login, then /chat" --> O["Orchestrator :8000"]
+    MS -- "MCP_PIPELINE_KEY<br/>→ /v1/chat/completions" --> O
+    O --> A(["Same answer path,<br/>same checks"]):::answer
+
+    classDef user fill:#f1f5f9,stroke:#475569
+    classDef answer fill:#e0f2fe,stroke:#0284c7
+```
 
 **Signing in to the orchestrator.** Set either `MCP_USERNAME` and `MCP_PASSWORD` (an OntoSage
 account; the proxy signs in with `/auth/login` and asks through `/chat` with that account's role)

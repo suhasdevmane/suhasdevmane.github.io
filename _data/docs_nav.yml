@@ -1,0 +1,69 @@
+# The documentation's navigation, in reading order. One source for three things: the grouped
+# sidebar (_includes/toc-date.html), the cards on the docs home page (docs/index.html) and the
+# previous/next links at the foot of each page (_includes/body.html).
+#
+# An item is a docs page (url only; its title and description come from the page's front
+# matter) or an outside page (external: true, with its own title and description).
+
+- title: Start here
+  key: start
+  icon: fa-rocket
+  blurb: What OntoSage is, how to run it, and what people ask it.
+  items:
+    - url: /docs/introduction/
+    - url: /docs/quickstart/
+    - url: /docs/stakeholder-guide/
+
+- title: How it answers
+  key: answers
+  icon: fa-comments-o
+  blurb: What happens between a question and its answer.
+  items:
+    - url: /docs/how-it-answers/
+    - url: /docs/answer-lanes/
+    - url: /docs/checks-and-honesty/
+    - url: /docs/conversation/
+    - url: /docs/analytics-forecasting/
+
+- title: Your building
+  key: building
+  icon: fa-building-o
+  blurb: Model a building, connect its readings and bring it online.
+  items:
+    - url: /docs/your-own-building/
+    - url: /docs/onboarding-building/
+    - url: /docs/write-ttl/
+    - url: /docs/edit-ttl/
+    - url: /docs/data-sources/
+
+- title: Ontology
+  key: ontology
+  icon: fa-sitemap
+  blurb: The vocabulary OntoSage adds to Brick, term by term.
+  items:
+    - url: /docs/ontology-browser/
+    - url: /explorer/
+      external: true
+      title: Ontology Explorer
+      description: The schema as a class tree, searchable by everyday words.
+    - url: /docs/ontology-relationships/
+    - url: /docs/ontology-extensions/
+    - url: /docs/ocbv-schema/
+
+- title: Run and operate
+  key: operate
+  icon: fa-cogs
+  blurb: Services, the admin console, settings and access control.
+  items:
+    - url: /docs/architecture/
+    - url: /docs/admin-console/
+    - url: /docs/configuration/
+    - url: /docs/security-rbac/
+
+- title: Reference
+  key: reference
+  icon: fa-book
+  blurb: Every route, module and script.
+  items:
+    - url: /docs/api-reference/
+    - url: /docs/ontosage/

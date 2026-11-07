@@ -1,24 +1,29 @@
 ---
-layout: home
+layout: post
+title: Page not found
+description: There is no page at this address. It may have moved when the documentation was reorganised.
+section: Docs
+hide_meta: true
+sitemap: false
 ---
 
-<style type="text/css" media="screen">
-  .container {
-    margin: 10px auto;
-    max-width: 600px;
-    text-align: center;
-  }
-  h1 {
-    margin: 30px 0;
-    font-size: 4em;
-    line-height: 1;
-    letter-spacing: -1px;
-  }
-</style>
+<p>Try one of these instead:</p>
 
-<div class="container">
-  <h1>404</h1>
-
-  <p><strong>Page not found :(</strong></p>
-  <p>The requested page could not be found.</p>
+<div class="os-cards">
+    <a class="os-card" href="{{ '/docs/' | relative_url }}">
+        <b>Documentation home</b>
+        <span>Every page, grouped by what you want to do.</span>
+    </a>
+    <a class="os-card" href="{{ '/docs/quickstart/' | relative_url }}">
+        <b>Quick Start</b>
+        <span>From a fresh clone to a first answer.</span>
+    </a>
+    <a class="os-card" href="{{ '/explorer/' | relative_url }}">
+        <b>Ontology Explorer <i class="fa fa-external-link" aria-hidden="true"></i></b>
+        <span>The schema as a class tree, searchable by everyday words.</span>
+    </a>
+    <a class="os-card" href="{{ '/' | relative_url }}">
+        <b>OntoSage home</b>
+        <span>What OntoSage is, in one page.</span>
+    </a>
 </div>
